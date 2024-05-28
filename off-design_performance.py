@@ -1,6 +1,6 @@
 """
 The following Python code uses the inducer and impeller geometry from the geometry code
-(FinalDesignCode) and predicts the performance of the compressor at off-design points.
+(geometry.py) and predicts the performance of the compressor at off-design points.
 
 Note that the letter B and number inside the brackets in some of the lines of code correspond
 to the equations in NASA’s Fortran model (B46, B47…B60 for example). The B denotes
@@ -22,10 +22,15 @@ Author: Martin Spillum Grønli (SINTEF Energy Research, 2024)
 
 
 ### Import---------------------------------------------------------------------------------------------------
-import geometry
+import geometry     # MSG: This runs the geometry.py file. Avoid this by including main function?
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+
+
+# Set plot parameters------------------------------------------------------------------------------
+plt.rcParams.update(plt.rcParamsDefault)
+plt.rcParams.update({'font.size': 15})
 
 
 ### Variables------------------------------------------------------------------------------------------------
@@ -94,16 +99,16 @@ P1arms = []
 for i in range(0, len(VOVCR)):
     eps.append(math.degrees(math.atan((1 - BBF) * math.tan(math.radians(beta1rms[i])) / (1 + BBF * math.tan(math.radians(beta1rms[i])) ** 2))))     # (B40) Difference between compressor inlet relative flow angle and optimum incidence angle [degrees]
     betaopt.append(beta1rms[i] - eps[i])                                # (B42) Optimum relative flow angle [degrees]
-    WL.append(W1rmso[i] * math.sin(math.radians(abs(betaopt[i] - beta1rms[i]))))    # (B43) Component of relative velocity lost [m/s]
+    WL.append(W1rmso[i] * math.sin(math.radians(abs(betaopt[i] - beta1rms[i]))))                # (B43) Component of relative velocity lost [m/s]
     dhinc.append((WL[i] ** 2) / (2 * geometry.Cp))                      # (B44) Enthalpy loss due to incidence [J/kg]
     T1orel.append(T1[i] + W1rmso[i] ** 2 / (2 * geometry.Cp))           # Off design inlet relative temperature [K]
-    WCR.append((2 * (geometry.k - 1)/(geometry.k + 1) * geometry.R * T1orel[i]) ** 0.5)            # Critical inlet relative velocity [m/s]
+    WCR.append((2 * (geometry.k - 1)/(geometry.k + 1) * geometry.R * T1orel[i]) ** 0.5)         # Critical inlet relative velocity [m/s]
     W1rmseff.append(W1rmso[i] * math.cos(betaopt[i] - beta1rms[i]))     # Effective relative velocity [m/s]
-    T0T1.append(1 - (geometry.k - 1) / (geometry.k + 1) * (W1rmseff[i] / WCR[i]) ** 2)    # Ratio of inlet static temperatures [-]
+    T0T1.append(1 - (geometry.k - 1) / (geometry.k + 1) * (W1rmseff[i] / WCR[i]) ** 2)          # Ratio of inlet static temperatures [-]
     T1a.append(T1orel[i] * T0T1[i])                                     # Temperature just inside the blade [K]
     T1rmso.append(T00i[i] - (Cm1rms[i] ** 2 / (2 * geometry.Cp)))       # Off design Root mean square of static temperature at inlet [K]
-    P1rmso.append(geometry.P00 * (T1rmso[i] / T00i[i]) ** (geometry.k / (geometry.k - 1)))             # Off design root mean square of static pressure at the inlet [Pa]
-    P1arms.append(P1rmso[i] * math.exp(( - 1 * dhinc[i]) / (T1a[i] * geometry.R)))   # (B45) Total pressure just inside the bladed row [Pa]
+    P1rmso.append(geometry.P00 * (T1rmso[i] / T00i[i]) ** (geometry.k / (geometry.k - 1)))      # Off design root mean square of static pressure at the inlet [Pa]
+    P1arms.append(P1rmso[i] * math.exp(( - 1 * dhinc[i]) / (T1a[i] * geometry.R)))              # (B45) Total pressure just inside the bladed row [Pa]
 
 
 ### Impeller Work and Losses----------------------------------------------------------------------------
@@ -264,7 +269,7 @@ plt.xlim(0, 1)
 plt.show()
 
 plt.figure()
-plt.plot(mdoto, Pro, 'r', label = "120000 RPM", linewidth = 1.25)
+plt.plot(mdoto, Pro, 'r', label = "120 000 RPM", linewidth = 2)
 plt.xlabel("Mass flow rate (kg/s)")
 plt.ylabel("Pressure ratio (-)")
 plt.title("Compressor Map")
@@ -272,22 +277,22 @@ plt.title("Compressor Map")
 
 ### Matching-------------------------------------------------------------------------------------------
 comp_power = [100]      # Compressor power [kW]
-speed = [120]           # Shaft Speed [krpm]
+speed = [120]           # Shaft Speed [krpm]    MSG: Not in use
 T1 = 293                # Inlet stagnation temperature [K]
-cp = 1.005              # Specific heat at constant pressure [kJ]
+cp = 1.006              # Specific heat at constant pressure [kJ]
 y = 1.4                 # Ratio of specific heats
 P = 0.1013              # Inlet pressure [MPa]
 eta = 0.6               # Assumed efficiency
 
 
-### Line of constant power------------------------------------------------------------------
+### Line of constant power------------------------------------------------------------------------------
 def pressure_ratio1(mdot, eta, comp_power, T1, y, cp):
     return (eta * comp_power / (mdot * cp * T1) + 1) ** (y / (y - 1))
 
 mdot = np.linspace(0.0001, 1.4, 60)
-for i in range(1):
+for i in range(len(comp_power)):
     Pr = pressure_ratio1(mdot, eta, comp_power[i], T1, y, cp)
-plt.plot(mdot, Pr, 'g-', label = "100 kW", linewidth = 1.25)
+    plt.plot(mdot, Pr, 'g-', label = str(comp_power[i]) + " kW", linewidth = 2)
 plt.xlim(0, 0.6)
 plt.ylim(1, 8)
 plt.legend()

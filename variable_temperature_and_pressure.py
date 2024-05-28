@@ -19,7 +19,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-# Variables---------------------------------------------------------------------------------------
+# Set plot parameters------------------------------------------------------------------------------
+plt.rcParams.update(plt.rcParamsDefault)
+plt.rcParams.update({'font.size': 15})
+
+
+# Variables----------------------------------------------------------------------------------------
 cp = 1.006                  # Specific heat at constant pressure [kJ]
 y = 1.4                     # Ratio of specific heats [-]
 eta = 0.75                  # Assumed efficiency [-]
@@ -29,7 +34,7 @@ P1 = 0.1                    # Inlet pressure [MPa]
 mfp_arr = np.linspace(0.0001, 160, 100)    # Mass flow parameter [10^(- 6) s K^0.5]
 
 
-# Pressure ratio as a function of mass flow parameter, Equation [8]------------------------------
+# Pressure ratio as a function of mass flow parameter, Equation [8]--------------------------------
 def pressure_ratio(mfp, eta, comp_power, P1, T1, y, cp):
     return (eta * comp_power / (mfp * cp * P1 * T1 ** 0.5) + 1) ** (y / (y - 1))
 
@@ -41,9 +46,9 @@ for i in range(len(comp_power)):
     plt.plot(mfp_arr, Pr, linewidth = 2, label = str(comp_power[i]) + ' kW')
 plt.xlim(0, 160)
 plt.ylim(0, 5.0)
-plt.xlabel('Mass flow parameter (MFP)', fontsize = 15)
-plt.ylabel('Total to total pressure ratio', fontsize = 15)
-plt.title('Requirement lines', fontsize = 15)
+plt.xlabel('Mass flow parameter (MFP)')
+plt.ylabel('Total to total pressure ratio')
+plt.title('Requirement lines')
 plt.legend()
 #plt.show()
 
@@ -56,9 +61,9 @@ for i in range(len(T1_arr)):
     plt.plot(mfp_arr, Pr, linewidth = 2, label = str(T1_arr[i]) + ' K')
 plt.xlim(0, 140)
 plt.ylim(0, 5.0)
-plt.xlabel('Mass flow parameter (MFP)', fontsize = 15)
-plt.ylabel('Total to total pressure ratio', fontsize = 15)
-plt.title('Variable inlet temperature', fontsize = 15)
+plt.xlabel('Mass flow parameter (MFP)')
+plt.ylabel('Total to total pressure ratio')
+plt.title('Variable inlet temperature')
 plt.legend()
 #plt.show()
 
@@ -71,9 +76,9 @@ for i in range(len(P_arr)):
     plt.plot(mfp_arr, Pr, linewidth = 2, label = str(P_arr[i]) + ' MPa')
 plt.xlim(0, 140)
 plt.ylim(0, 5.0)
-plt.xlabel('Mass flow parameter (MFP)', fontsize = 15)
-plt.ylabel('Total to total pressure ratio', fontsize = 15)
-plt.title('Variable inlet pressure', fontsize = 15)
+plt.xlabel('Mass flow parameter (MFP)')
+plt.ylabel('Total to total pressure ratio')
+plt.title('Variable inlet pressure')
 plt.legend()
 #plt.show()
 
@@ -88,8 +93,8 @@ for i in range(len(comp_power)):
     plt.plot(mdot, Pr, linewidth = 2, label = str(comp_power[i]) + ' kW')
 plt.xlim(0, 1.4)
 plt.ylim(0, 5.0)
-plt.xlabel('Mass flow rate [kg/s]', fontsize = 15)
-plt.ylabel('Total to total pressure ratio', fontsize = 15)
+plt.xlabel('Mass flow rate [kg/s]')
+plt.ylabel('Total to total pressure ratio')
 plt.legend()
 #plt.show()
 
@@ -103,14 +108,14 @@ plt.plot([25.10948472, 31.16982327, 38.02921278, 44.41023875, 51.27211801, 57.49
          [56.90506563, 62.00796574, 68.38685764, 73.4922475, 79.5600553, 85.18435604], [4.562123672, 4.552943293, 4.534582534, 4.4611395, 4.240810397, 3.120804125], 'k-o',
          [12.69337336, 24.79093137, 36.55926568, 51.51277779, 56.74561111], [1.550959268, 2.092601646, 2.900475022, 3.809332571, 4.562123672], 'k-o',
          [39.49133496, 57.34028149, 74.22467601, 80.90078055, 85.02419017], [1.303089027, 1.560139647, 2.019158611, 2.560800989, 3.139164883], 'k-o')
-plt.annotate('126.86 RPS/K', xy = (56.74561111, 4.562123672), xytext = (50, 4.7), fontsize = 15)
-plt.annotate('114.17 RPS/K', xy = (51.51277779, 3.809332571), xytext = (38, 4), fontsize = 15)
-plt.annotate('97.58 RPS/K', xy = (36.55926568, 2.900475022), xytext = (27, 3), fontsize = 15)
-plt.annotate('78.07 RPS/K', xy = (24.79093137, 2.092601646), xytext = (15, 2.2), fontsize = 15)
-plt.annotate('58.55 RPS/K', xy = (12.69337336, 1.550959268), xytext = (10, 1.25), fontsize = 15)
+plt.annotate('126.86 RPS/K', xy = (56.74561111, 4.562123672), xytext = (50, 4.7))
+plt.annotate('114.17 RPS/K', xy = (51.51277779, 3.809332571), xytext = (38, 4))
+plt.annotate('97.58 RPS/K', xy = (36.55926568, 2.900475022), xytext = (27, 3))
+plt.annotate('78.07 RPS/K', xy = (24.79093137, 2.092601646), xytext = (15, 2.2))
+plt.annotate('58.55 RPS/K', xy = (12.69337336, 1.550959268), xytext = (10, 1.25))
 plt.xlim(0, 100)
 plt.ylim(0, 5.0)
-plt.xlabel('Mass flow parameter (MFP)', fontsize = 15)
-plt.ylabel('Total to total pressure ratio', fontsize = 15)
-plt.title('Holset HE351Ve compressor map', fontsize = 15)
+plt.xlabel('Mass flow parameter (MFP)')
+plt.ylabel('Total to total pressure ratio')
+plt.title('Holset HE351Ve compressor map')
 plt.show()

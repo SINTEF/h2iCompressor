@@ -16,6 +16,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+# Set plot parameters------------------------------------------------------------------------------
+plt.rcParams.update(plt.rcParamsDefault)
+plt.rcParams.update({'font.size': 15})
+
+
 ### Variables-------------------------------------------------------------------------------------------
 P00 = 101300        # Inlet stagnation pressure [Pa]
 T00 = 293           # Inlet stagnation temperature [K]
@@ -118,7 +123,7 @@ C2 = (Ctheta2m ** 2 + Cm2m ** 2) ** 0.5     # Absolute exit velocity [m/s]
 
 ### Diffuser Calculation----------------------------------------------------------------------------------
 etad = 0.85                                 # Estimated diffuser efficiency
-CpDi = 1 - (AR ** - 2)                      # Ideal pressure recovery coefficient
+CpDi = 1 - 1 / (AR ** 2)                    # Ideal pressure recovery coefficient
 CpD = etad * CpDi                           # Pressure recovery coefficient
 P3 = P2m + CpD * (P02m - P2m)               # Diffuser exit static pressure [Pa]
 C3 = C2 / AR                                # Diffuser exit absolute velocity [m/s]
