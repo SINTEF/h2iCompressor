@@ -24,7 +24,7 @@ Ndes = 120000       # Rotational speed [rpm]
 alpha1 = 0          # Absolute inlet velocity angle [degrees]
 rh1 = 0.01          # Hub radius [mm]
 B1 = 0.04           # Boundary layer blockage [-]
-Cp = 1005           # Specific heat at constant pressure [kJ/kg/K]
+Cp = 1006           # Specific heat at constant pressure [kJ/kg/K]
 k = 1.4             # Ratio of specific heats [-]
 R = 287             # Air gas constant [J/kg/K]
 Cm1i = np.arange(100, 300.5, 0.5)       # Absolute meridional velocity [m/s]
@@ -69,7 +69,7 @@ W1t = W1ti[np.argmin(W1ti)]
 Cm1 = Cm1i[np.argmin(W1ti)]
 beta1 = math.degrees(math.atan((U1t - Ctheta1) / Cm1))      # Inlet relative velocity [degrees]
 
-def W1tminimise(Cm1i, U1ti, Ctheta1i):      # MSG: Rename function (not a minimization function)
+def W1tminimise(Cm1i, U1ti, Ctheta1i):                      # MSG: Rename function (not a minimization function)
     return (Cm1i ** 2 + ((U1ti ** 2) - (Ctheta1i ** 2))) ** 0.5     # MSG: Should be (Cm1i ** 2 + (U1ti - Ctheta1i) ** 2) ** 0.5?
     #return (Cm1i ** 2 + (U1ti - Ctheta1i) ** 2) ** 0.5
 
