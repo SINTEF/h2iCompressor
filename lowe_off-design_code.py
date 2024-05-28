@@ -29,7 +29,7 @@ import matplotlib.pyplot as plt
 
 
 ### Variables------------------------------------------------------------------------------------------------
-Ndes = 120000
+Ndes = 120e3
 No = 1.0            # Off design speed percentage that requires performance prediction [rpm]
 tu = 0.002          # Blade thickness [m]
 rho0 = 1.1839       # Stagnation density of air [kg/m^3]
@@ -37,13 +37,13 @@ curvet1 = 0         # Inducer inlet tip wall curvature [m^-1]
 curveh1 = 0         # Inducer inlet hub wall curvature [m^-1]
 x = 10              # Streamline angle [degrees] from axial direction
 VCR = math.sqrt(2 * k / (k + 1) * R * T00)      # Critical Velocity [m/s]
-VOVCR = np.arange(0.1, 0.8, 0.025)              # Compressor inlet absolute critical velocity ratio [-]
-Cm1h = VOVCR*VCR    # Absolute meridional velocity of the hub [m/s]
+VOVCR = np.linspace(0.1, 0.68, 30)              # Compressor inlet absolute critical velocity ratio [-]
+Cm1h = VOVCR * VCR  # Absolute meridional velocity of the hub [m/s]
 kBL = 0.6           # Blading loss coefficient [-]
 visc = 1.778e-5     # Air viscosity based on total conditions
 kSF = 7.0           # Skin friction coefficient [-]
 Cf = 0.01           # Friction coefficient [-]
-T00i = np.full(len(VOVCR),293)
+T00i = np.full(len(VOVCR), 293)
 
 
 ### Calculation of Inlet Velocity Triangles and Compressor Weight Flow (Swirl free)----------------------------
@@ -124,7 +124,7 @@ def Densityiteration(rho2o):
     VSL = U2o * (1 - sigma)                         # (B51) Slip velocity [m/s]
     Vtheta2 = (U2o - Vm2m * math.tan(math.radians( - beta2b)) - VSL)    # (B50) Tangential component of exit absolute velocity [m/s]
     T1orelrms = T1 + W1rmso ** 2 / (2 * Cp)         # Relative root mean square temperature [K]
-    T2orel = T1orelrms + ((U2o ** 2 - U1t ** 2)/(2 * Cp))   # (B52) Exit temperature in the relative reference frame [k]
+    T2orel = T1orelrms + ((U2o ** 2 - U1t ** 2) / (2 * Cp))   # (B52) Exit temperature in the relative reference frame [K]
     #T2orel = T1 + ((U2o ** 2 - U1t ** 2) / (2 * Cp))
     Wtheta2 = U2o - Vtheta2                         # (B53) Tangential component of relative exit velocity [m/s]
     W2 = ((Vm2m ** 2) + (Wtheta2 ** 2)) ** 0.5      # (B54) Relative exit velocity [m/s]
@@ -145,8 +145,9 @@ def Densityiteration(rho2o):
     dhid = (dhaero - dhinc - dhSF - dhDF - dhBL)    # (B68) Ideal enthalpy rise [J/kg]
     etaR = dhid / dhaero                            # (B69) Impeller efficiency [-]
     P2oabs = (P1arms * (etaR * dhaero / (Cp * T00) + 1) ** (k / (k - 1)))       # (B70) Iteration of the off design exit absolute pressure [Pa]
-    if T2o < 0:             # MSG: Added this if statement to raise error if negative temperatures
-        raise ValueError("Temperature T2o is negative")     
+    for Temp in T2o:
+        if Temp < 0:             # MSG: Added this if statement to raise error if negative temperatures
+            raise ValueError("Temperature T2o is negative") 
     P2o = (P2oabs / ((T2oabs / T2o) ** (k / (k - 1))))      # (B71) Iteration of the off design exit pressure [Pa]      
     rho2oit = P2o / (R * T2o)                       # (B72) Iteration of the off design exit density [kg/m^3]
     return [rho2oit, T2o, dhaero, dhBL, dhDF, dhSF, dhid, T2oabs, P2oabs, Vtheta2, Vm2m, Df, P2o]
@@ -195,7 +196,7 @@ def Density():
                     P2o.append(Densityiteration(rho[- 1])[12][i])
                 else:
                     rho.append(Densityiteration(rho[- 1])[0][i])
-        return [RHO, T2o, dhaero, dhBL, dhDF, dhSF, dhid, T2oabs, P2oabs, Vtheta2, Vm2m, Df, P2o]
+    return [RHO, T2o, dhaero, dhBL, dhDF, dhSF, dhid, T2oabs, P2oabs, Vtheta2, Vm2m, Df, P2o]
 
 rho2 = np.array(Density()[0])
 T2o = np.array(Density()[1])
@@ -249,18 +250,19 @@ Pro = []
 for i in range(0, len(VOVCR)):
     etao.append((dhaero[i] - (dhinc[i] + dhBL[i] + dhSF[i] + dhVLD[i])) / (dhaero[i] + dhRC[i] + dhDF[i]))
     Pro.append(P3o[i] / P00)
+
 print("Mass flow rate =", mdoto)
 print("Pressure ratio =", Pro)
 print("Efficiency =", etao)
+
 plt.figure()
 plt.plot(mdoto, etao, 'b-')
 plt.xlabel("Mass flow rate (kg/s)")
 plt.ylabel("Efficiency (%)")
-
-
 plt.title("Efficiency contour")
 plt.xlim(0, 1)
 plt.show()
+
 plt.figure()
 plt.plot(mdoto, Pro, 'r', label = "120000 RPM", linewidth = 1.25)
 plt.xlabel("Mass flow rate (kg/s)")
@@ -279,13 +281,14 @@ eta = 0.6               # Assumed efficiency
 
 
 ### Line of constant power------------------------------------------------------------------
-def pressure_ratio1(mdot, eta, comp_power, P, T1, y, cp):
+def pressure_ratio1(mdot, eta, comp_power, T1, y, cp):
     return (eta * comp_power / (mdot * cp * T1) + 1) ** (y / (y - 1))
-mdot = np.arange(0, 1.4, 0.025)
+
+mdot = np.linspace(0.0001, 1.4, 60)
+for i in range(1):
+    Pr = pressure_ratio1(mdot, eta, comp_power[i], T1, y, cp)
+plt.plot(mdot, Pr, 'g-', label = "100 kW", linewidth = 1.25)
 plt.xlim(0, 0.6)
 plt.ylim(1, 8)
-for i in range(1):
-    Pr = pressure_ratio1(mdot, eta, comp_power[i], P, T1, y, cp)
-plt.plot(mdot, Pr, 'g-', label = "100 kW", linewidth = 1.25)
-plt.show()
 plt.legend()
+plt.show()
