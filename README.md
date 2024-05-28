@@ -1,1 +1,1 @@
-README for compressor code developed by NASA (https://software.nasa.gov/software/LEW-17450-1 & https://ntrs.nasa.gov/citations/19740001912, 1973) and translated to Python by Mitchell Lowe (https://doi.org/10.14264/uql.2017.244, 2016).
+README for centrifugal compressor code developed by NASA (https://software.nasa.gov/software/LEW-17450-1 & https://ntrs.nasa.gov/citations/19740001912, 1973) and translated to Python by Mitchell Lowe (https://doi.org/10.14264/uql.2017.244, 2016).
