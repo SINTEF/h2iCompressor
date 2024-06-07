@@ -10,7 +10,7 @@ Author: Martin Spillum Grønli (SINTEF Energy Research, 2024)
 """
 
 
-### Import-------------------------------------------------------------------------------------------
+### Import----------------------------g---------------------------------------------------------------
 import math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -31,7 +31,10 @@ rh1 = 0.01          # Hub radius [mm]
 B1 = 0.04           # Boundary layer blockage [-]
 Cp = 1006           # Specific heat at constant pressure [kJ/kg/K]
 k = 1.4             # Ratio of specific heats [-]
-R = 287             # Air gas constant [J/kg/K]
+#R = 287             # Air gas constant [J/kg/K] # Change to gas constant / molecular weight
+M = 0.02897         # Molecular weight of ? [kg/mol]. Change to hydrogen
+R_uni = 8.314       # Universal gas constant [J/mol/K]
+R = R_uni / M       # Specific gas constant [J/kg/K]
 Cm1i = np.arange(100, 300.5, 0.5)       # Absolute meridional velocity [m/s]
 Pr = 4.8            # Pressure ratio [-]
 lambda2 = 2         # Exit swirl parameter
@@ -98,7 +101,6 @@ plt.plot(Cm1i, W1tmin)
 plt.xlabel("Cm1 (m/s)")
 plt.ylabel("W1t (m/s)")
 plt.title("Minimisation of W1t")
-plt.show()
 
 
 ### Impeller calculation---------------------------------------------------------------------------------
@@ -149,3 +151,5 @@ if rt1 / (0.5 * D2) < math.exp(- 8.16 * math.cos(beta2b) / ZB):     # Check for 
     print("sigma valid")
 else:
     print("sigma invalid!")
+
+plt.show()
