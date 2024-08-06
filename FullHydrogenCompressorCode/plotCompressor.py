@@ -2,7 +2,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-def plotCompressorParam(systemVar, Zcompressor, designParam, flowVar, text):
+def plotCompressorParam(systemVar, Zcompressor, designParam, flowVar):
     # ------------- PLOTTING ------------ 
     """
     systemVar = [etaStage0, lambda2, iterTol, Zbarr, beta2bArr]
@@ -42,9 +42,6 @@ def plotCompressorParam(systemVar, Zcompressor, designParam, flowVar, text):
     U2 = flowVar[4]
     U2Crit = flowVar[5]
 
-    text1 = text[0]
-    text2 = text[1]
-
     x = ZBarr                  # SAME FOR ALL COUNTOURS
     y = np.rad2deg(beta2bArr)     # SAME FOR ALL COUNTOURS
 
@@ -52,7 +49,7 @@ def plotCompressorParam(systemVar, Zcompressor, designParam, flowVar, text):
     lvls = 30
     colorTheme = 'Reds'
     
-    fig, axs2 = plt.subplots(3, 3)
+    fig, axs2 = plt.subplots(2, 3)
     fig.set_figwidth(15)
     fig.set_figheight(15)
     fig.suptitle(r'Compressor design parameters for proposed $\eta$ = ' + str(etaStage0) +  r' , $\lambda _{2}$ = ' + str(lambda2) + ' and Tolerance set to ' +str(iterTol*100) + '% .', y=0.98, x=0.4)
@@ -122,15 +119,4 @@ def plotCompressorParam(systemVar, Zcompressor, designParam, flowVar, text):
     axs2[i, j].set_title(r'Outlet flow angle $ \beta _{2}$ [m/s] ' , fontsize=12)
     axs2[i, j].grid()
 
-    # -------------- Textbox -------------
-    i=2
-    j=1          
-    axs2[i, j].axis('off')  # Turn off the axis
-    axs2[i, j].text(0.0, 0.5, text1, ha='left', va='center', fontsize=12, linespacing =1.8 )
-
-    # -------------- Textbox -------------
-    i=2
-    j=2
-    axs2[i, j].axis('off')  # Turn off the axis
-    axs2[i, j].text(0.0, 0.5, text2, ha='left', va='center', fontsize=12, linespacing =1.8 )
 

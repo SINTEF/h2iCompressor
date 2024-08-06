@@ -2,7 +2,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-def plotFlowConditions(systemVar, Zflow, designParam, flowVar, text ):
+def plotFlowConditions(systemVar, Zflow, designParam, flowVar ):
     # ------------- PLOTTING ------------ 
     """
     systemVar = [etaStage0, lambda2, iterTol, Zbarr, beta2bArr]
@@ -44,8 +44,7 @@ def plotFlowConditions(systemVar, Zflow, designParam, flowVar, text ):
     U2 = flowVar[4]
     U2Crit = flowVar[5]
 
-    text1 = text[0]
-    text2 = text[1]
+
 
     x = ZBarr                  # SAME FOR ALL COUNTOURS
     y = np.rad2deg(beta2bArr)     # SAME FOR ALL COUNTOURS
@@ -151,17 +150,4 @@ def plotFlowConditions(systemVar, Zflow, designParam, flowVar, text ):
 
 
 
-   
-
-    # -------------- Textbox -------------
-    i=1
-    j=1
-    axs21[i, j].axis('off')  # Turn off the axis
-    axs21[i, j].text(0.0, 0.5, text1, ha='left', va='center', fontsize=12, linespacing = 1.8 )
-
-    # -------------- Textbox -------------
-    i=1
-    j=2           
-    axs21[i, j].axis('off')  # Turn off the axis
-    axs21[i, j].text(0.0, 0.5, text2, ha='left', va='center', fontsize=12, linespacing =1.8 )
 

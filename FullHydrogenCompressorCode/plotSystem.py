@@ -2,7 +2,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 import settingsOffDesign as s
-def plotSystemVariables(systemVar, Zsystem, designParam, flowVar, text ):
+def plotSystemVariables(systemVar, Zsystem, designParam, flowVar ):
     # ------------- PLOTTING ------------ 
     """
     systemVar = [etaStage0, lambda2, iterTol, Zbarr, beta2bArr]
@@ -42,9 +42,6 @@ def plotSystemVariables(systemVar, Zsystem, designParam, flowVar, text ):
     U2 = flowVar[4]
     U2Crit = flowVar[5]
 
-    text1 = text[0]
-    text2 = text[1]
-    text3 = text[2]
 
     x = ZBarr                  # SAME FOR ALL COUNTOURS
     y = np.rad2deg(beta2bArr)     # SAME FOR ALL COUNTOURS
@@ -53,7 +50,7 @@ def plotSystemVariables(systemVar, Zsystem, designParam, flowVar, text ):
     lvls = 30
     colorTheme = 'Reds'
 
-    fig, axs21 = plt.subplots(3, 3)
+    fig, axs21 = plt.subplots(2, 3)
     fig.set_figwidth(15)
     fig.set_figheight(15)
     fig.tight_layout(pad=7.0)
@@ -69,12 +66,11 @@ def plotSystemVariables(systemVar, Zsystem, designParam, flowVar, text ):
     cbar = fig.colorbar(con, ax=axs21[i, j])
     cbar.ax.tick_params(labelsize=10)
     
-    contour5percent = axs21[i, j].contour(X, Y, Z,[0.03], colors=('k',),linestyles=('-',),linewidths=(1))
-    contourData = contour5percent.allsegs[0]
-    x_coords = [segment[:, 0] for segment in contourData]
-    y_coords = [segment[:, 1] for segment in contourData]
-    axs21[i, j].clabel(contour5percent, inline=True, fontsize=8)
-
+    # contour5percent = axs21[i, j].contour(X, Y, Z,[0.03], colors=('k',),linestyles=('-',),linewidths=(1))
+    # contourData = contour5percent.allsegs[0]
+    # x_coords = [segment[:, 0] for segment in contourData]
+    # y_coords = [segment[:, 1] for segment in contourData]
+    # axs21[i, j].clabel(contour5percent, inline=True, fontsize=8)
     
     axs21[i, j].invert_yaxis()
     axs21[i, j].set_xticks([1, 10, 20 , 30, 40 ,50])
@@ -105,8 +101,8 @@ def plotSystemVariables(systemVar, Zsystem, designParam, flowVar, text ):
     axs21[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
     axs21[i, j].set_title(r'Work by efficiency corr. [KJ/kg] ' , fontsize=12)
     axs21[i, j].grid()
-    for xx, yy in zip(x_coords, y_coords):
-        axs21[i, j].plot(xx, yy, 'k-')
+    # for xx, yy in zip(x_coords, y_coords):
+    #     axs21[i, j].plot(xx, yy, 'k-')
 
     # -------------- Work plot -------------
     i=0
@@ -124,8 +120,8 @@ def plotSystemVariables(systemVar, Zsystem, designParam, flowVar, text ):
     axs21[i, j].set_ylabel(r' $ \beta _{2B}$ [deg]', fontsize=12)
     axs21[i, j].set_title(r'Work by slip velocity corr. [KJ/kg]', fontsize=12)
     axs21[i, j].grid()
-    for xx, yy in zip(x_coords, y_coords):
-        axs21[i, j].plot(xx, yy, 'k-')
+    # for xx, yy in zip(x_coords, y_coords):
+    #     axs21[i, j].plot(xx, yy, 'k-')
 
 
 
@@ -146,8 +142,8 @@ def plotSystemVariables(systemVar, Zsystem, designParam, flowVar, text ):
     axs21[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
     axs21[i, j].set_title(r'slip factor [m/s] ' , fontsize=12)
     axs21[i, j].grid()
-    for xx, yy in zip(x_coords, y_coords):
-        axs21[i, j].plot(xx, yy, 'k-')
+    # for xx, yy in zip(x_coords, y_coords):
+    #     axs21[i, j].plot(xx, yy, 'k-')
 
     # -------------- Textbox -------------
     i=1
@@ -169,8 +165,8 @@ def plotSystemVariables(systemVar, Zsystem, designParam, flowVar, text ):
     contourData = contourEfficiency.allsegs[0]
     axs21[i, j].clabel(contourEfficiency, inline=True, fontsize=8)
 
-    x_coords = [segment[:, 0] for segment in contourData]
-    y_coords = [segment[:, 1] for segment in contourData]
+    # x_coords = [segment[:, 0] for segment in contourData]
+    # y_coords = [segment[:, 1] for segment in contourData]
     # for xx, yy in zip(x_coords, y_coords):
     #     axs21[i, j].plot(xx, yy, 'k-')
 
@@ -202,20 +198,3 @@ def plotSystemVariables(systemVar, Zsystem, designParam, flowVar, text ):
 
 
 
-
-    # -------------- Textbox -------------
-    i=2
-    j=0
-    axs21[i, j].axis('off')  # Turn off the axis
-    axs21[i, j].text(0.0, 0.5, text3, ha='left', va='center', fontsize=12, linespacing = 1.8 )
-    # -------------- Textbox -------------
-    i=2
-    j=1
-    axs21[i, j].axis('off')  # Turn off the axis
-    axs21[i, j].text(0.0, 0.5, text1, ha='left', va='center', fontsize=12, linespacing = 1.8 )
-
-    # -------------- Textbox -------------
-    i=2
-    j=2           
-    axs21[i, j].axis('off')  # Turn off the axis
-    axs21[i, j].text(0.0, 0.5, text2, ha='left', va='center', fontsize=12, linespacing =1.8 )
