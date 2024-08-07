@@ -22,7 +22,7 @@ from plotVelocities import plotVelocities
 from plotText import plotText
 # from findFlow import inducerFlowWRTminimumRelativeVelocity
 from pressureTest import pressureOverUnderEstimate
-from plotPressure import pressurePlot4GIF
+import geometrySystemFunctions
 
 plt.rcParams.update(plt.rcParamsDefault)            # For plotting
 plt.rcParams.update({'font.size': 15})
@@ -44,7 +44,8 @@ beta2BArr = beta2BArr[:, np.newaxis]                                            
 """ Making matrices for iteration later. Filling with nans that are only replaced if all conditions are met. """
 rhsExpLimitMat = np.exp(-8.16* np.cos( beta2BArr)/ ZBarr)                                       
 trueFalseMat = np.zeros(np.shape(rhsExpLimitMat), dtype=object)
-trueFalseMat = np.array([[[False, False] for _ in range(np.shape(rhsExpLimitMat)[1])] for _ in range(np.shape(rhsExpLimitMat)[0])] )
+# trueFalseMat = np.array([[[False, False] for _ in range(np.shape(rhsExpLimitMat)[1])] for _ in range(np.shape(rhsExpLimitMat)[0])] )
+trueFalseMat.fill(False)
 etaMat = np.array([[ np.nan for _ in range(np.shape(rhsExpLimitMat)[1])] for _ in range(np.shape(rhsExpLimitMat)[0])] )
 sigmaWiesnerMat = 1 - (np.sqrt(np.cos(np.radians(beta2BArr))) / (ZBarr ** 0.7))
 sigmaMat = np.copy(etaMat)
@@ -121,6 +122,8 @@ dh0s = ( (settingsOffDesign.k * settingsOffDesign.R * settingsOffDesign.T00) / (
 U2Crit = np.sqrt(2*settingsOffDesign.impellerTensileStrength/settingsOffDesign.impellerDensity)             
 U2 = U2Crit     # initializing for loop 
 Ncrit = 0       # initializing 
+
+
 """ Iterating to find a impeller tip velocity that satisfy material constraint.   """
 while (U2) >= U2Crit and Ndes > 0:
 
@@ -133,13 +136,22 @@ while (U2) >= U2Crit and Ndes > 0:
         Ndes -= 1000
     r2 = U2/omega
     Ncrit = 60*U2Crit/(2*np.pi*r2)
-    # U2 = U2divr2*r2
 
 
-""" Iterating main functionality """
+""" Function to check if condition for the use of wiesner slip factor is upheld. If its not upheld then slip factor is updated.
+        If the condition is upheld it just returns the same slip factor.  """
+
+def checkUpdateSlipFactorSigma(epsilonLimit, slipFactor):
+    if settingsOffDesign.r1Divr2 >= epsilonLimit:
+        return slipFactor* (1  -  (   (settingsOffDesign.r1Divr2-epsilonLimit)/(1-epsilonLimit)   )**3   )
+    else:
+        return slipFactor
+
+
+"""  ---------------- Iterating main functionality ---------------- """    
 
 for iz in range(len(ZBarr)):
-    debug=1         # breakpoint for debugging
+    # debug=1         # breakpoint for debugging
     
     for ib in range(len(beta2BArr)):
         sigma = sigmaWiesnerMat[ib, iz]                 # slip factor
@@ -148,58 +160,37 @@ for iz in range(len(ZBarr)):
         # np.rad2deg((beta2BArr[ib])[0])                  # changing from radians to degrees once and for all
         lookForBetterEta = 0
         
-
         D2 = 2*r2
         rh1 = settingsOffDesign.rhDivr1*r1
-        NDivr1 = Ndes/r1
 
 
-        trueFalse1 = False
-        rhs = rhsExpLimitMat[ib, iz]
-        
-        if settingsOffDesign.r1Divr2 < rhs:
-            trueFalse1 = True
-        elif settingsOffDesign.r1Divr2 > rhs:
-            trueFalse1 = True
-            sigma = sigma* (1  -  (   (settingsOffDesign.r1Divr2-rhs)/(1-rhs)   )**3   )        # Correcting if ratio of radii is freater than epsilon limit
-        else: 
-            trueFalse1 = False
-            continue
+        """ Handling slip factor. Updating if the conditions for wiesner relation is not upheld. """
+        epsilonLimit = rhsExpLimitMat[ib, iz]                                                          # right hand side of wiesner slip factor condition
+        sigma = checkUpdateSlipFactorSigma(epsilonLimit = epsilonLimit, slipFactor = sigma)            # updating slip factor wrt wiesner condition
+        workInputCoeff, Ctheta2m, Cm2m, C2 = geometrySystemFunctions.impellerOutletVelocities(slipFactor = sigma, beta2B = (beta2BArr[ib])[0], U2 = U2)          # Finding impeller outlet velocities
 
-        trueFalseMat[ib, iz][0] = trueFalse1
-        Vslip = (1 - sigma)*U2                              # slip velocity
 
-        mu = sigma * settingsOffDesign.lambda2 / (settingsOffDesign.lambda2 - math.tan((beta2BArr[ib])[0]))                # Work input coefficient [-]    MSG: Can formula be adjusted? tan(-x=-tan(x)) 
-
-        Ctheta2m = mu * U2                                # Absolute tangential exit velocity [m/s]         from work coefficient
-        Cm2m = Ctheta2m / settingsOffDesign.lambda2                       # Absolute meridional exit velocity [m/s]         
-        C2 = (Ctheta2m ** 2 + Cm2m ** 2) ** 0.5           # Absolute exit velocity [m/s]                    from pythagoras 
-
-        """ finding velocities related to slip. See slip velocity triangle in related document """
+        """ finding velocities related to slip. See slip velocity triangle in related document. Still in process to find the best fitting one """
         Ctheta2ideal = U2 - Ctheta2m*np.tan((np.abs(( beta2BArr[ib] )[0])))   
         CTheta2Real = sigma*Ctheta2ideal         
-        Vslip1 = Ctheta2ideal -CTheta2Real
-        beta2flow = np.rad2deg( np.arctan( (Vslip + Cm2m*np.tan( np.abs(beta2BArr[ib])) )/Cm2m ) )
-
-        
+        Cslip1 = Ctheta2ideal -CTheta2Real
+        beta2flow = np.rad2deg( np.arctan( (Cslip1 + Cm2m*np.tan( np.abs(beta2BArr[ib])) )/Cm2m ) )
 
 
         dh0SlipCorrected =  U2*(CTheta2Real) - U1t*Ctheta1   # Alternative for finding fluid enthalpy change, for comparison
 
-        while ( (trueFalseMat[ib, iz][1] == False) and (etaStage < settingsOffDesign.etaUpperLimit and etaStage > settingsOffDesign.etaLowerLimit) ):
+        while ( (trueFalse2 == False) and (etaStage < settingsOffDesign.etaUpperLimit and etaStage > settingsOffDesign.etaLowerLimit) ):
             
+            # ------------------- Updating work with the new isentropic efficiency -------------------
             Wx = dh0s / etaStage                                     # Specific work [J/kg/K]
             workError = np.abs(Wx-dh0SlipCorrected)/Wx               # Comparing the two methods of finding enthalpy change
-            wTest1 = Wx
-            wTest2 = U2*Ctheta2m - U1t*Ctheta1
-
             # Wx = dh0SlipCorrected
             
 
             # ------------------- Impeller outlet calculation. Stagnation properties denoted by zero. -------------------
             T02m = settingsOffDesign.T00 + Wx * (settingsOffDesign.k - 1) / (settingsOffDesign.k * settingsOffDesign.R)                                                     # Stagnation exit temperature [K]     , from dh=cp*Dt   (settingsOffDesign.k - 1) / (settingsOffDesign.k * settingsOffDesign.R) = 1/cp
-            # P02m =( ( T02m/settingsOffDesign.T00 )**(settingsOffDesign.k/(settingsOffDesign.k-1)) )*settingsOffDesign.P00
             P02m = settingsOffDesign.P00 * ((etaStage * Wx * (settingsOffDesign.k - 1)  / (settingsOffDesign.k * settingsOffDesign.R * settingsOffDesign.T00)) + 1) ** (settingsOffDesign.k / (settingsOffDesign.k - 1))     # Exit Stagnation Pressure [Pa]       , from (... todo ...)
+            # P02m =( ( T02m/settingsOffDesign.T00 )**(settingsOffDesign.k/(settingsOffDesign.k-1)) )*settingsOffDesign.P00
 
 
             T2m = T02m - (settingsOffDesign.k - 1) / (2 * settingsOffDesign.k * settingsOffDesign.R) * (C2 **2)                                             # Exit temperature [K]                            from stagnation temperature
@@ -210,19 +201,14 @@ for iz in range(len(ZBarr)):
             M2 = U2/np.sqrt(settingsOffDesign.k*settingsOffDesign.R*T02m)                                                                   # Impeller exit blade mach number 
             
 
-            # ------------------- Diffuser Calculation -------------------
-            P3 = P2m + settingsOffDesign.CpD * (P02m - P2m)               # Diffuser exit static pressure [Pa]
-            C3 = C2 / settingsOffDesign.AR                                # Diffuser exit absolute velocity [m/s]
-            P03 = P3 + 0.5 * rho2m * C3 ** 2              # Diffuser exit stagnation pressure [Pa]
+            # ------------------- Finding diffuser properties -------------------
+            P3, P03, C3 = geometrySystemFunctions.diffuserFlow(P2=P2m, P02=P02m, rho2=rho2m, C2=C2)
 
 
             # ------------------- Overall performance -------------------
-            etaiterate = ( (P03 / settingsOffDesign.P00) ** ((settingsOffDesign.k - 1) / settingsOffDesign.k) - 1 ) / ( (T02m / settingsOffDesign.T00) - 1 )        # Iterative stage efficiency [-], isothermal diffuser assumed?
-            Prest = ((etaiterate * U2 ** 2 * mu) / (settingsOffDesign.Cp * T1) + 1) ** (settingsOffDesign.k / (settingsOffDesign.k - 1))          # Estimate of the pressure ratio, equation is validated
-            PressureTestOuterLoop = (Prest-settingsOffDesign.Pr)/settingsOffDesign.Pr
-            # print(etaiterate)
-
-            """ Checking if teration conditions are sustained """
+            etaiterate, Prest, PressureTestOuterLoop = geometrySystemFunctions.systemTotalPerformance(P03, T02m, U2, T1, workInputCoeff)
+            
+            """ Checking if iteration conditions are sustained """
             if (etaiterate > settingsOffDesign.etaUpperLimit or etaiterate < settingsOffDesign.etaLowerLimit) or ( etaStage > settingsOffDesign.etaUpperLimit or etaStage < settingsOffDesign.etaLowerLimit ):
                 trueFalse2 = False
             elif abs(PressureTestOuterLoop) > settingsOffDesign.iterTol:
@@ -232,11 +218,9 @@ for iz in range(len(ZBarr)):
                 trueFalse2 = True
 
 
-            # trueFalse2 = True #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!DISKUTER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-            trueFalseMat[ib, iz][1] = trueFalse2
+            trueFalseMat[ib, iz] = trueFalse2
 
-            # trueFalse2 = True #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!DISKUTER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             
             if ib == 20 and iz ==20:
                 debug = 1
@@ -254,7 +238,7 @@ for iz in range(len(ZBarr)):
                 c2Mat[ib, iz] = C2
                 c2mMat[ib, iz] = Cm2m
                 PrestMat[ib, iz] = Prest
-                VslipMat[ib, iz] = Vslip1
+                VslipMat[ib, iz] = Cslip1
                 Ctheta2Mat[ib, iz] = Ctheta2m
                 WxMat[ib, iz] = Wx
                 dh0SlipCorrMAt[ib, iz] = dh0SlipCorrected
@@ -267,8 +251,8 @@ for iz in range(len(ZBarr)):
             etaStage = pressureOverUnderEstimate( PressureTestOuterLoop, etaStage)
     
     
-            debug = 1       # Breakpoint for debugging
-        debug =1            # Breakpoint for debugging
+        #     debug = 1       # Breakpoint for debugging
+        # debug =1            # Breakpoint for debugging
             
 
 
@@ -281,7 +265,7 @@ for iz in range(len(ZBarr)):
 """ making nice text to go with plots """
 maxEta = np.nanmax(etaMat)
 minEta = np.nanmin(etaMat)
-countTrue = np.sum(np.all(trueFalseMat, axis=-1))
+countTrue = np.sum(trueFalseMat)
 totalCases = len(ZBarr)*len(beta2BArr)
 
 text1 = "\n" \

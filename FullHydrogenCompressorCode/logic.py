@@ -46,8 +46,8 @@ print('r2: ' + str(round(geometryV8.r2, 3)) + 'm' )
 Narr = np.arange(15000, geometryV8.Ncrit , 5000)      
 
 # ------------------- Plotting from off_design_performance.py -------------------
-for iN in range(0, len(Narr)):
-    Pro, P03o, T2oabs, mdoto, etao, U2o = odp.off_design_performance(Narr[iN])                           # Running everything
+for iN in range(0, len(Narr)):                                                                      # Running and plotting for all rpm N's
+    Pro, P03o, T2oabs, mdoto, etao, U2o = odp.off_design_performance(Narr[iN])                      # Running everything
     Pro = np.array(Pro)                                                                             # Pressure ratio
     P03o = np.array(P03o)                                                                           # Outlet pressure
     T2oabs = np.array(T2oabs)                                                                       # Outlet temperature

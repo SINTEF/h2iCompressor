@@ -116,7 +116,8 @@ def off_design_performance(Nrpm):
 
 
 
-    ###---------------------------------------- Inducer Incidence Loss----------------------------------------
+    ###---------------------- Inducer Incidence Loss ----------------------
+
     # declaring variables before use
     BBF = 1 - (ZB * tu) / (2 * math.pi * r1rms)     # (41) Blade Blockage Factor [-]        
     eps = []                                        # Difference between compressor inlet relative flow angle and optimum incidence angle [degrees]
@@ -153,7 +154,12 @@ def off_design_performance(Nrpm):
 
     # print('debug')
 
-    ### Impeller Work and Losses----------------------------------------------------------------------------
+
+
+
+
+    ### ---------------------- Impeller Work and Losses ----------------------
+
     U2o = U1to / (geometryV8.r1 / (geometryV8.r2))                                                                        # Off design exit blade velocity [m/s], CONSTANT ANGULAR VELOCITY
     dhEstim = U2o ** 2                                                                                                    # (B46) Initial approximation of enthalpy rise in impeller [J/kg], EULER EQUATION APPROXIMATION zero inlet swirl
     T2oEstAbs = (dhEstim / (settingsOffDesign.Cp * settingsOffDesign.T00) + 1) * settingsOffDesign.T00                    # (B47) Estimate of the off design impeller exit total temperature [K], ENERGY/EULER EQUATION
