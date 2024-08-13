@@ -1,7 +1,7 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-import settingsOffDesign
+import settings
 
 def plotCompressorParam(systemVar, Zcompressor, designParam, flowVar):
     # ------------- PLOTTING ------------ 
@@ -66,10 +66,10 @@ def plotCompressorParam(systemVar, Zcompressor, designParam, flowVar):
     cbar = fig.colorbar(con, ax=axs2[i, j])
     cbar.ax.tick_params(labelsize=10)
     axs2[i, j].invert_yaxis()
-    axs2[i, j].set_xticks(np.arange(0, settingsOffDesign.bladeMax+1, 5))
-    axs2[i, j].set_xticklabels(np.arange(0, settingsOffDesign.bladeMax+1, 5), fontsize=10)
-    axs2[i, j].set_yticks(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10))
-    axs2[i, j].set_yticklabels(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10), fontsize=10)
+    axs2[i, j].set_xticks(np.arange(0, settings.bladeMax+1, 5))
+    axs2[i, j].set_xticklabels(np.arange(0, settings.bladeMax+1, 5), fontsize=10)
+    axs2[i, j].set_yticks(np.arange(-5, settings.beta2Bmax+1, -10))
+    axs2[i, j].set_yticklabels(np.arange(-5, settings.beta2Bmax+1, -10), fontsize=10)
     axs2[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
     axs2[i, j].set_ylabel(r' $ \beta _{2B}$ [deg]', fontsize=12)
     axs2[i, j].set_title(r'Impeller cylinder height [m]', fontsize=12)
@@ -87,10 +87,10 @@ def plotCompressorParam(systemVar, Zcompressor, designParam, flowVar):
     cbar = fig.colorbar(con, ax=axs2[i, j])
     cbar.ax.tick_params(labelsize=10)
     axs2[i, j].invert_yaxis()
-    axs2[i, j].set_xticks(np.arange(0, settingsOffDesign.bladeMax+1, 5))
-    axs2[i, j].set_xticklabels(np.arange(0, settingsOffDesign.bladeMax+1, 5), fontsize=10)
-    axs2[i, j].set_yticks(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10))
-    axs2[i, j].set_yticklabels(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10), fontsize=10)
+    axs2[i, j].set_xticks(np.arange(0, settings.bladeMax+1, 5))
+    axs2[i, j].set_xticklabels(np.arange(0, settings.bladeMax+1, 5), fontsize=10)
+    axs2[i, j].set_yticks(np.arange(-5, settings.beta2Bmax+1, -10))
+    axs2[i, j].set_yticklabels(np.arange(-5, settings.beta2Bmax+1, -10), fontsize=10)
     axs2[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
     axs2[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
     axs2[i, j].set_title(r'Slip velocity [m/s] ' , fontsize=12)
@@ -111,10 +111,10 @@ def plotCompressorParam(systemVar, Zcompressor, designParam, flowVar):
     axs2[i, j].clabel(contour10s, inline=True, fontsize=8)
 
     axs2[i, j].invert_yaxis()
-    axs2[i, j].set_xticks(np.arange(0, settingsOffDesign.bladeMax+1, 5))
-    axs2[i, j].set_xticklabels(np.arange(0, settingsOffDesign.bladeMax+1, 5), fontsize=10)
-    axs2[i, j].set_yticks(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10))
-    axs2[i, j].set_yticklabels(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10), fontsize=10)
+    axs2[i, j].set_xticks(np.arange(0, settings.bladeMax+1, 5))
+    axs2[i, j].set_xticklabels(np.arange(0, settings.bladeMax+1, 5), fontsize=10)
+    axs2[i, j].set_yticks(np.arange(-5, settings.beta2Bmax+1, -10))
+    axs2[i, j].set_yticklabels(np.arange(-5, settings.beta2Bmax+1, -10), fontsize=10)
     axs2[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
     axs2[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
     axs2[i, j].set_title(r'Outlet flow angle $ \beta _{2}$ [m/s] ' , fontsize=12)

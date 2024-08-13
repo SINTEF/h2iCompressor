@@ -1,7 +1,7 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-import settingsOffDesign
+import settings
 def plotFlowConditions(systemVar, Zflow, designParam, flowVar ):
     # ------------- PLOTTING ------------ 
     """
@@ -76,10 +76,10 @@ def plotFlowConditions(systemVar, Zflow, designParam, flowVar ):
     # cbar = fig.colorbar(con, ax=axs21[i, j])
     # cbar.ax.tick_params(labelsize=10)
     axs21[i, j].invert_yaxis()
-    axs21[i, j].set_xticks(np.arange(0, settingsOffDesign.bladeMax+1, 5))
-    axs21[i, j].set_xticklabels(np.arange(0, settingsOffDesign.bladeMax+1, 5), fontsize=10)
-    axs21[i, j].set_yticks(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10))
-    axs21[i, j].set_yticklabels(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10), fontsize=10)
+    axs21[i, j].set_xticks(np.arange(0, settings.bladeMax+1, 5))
+    axs21[i, j].set_xticklabels(np.arange(0, settings.bladeMax+1, 5), fontsize=10)
+    axs21[i, j].set_yticks(np.arange(-5, settings.beta2Bmax+1, -10))
+    axs21[i, j].set_yticklabels(np.arange(-5, settings.beta2Bmax+1, -10), fontsize=10)
     axs21[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
     axs21[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
     axs21[i, j].set_title(r'Slip corrected compressor work [KJ/kg]' , fontsize=12)
@@ -94,10 +94,10 @@ def plotFlowConditions(systemVar, Zflow, designParam, flowVar ):
     cbar = fig.colorbar(con, ax=axs21[i, j])
     cbar.ax.tick_params(labelsize=10)
     axs21[i, j].invert_yaxis()
-    axs21[i, j].set_xticks(np.arange(0, settingsOffDesign.bladeMax+1, 5))
-    axs21[i, j].set_xticklabels(np.arange(0, settingsOffDesign.bladeMax+1, 5), fontsize=10)
-    axs21[i, j].set_yticks(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10))
-    axs21[i, j].set_yticklabels(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10), fontsize=10)
+    axs21[i, j].set_xticks(np.arange(0, settings.bladeMax+1, 5))
+    axs21[i, j].set_xticklabels(np.arange(0, settings.bladeMax+1, 5), fontsize=10)
+    axs21[i, j].set_yticks(np.arange(-5, settings.beta2Bmax+1, -10))
+    axs21[i, j].set_yticklabels(np.arange(-5, settings.beta2Bmax+1, -10), fontsize=10)
     axs21[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
     axs21[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
     axs21[i, j].set_title(r'Estimated PR [-] ' , fontsize=12)
@@ -114,10 +114,10 @@ def plotFlowConditions(systemVar, Zflow, designParam, flowVar ):
     cbar = fig.colorbar(con, ax=axs21[i, j])
     cbar.ax.tick_params(labelsize=10)
     axs21[i, j].invert_yaxis()
-    axs21[i, j].set_xticks(np.arange(0, settingsOffDesign.bladeMax+1, 5))
-    axs21[i, j].set_xticklabels(np.arange(0, settingsOffDesign.bladeMax+1, 5), fontsize=10)
-    axs21[i, j].set_yticks(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10))
-    axs21[i, j].set_yticklabels(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10), fontsize=10)
+    axs21[i, j].set_xticks(np.arange(0, settings.bladeMax+1, 5))
+    axs21[i, j].set_xticklabels(np.arange(0, settings.bladeMax+1, 5), fontsize=10)
+    axs21[i, j].set_yticks(np.arange(-5, settings.beta2Bmax+1, -10))
+    axs21[i, j].set_yticklabels(np.arange(-5, settings.beta2Bmax+1, -10), fontsize=10)
     axs21[i, j].set_xlabel(r'Blade number $Z_B$ [deg]' , fontsize=12)
     axs21[i, j].set_ylabel(r'$ \beta _{2B}$', fontsize=12)
     axs21[i, j].set_title(r'Pressure estimate error contour plot [-]', fontsize=12)
@@ -134,10 +134,10 @@ def plotFlowConditions(systemVar, Zflow, designParam, flowVar ):
     cbar = fig.colorbar(con, ax=axs21[i, j])
     cbar.ax.tick_params(labelsize=10)
     axs21[i, j].invert_yaxis()
-    axs21[i, j].set_xticks(np.arange(0, settingsOffDesign.bladeMax+1, 5))
-    axs21[i, j].set_xticklabels(np.arange(0, settingsOffDesign.bladeMax+1, 5), fontsize=10)
-    axs21[i, j].set_yticks(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10))
-    axs21[i, j].set_yticklabels(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10), fontsize=10)
+    axs21[i, j].set_xticks(np.arange(0, settings.bladeMax+1, 5))
+    axs21[i, j].set_xticklabels(np.arange(0, settings.bladeMax+1, 5), fontsize=10)
+    axs21[i, j].set_yticks(np.arange(-5, settings.beta2Bmax+1, -10))
+    axs21[i, j].set_yticklabels(np.arange(-5, settings.beta2Bmax+1, -10), fontsize=10)
     axs21[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
     axs21[i, j].set_ylabel(r' $ \beta _{2B}$ [deg]', fontsize=12)
     axs21[i, j].set_title(r'Efficiency [-]', fontsize=12)

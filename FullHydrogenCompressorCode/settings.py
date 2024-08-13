@@ -14,11 +14,7 @@ import pandas as pd
 # import logic
 # import main as m
 
-# Plotting files:
-from plotFlow import plotFlowConditions
-from plotCompressor import plotCompressorParam
-from findFlow import inducerFlowWRTminimumRelativeVelocity # type: ignore
-from pressureTest import pressureOverUnderEstimate # type: ignore
+
 
 
 
@@ -88,12 +84,12 @@ iterTol = 0.01                              # loop tolerance condition
 
 """ ------- VARY THESE PARAMETERS ------- """
 Pr = 1.24                                       # Pressure ratio [-]
-N0 = 48000                                  # Rotational speed
+N0 = 40000                                  # Rotational speed
 rhDivr1=0.35                                # Ratio commonly given
 r1Divr2 = 0.65                              # rt1 divided by rt2 ,making rt2 increase through array progression
 
 bladeAngle = np.deg2rad(-35)                # blade angle of interest for off-desing_performance.py
-bladeNumber = 17                            # blade number of interest for off-desing_performance.py
+bladeNumber = 12                            # blade number of interest for off-desing_performance.py
 
 
 """ ------------------------------------- """
