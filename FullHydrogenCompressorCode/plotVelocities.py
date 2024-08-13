@@ -1,6 +1,8 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+import settingsOffDesign
 
 def plotVelocities(systemVar, Zvelocities, designParam, flowVar):
     # ------------- PLOTTING ------------ 
@@ -48,29 +50,36 @@ def plotVelocities(systemVar, Zvelocities, designParam, flowVar):
     y = np.rad2deg(beta2bArr)     # SAME FOR ALL COUNTOURS
 
     X, Y = np.meshgrid(x, y)  
-    lvls = 30
-    colorTheme = 'Reds'
+    lvls = 15
+    colorTheme = 'viridis'
+
+    vmin = min(np.nanmin(c2Mat), np.nanmin(c2mMat))
+    vmax = max(np.nanmax(c2Mat), np.nanmax(c2mMat))
     
+
+
     fig, axs2 = plt.subplots(2, 3)
     fig.set_figwidth(15)
     fig.set_figheight(15)
-    fig.suptitle(r'Velocities ', y=0.98, x=0.4)
+    fig.canvas.manager.set_window_title('Velocities')
     fig.tight_layout(pad=7.0)
     fig.subplots_adjust(top=0.9, bottom=0.09)
-
 
     # -------------- C2 -------------
     i=0
     j=0
     Z = c2Mat                  
-    con = axs2[i, j].contourf(X, Y, Z, levels = lvls, cmap=colorTheme)
-    cbar = fig.colorbar(con, ax=axs2[i, j])
+    con1 = axs2[i, j].contourf(X, Y, Z, levels = lvls, cmap=colorTheme, vmin=vmin, vmax=vmax)
+    cbar = fig.colorbar(con1, ax=axs2[i, j])#, extend='both')
+    # cbar.set_ticks(np.linspace(vmin, vmax, 15))
+    # cbar.set_ticks([vmin, 100, 200, 400, 600, 800, 1000, vmax])
+    # cbar.set_ticks(np.linspace(vmin, vmax, 10))
     cbar.ax.tick_params(labelsize=10)
     axs2[i, j].invert_yaxis()
-    axs2[i, j].set_xticks([1, 10, 20 , 30, 40 ,50])
-    axs2[i, j].set_xticklabels([1, 10, 20 , 30, 40 ,50], fontsize=10)
-    axs2[i, j].set_yticks(np.arange(-5, -66, -10))
-    axs2[i, j].set_yticklabels(np.arange(-5, -66, -10), fontsize=10)
+    axs2[i, j].set_xticks(np.arange(0, settingsOffDesign.bladeMax+1, 5))
+    axs2[i, j].set_xticklabels(np.arange(0, settingsOffDesign.bladeMax+1, 5), fontsize=10)
+    axs2[i, j].set_yticks(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10))
+    axs2[i, j].set_yticklabels(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10), fontsize=10)
     axs2[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
     axs2[i, j].set_ylabel(r' $ \beta _{2B}$ [deg]', fontsize=12)
     axs2[i, j].set_title(r'Absolute discharge velocity [m/s]', fontsize=12)
@@ -84,14 +93,14 @@ def plotVelocities(systemVar, Zvelocities, designParam, flowVar):
     i=0
     j=1
     Z = c2mMat
-    con = axs2[i, j].contourf(X, Y, Z, levels = lvls, cmap=colorTheme)
-    cbar = fig.colorbar(con, ax=axs2[i, j])
+    con = axs2[i, j].contourf(X, Y, Z, levels = lvls, cmap=colorTheme, vmin=vmin, vmax=vmax)
+    cbar = fig.colorbar(con, ax=axs2[i, j])# cax=cbar_ax)#, ticks=[vmin, (vmin + vmax) / 2, vmax])
     cbar.ax.tick_params(labelsize=10)
     axs2[i, j].invert_yaxis()
-    axs2[i, j].set_xticks([1, 10, 20 , 30, 40 ,50])
-    axs2[i, j].set_xticklabels([1, 10, 20 , 30, 40 ,50], fontsize=10)
-    axs2[i, j].set_yticks(np.arange(-5, -66, -10))
-    axs2[i, j].set_yticklabels(np.arange(-5, -66, -10), fontsize=10)
+    axs2[i, j].set_xticks(np.arange(0, settingsOffDesign.bladeMax+1, 5))
+    axs2[i, j].set_xticklabels(np.arange(0, settingsOffDesign.bladeMax+1, 5), fontsize=10)
+    axs2[i, j].set_yticks(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10))
+    axs2[i, j].set_yticklabels(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10), fontsize=10)
     axs2[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
     axs2[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
     axs2[i, j].set_title(r'Meridonal discharge velocity [m/s] ' , fontsize=12)
@@ -101,14 +110,14 @@ def plotVelocities(systemVar, Zvelocities, designParam, flowVar):
     i=0
     j=2
     Z = Ctheta2Mat
-    con = axs2[i, j].contourf(X, Y, Z, levels = lvls, cmap=colorTheme)
+    con = axs2[i, j].contourf(X, Y, Z, levels = lvls, cmap=colorTheme, vmin=vmin, vmax=vmax)
     cbar = fig.colorbar(con, ax=axs2[i, j])
     cbar.ax.tick_params(labelsize=10)
     axs2[i, j].invert_yaxis()
-    axs2[i, j].set_xticks([1, 10, 20 , 30, 40 ,50])
-    axs2[i, j].set_xticklabels([1, 10, 20 , 30, 40 ,50], fontsize=10)
-    axs2[i, j].set_yticks(np.arange(-5, -66, -10))
-    axs2[i, j].set_yticklabels(np.arange(-5, -66, -10), fontsize=10)
+    axs2[i, j].set_xticks(np.arange(0, settingsOffDesign.bladeMax+1, 5))
+    axs2[i, j].set_xticklabels(np.arange(0, settingsOffDesign.bladeMax+1, 5), fontsize=10)
+    axs2[i, j].set_yticks(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10))
+    axs2[i, j].set_yticklabels(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10), fontsize=10)
     axs2[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
     axs2[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
     axs2[i, j].set_title(r'Angular discharge velocity [m/s] ' , fontsize=12)
@@ -122,10 +131,10 @@ def plotVelocities(systemVar, Zvelocities, designParam, flowVar):
     cbar = fig.colorbar(con, ax=axs2[i, j])
     cbar.ax.tick_params(labelsize=10)
     axs2[i, j].invert_yaxis()
-    axs2[i, j].set_xticks([1, 10, 20 , 30, 40 ,50])
-    axs2[i, j].set_xticklabels([1, 10, 20 , 30, 40 ,50], fontsize=10)
-    axs2[i, j].set_yticks(np.arange(-5, -66, -10))
-    axs2[i, j].set_yticklabels(np.arange(-5, -66, -10), fontsize=10)
+    axs2[i, j].set_xticks(np.arange(0, settingsOffDesign.bladeMax+1, 5))
+    axs2[i, j].set_xticklabels(np.arange(0, settingsOffDesign.bladeMax+1, 5), fontsize=10)
+    axs2[i, j].set_yticks(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10))
+    axs2[i, j].set_yticklabels(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10), fontsize=10)
     axs2[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
     axs2[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
     axs2[i, j].set_title(r'Discharge Mach number [-] ' , fontsize=12)
@@ -139,14 +148,16 @@ def plotVelocities(systemVar, Zvelocities, designParam, flowVar):
     cbar = fig.colorbar(con, ax=axs2[i, j])
     cbar.ax.tick_params(labelsize=10)
     axs2[i, j].invert_yaxis()
-    axs2[i, j].set_xticks([1, 10, 20 , 30, 40 ,50])
-    axs2[i, j].set_xticklabels([1, 10, 20 , 30, 40 ,50], fontsize=10)
-    axs2[i, j].set_yticks(np.arange(-5, -66, -10))
-    axs2[i, j].set_yticklabels(np.arange(-5, -66, -10), fontsize=10)
+    axs2[i, j].set_xticks(np.arange(0, settingsOffDesign.bladeMax+1, 5))
+    axs2[i, j].set_xticklabels(np.arange(0, settingsOffDesign.bladeMax+1, 5), fontsize=10)
+    axs2[i, j].set_yticks(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10))
+    axs2[i, j].set_yticklabels(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10), fontsize=10)
     axs2[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
     axs2[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
     axs2[i, j].set_title(r'Slip velocity [m/s] ' , fontsize=12)
     axs2[i, j].grid()
+
+    fig.delaxes(axs2[1, 2])
 
     # -------------- Textbox -------------
     i=1

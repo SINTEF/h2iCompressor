@@ -37,7 +37,7 @@ mdot = 25                               # Mass flow rate [kg/s]   , mdot = ( (30
 CpAir = 1006                            # Cp air [J/kg/K], 
 CpH2 = 14310                            # Engineering toolbox Cp hydrogen, [J/kgK]                                       
 Cp = CpH2                               # Choose Air or Hydrogen                                      
-MolarMassAir = 0.02897                  # Molecular weight of air [kg/mol]. 
+MolarMassAir = 0.02897                  # Molecular weight of air [kg/mol].   
 MolarMassH2 = 2.01568 * 10**-3          # Molecular weight of H2 [kg/mol]. 
 MolarMass = MolarMassH2                 # Molecular weight of H2 [kg/mol]. 
 k = 1.41                                # Basicly similar for air and hydrogen
@@ -45,9 +45,8 @@ R_uni = 8.314                           # Universal gas constant [J/mol/K]
 R = R_uni / MolarMass                   # Specific gas constant [J/kg /K]
 
 """ -------------- inlet conditions -------------- """
-P00 = 24 * (10**2) * (10**3)                    # Inlet stagnation pressure [Pa]
+P00 = 30 * (10**2) * (10**3)                    # Inlet stagnation pressure [Pa]
 T00 = 293                                       # Inlet stagnation temperature [K]
-Pr = 1.24                                       # Pressure ratio [-]
 Cm1i = np.arange(10, 600.5, 1)                  # Inlet Absolute meridional velocity [m/s]
 alpha1 = 0                                      # Absolute inlet velocity angle [deg]
 B1 = 0.04                                       # Boundary layer blockage [-],        substance viscocity dependant
@@ -75,20 +74,22 @@ CpDi = 1 - 1 / (AR ** 2)                    # Ideal pressure recovery coefficien
 CpD = etad * CpDi                           # 
 
 """ ------------- Iteration control ----------"""
-etaLowerLimit = 0.25                        # Lowest efficiency allowed
-etaUpperLimit = 0.85                        # Highest efficiency allowed
+etaLowerLimit = 0.4                        # Lowest efficiency allowed
+etaUpperLimit = 0.9                        # Highest efficiency allowed
 bladeVelUpperLimit = 1200                   # Highest blade velocity allowed
 bladeVelLowerLimit = 0                      # lowest blade velocity allowed 
-beta2Bmax = -65                             # "Maximum" beta iterated over
+beta2Bmax = -50                             # "Maximum" beta iterated over
 beta2Bmin = 0                               # "Minimum" beta iterated over  
 bladeMin = 2                                # Lowest bladenumber allowed
-bladeMax = 50                               # Highest bladenumber allowed
+bladeMax = 30                               # Highest bladenumber allowed
 iterTol = 0.01                              # loop tolerance condition
+# iterTol = 0.02                              # loop tolerance condition
 
 
 """ ------- VARY THESE PARAMETERS ------- """
-N0 = 50000                                 # Rotational speed
-rhDivr1=0.3                                # Ratio commonly given
+Pr = 1.24                                       # Pressure ratio [-]
+N0 = 48000                                  # Rotational speed
+rhDivr1=0.35                                # Ratio commonly given
 r1Divr2 = 0.65                              # rt1 divided by rt2 ,making rt2 increase through array progression
 
 bladeAngle = np.deg2rad(-35)                # blade angle of interest for off-desing_performance.py

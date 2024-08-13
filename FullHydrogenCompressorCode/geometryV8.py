@@ -42,35 +42,32 @@ beta2BArr = np.radians(np.arange( settingsOffDesign.beta2Bmax, settingsOffDesign
 beta2BArr = beta2BArr[:, np.newaxis]                                                                 # Flipping from row to column vector to make matrix on next lines
 
 """ Making matrices for iteration later. Filling with nans that are only replaced if all conditions are met. """
-rhsExpLimitMat = np.exp(-8.16* np.cos( beta2BArr)/ ZBarr)                                       
-trueFalseMat = np.zeros(np.shape(rhsExpLimitMat), dtype=object)
-# trueFalseMat = np.array([[[False, False] for _ in range(np.shape(rhsExpLimitMat)[1])] for _ in range(np.shape(rhsExpLimitMat)[0])] )
-trueFalseMat.fill(False)
-etaMat = np.array([[ np.nan for _ in range(np.shape(rhsExpLimitMat)[1])] for _ in range(np.shape(rhsExpLimitMat)[0])] )
-sigmaWiesnerMat = 1 - (np.sqrt(np.cos(np.radians(beta2BArr))) / (ZBarr ** 0.7))
-sigmaMat = np.copy(etaMat)
-b2Mat = np.copy(etaMat)
-c2Mat = np.copy(etaMat)
-c2mMat = np.copy(etaMat)
-PrestMat = np.copy(etaMat)
-VslipMat = np.copy(etaMat)
-pressErrorMat = np.copy(etaMat)
-MachExitMat = np.copy(etaMat)
-WxMat = np.copy(etaMat)
-Ctheta2Mat = np.copy(etaMat)
-dh0SlipCorrMAt = np.copy(etaMat)
-beta2flowMat= np.copy(etaMat)
+rhsExpLimitMat = np.exp(-8.16* np.cos( beta2BArr)/ ZBarr)                                                                   # Matrix for epsilon_limit from wiesner condition           
+etaMat = np.array([[ np.nan for _ in range(np.shape(rhsExpLimitMat)[1])] for _ in range(np.shape(rhsExpLimitMat)[0])] )     # Matrix for efficiency
+sigmaWiesnerMat = 1 - (np.sqrt(np.cos(np.radians(beta2BArr))) / (ZBarr ** 0.7))                                             # Matrix for wiesner slip factor 
+sigmaMat = np.copy(etaMat)                                                                                                  # Matrix for slip factor found to be valid
+b2Mat = np.copy(etaMat)                                                                                                     # Matrix for impeller exit cylinder height
+c2Mat = np.copy(etaMat)                                                                                                     # Matrix for impeller absolute discharge velocity
+c2mMat = np.copy(etaMat)                                                                                                    # Matrix for meridonal component of impeller discharge velocity
+PrestMat = np.copy(etaMat)                                                                                                  # Matrix for pressure estimate
+VslipMat = np.copy(etaMat)                                                                                                  # Matrix for slip velocity
+pressErrorMat = np.copy(etaMat)                                                                                             # Matrix for pressure error
+MachExitMat = np.copy(etaMat)                                                                                               # Matrix for impeller mach number
+WxMat = np.copy(etaMat)                                                                                                     # Matrix for compression work
+Ctheta2Mat = np.copy(etaMat)                                                                                                # Matrix for angular component of discharge velocity
+dh0SlipCorrMAt = np.copy(etaMat)                                                                                            # Matrix for work found by slip corrected euler equation
+beta2flowMat= np.copy(etaMat)                                                                                               # Matrix for discharge flow angle found by slip relations
+
 # Declaring variables for off-design.py
-D2 = 0
-b2 = 0
 U1t = 0
 beta1 = 0
 
 ### Inducer calculation----------------------------------------------------------------------------------
 """
 For each value of Cm1 in settingsOffDesign.Cm1i, we calculate the corresponding values of C1, T1, M1, P1, rho1, A1, r1, U1t, W1t, Cm1 and beta1.
-The value of Cm1 will affect the values of U1t and Ctheta1 (through ex. r1), which in turn affects the value of W1t.
-By plotting W1t against Cm1, we then find the value of Cm1 that minimises W1t.
+    The value of Cm1 will affect the values of U1t and Ctheta1 (through ex. r1), which in turn affects the value of W1t. Isentropic relations 
+        linking the static to the total conditions. Velocity triangles are also applied. 
+            By plotting W1t against Cm1, we then find the value of Cm1 that minimises W1t.
 
 """
 Ctheta1i = settingsOffDesign.Cm1i * math.tan(math.radians(settingsOffDesign.alpha1))                                    # Inducer absolute tangential velocity [degrees]          Trigonometry
@@ -83,23 +80,25 @@ A1i = settingsOffDesign.mdot / (rho1i * settingsOffDesign.Cm1i * (1 - settingsOf
 rt1i = (A1i / (math.pi* (1 - settingsOffDesign.rhDivr1**2) )) ** 0.5                                                    # Inducer tip radius [m]                                  Geometry
 
 
-
+""" This function takes a rotational speed N and findes the relative velocity. This is then minimized to increase efficiency. 
+        Inducer properties and velocities are then found at the point where the relative velocity is the smallest. 
+            This is at w1ti_index_min """
 def inducerFlowWRTminimumRelativeVelocity(N):
     U1ti = 2 * math.pi * rt1i * N / 60                                           # Inducer blade tip speed [m/s]
     W1ti = (settingsOffDesign.Cm1i ** 2 + (U1ti - Ctheta1i) ** 2) ** 0.5         # Inducer relative velocity [m/s]
-    indice_min = np.argmin(W1ti)                                                 # Index of smallest relative velocity [m/s]
-    r1 = rt1i[indice_min]                                                        # Inducer tip radius [m]
-    Ctheta1 = Ctheta1i[indice_min]                                               # Inducer angular velocity [m/s]
-    C1 = C1i[indice_min]                                                         # Inducer velocity [m/s]
-    T1 = T1i[indice_min]                                                         # Inducer temperature [K]
-    M1 = M1i[indice_min]                                                         # Inducer Mach number [-]
-    P1 = P1i[indice_min]                                                         # Inducer pressure [Pa]
-    rho1 = rho1i[indice_min]                                                     # Inducer density [kg/m3]
-    A1 = A1i[indice_min]                                                         # Inducer flow area [m3]
-    U1t = U1ti[indice_min]                                                       # Inducer tip speed [m/s]
-    Cm1 = settingsOffDesign.Cm1i[indice_min]                                     # Inducer meridonal velocity [m/s]
+    w1ti_index_min = np.argmin(W1ti)                                                 # Index of smallest relative velocity [m/s]
+    r1 = rt1i[w1ti_index_min]                                                        # Inducer tip radius [m]
+    Ctheta1 = Ctheta1i[w1ti_index_min]                                               # Inducer angular velocity [m/s]
+    C1 = C1i[w1ti_index_min]                                                         # Inducer velocity [m/s]
+    T1 = T1i[w1ti_index_min]                                                         # Inducer temperature [K]
+    M1 = M1i[w1ti_index_min]                                                         # Inducer Mach number [-]
+    P1 = P1i[w1ti_index_min]                                                         # Inducer pressure [Pa]
+    rho1 = rho1i[w1ti_index_min]                                                     # Inducer density [kg/m3]
+    A1 = A1i[w1ti_index_min]                                                         # Inducer flow area [m3]
+    U1t = U1ti[w1ti_index_min]                                                       # Inducer tip speed [m/s]
+    Cm1 = settingsOffDesign.Cm1i[w1ti_index_min]                                     # Inducer meridonal velocity [m/s]
     beta1 = math.degrees(math.atan((U1t - Ctheta1) / Cm1))                       # Inducer relative velocity angle [deg]
-    W1t = W1ti[indice_min]                                                       # Inducer relative velocity [m/s]
+    W1t = W1ti[w1ti_index_min]                                                       # Inducer relative velocity [m/s]
     omega = U1t/r1                                                               # Angular velocity [rad/s]          =(2*np.pi*N/60)
     return U1ti,W1ti,r1,Ctheta1,C1,T1,M1,P1,rho1,A1,U1t,Cm1,beta1,W1t,omega
 
@@ -118,13 +117,18 @@ def inducerFlowWRTminimumRelativeVelocity(N):
 """ Specific isentropic compression enthalpy, constant value [kJ/kg/K]. dh0s is constant throughout the full iteration scheme. """
 dh0s = ( (settingsOffDesign.k * settingsOffDesign.R * settingsOffDesign.T00) / (settingsOffDesign.k - 1) ) * (settingsOffDesign.Pr **((settingsOffDesign.k - 1)/ settingsOffDesign.k) - 1)                     
 
+
+
 """ Calculating critical property of a rotating disk to use as constraint for RPM/rotational velocity/radiusettingsOffDesign. Disk will break at outermost point, therefore r2 and U2. """                                                                                                 
-U2Crit = np.sqrt(2*settingsOffDesign.impellerTensileStrength/settingsOffDesign.impellerDensity)             
-U2 = U2Crit     # initializing for loop 
-Ncrit = 0       # initializing 
+U2Crit = np.sqrt(2*settingsOffDesign.impellerTensileStrength/settingsOffDesign.impellerDensity)      # Applying tensile strength of disk. Titanium used.        
+U2 = U2Crit        
+                                                                                  # initializing for loop 
 
-
-""" Iterating to find a impeller tip velocity that satisfy material constraint.   """
+""" Iterating to find a impeller tip velocity that satisfy material constraint. Taking the rotational speed set in settings.py and
+         checking if the corresponding rotational velocity U2 is bigger than the critical rotational velocity. If it is then 
+            inducerFlowWRTminimumRelativeVelocity(N=Ndes) finds all inducer flow properties for the new N and U2. For the first iteration U2=U_crit 
+              so it runs at least one iteration anyways. If the new U2 is found to be to large then it is lowered by increments of 1000.
+                This could be replaced by seting the rotational velocity to for example 70% or 80% of the critical one.  """
 while (U2) >= U2Crit and Ndes > 0:
 
     U1ti, W1ti, r1, Ctheta1, C1, T1, M1, P1, rho1, A1, U1t, Cm1, beta1, W1t, omega = inducerFlowWRTminimumRelativeVelocity(N=Ndes)
@@ -134,13 +138,18 @@ while (U2) >= U2Crit and Ndes > 0:
         break
     if (U2) >= U2Crit:
         Ndes -= 1000
-    r2 = U2/omega
-    Ncrit = 60*U2Crit/(2*np.pi*r2)
 
 
-""" Function to check if condition for the use of wiesner slip factor is upheld. If its not upheld then slip factor is updated.
-        If the condition is upheld it just returns the same slip factor.  """
+""" Can find design parameters after finding U2"""
+r2 = U2/omega                                           # Impeller tip radius
+D2 = 2*r2                                               # Impeller tip diameter
+rh1 = settingsOffDesign.rhDivr1*r1                      # Hub radius
+Ncrit = 60*U2Crit/(2*np.pi*r2)                          # Critical rpm for the newly found impeller tip radius. 
 
+
+""" Function to check if condition for the use of wiesner slip factor is upheld. If its not upheld then slip factor 
+        is updated by the correction equation. If the condition is upheld it just returns the same slip factor. 
+         The Function is implemented when iterating through all blade numbers and blade angles below.  """
 def checkUpdateSlipFactorSigma(epsilonLimit, slipFactor):
     if settingsOffDesign.r1Divr2 >= epsilonLimit:
         return slipFactor* (1  -  (   (settingsOffDesign.r1Divr2-epsilonLimit)/(1-epsilonLimit)   )**3   )
@@ -148,57 +157,60 @@ def checkUpdateSlipFactorSigma(epsilonLimit, slipFactor):
         return slipFactor
 
 
-"""  ---------------- Iterating main functionality ---------------- """    
+""" Iterating main functionality of design procedure. Looping through each blade number and blade angle to 
+        capture all combinations.  """    
 
 for iz in range(len(ZBarr)):
     # debug=1         # breakpoint for debugging
     
     for ib in range(len(beta2BArr)):
-        sigma = sigmaWiesnerMat[ib, iz]                 # slip factor
-        etaStage = settingsOffDesign.etaStage0          # resetting for each new corresponding point of ZB, beta2B
-        trueFalse2 = False                              # resetting for each new corresponding point of ZB, beta2B
-        # np.rad2deg((beta2BArr[ib])[0])                  # changing from radians to degrees once and for all
-        lookForBetterEta = 0
-        
-        D2 = 2*r2
-        rh1 = settingsOffDesign.rhDivr1*r1
 
+        sigma = sigmaWiesnerMat[ib, iz]                 # slip factor for given blade number and blade angle
+        etaStage = settingsOffDesign.etaStage0          # resetting the guessed efficiency for each new combination of blade number and blade angle
+        trueFalseCheck = False                          # iteration control for while loop
+        
 
         """ Handling slip factor. Updating if the conditions for wiesner relation is not upheld. """
         epsilonLimit = rhsExpLimitMat[ib, iz]                                                          # right hand side of wiesner slip factor condition
         sigma = checkUpdateSlipFactorSigma(epsilonLimit = epsilonLimit, slipFactor = sigma)            # updating slip factor wrt wiesner condition
+        
+        """ impellerOutletVelocities() finds the impeller outlet velocities and work output coeff. """
         workInputCoeff, Ctheta2m, Cm2m, C2 = geometrySystemFunctions.impellerOutletVelocities(slipFactor = sigma, beta2B = (beta2BArr[ib])[0], U2 = U2)          # Finding impeller outlet velocities
 
 
-        """ finding velocities related to slip. See slip velocity triangle in related document. Still in process to find the best fitting one """
+        """ The following five lines are made to find porperties of the slip for a given blade number and blade angle.
+                None of the resulting variables are applied in further calculations, but could easily be. They are included
+                 for further development and demonstration of slip.  """
         Ctheta2ideal = U2 - Ctheta2m*np.tan((np.abs(( beta2BArr[ib] )[0])))   
         CTheta2Real = sigma*Ctheta2ideal         
         Cslip1 = Ctheta2ideal -CTheta2Real
         beta2flow = np.rad2deg( np.arctan( (Cslip1 + Cm2m*np.tan( np.abs(beta2BArr[ib])) )/Cm2m ) )
-
-
         dh0SlipCorrected =  U2*(CTheta2Real) - U1t*Ctheta1   # Alternative for finding fluid enthalpy change, for comparison
 
-        while ( (trueFalse2 == False) and (etaStage < settingsOffDesign.etaUpperLimit and etaStage > settingsOffDesign.etaLowerLimit) ):
+
+
+
+        """ The while loop iterates for a given combination of blade number and blade angle. It iterates the efficiency demand
+                while the estimated pressure ratio is not within the given tolerance of the desired pressure ratio. It is updated in 
+                 the function called pressureOverUnderEstimate. The guess efficiency is increased or decreased varying if the 
+                  oressure ratio is under- or overestimated. """
+        while ( (trueFalseCheck == False) and (etaStage < settingsOffDesign.etaUpperLimit and etaStage > settingsOffDesign.etaLowerLimit) ):
             
             # ------------------- Updating work with the new isentropic efficiency -------------------
             Wx = dh0s / etaStage                                     # Specific work [J/kg/K]
             workError = np.abs(Wx-dh0SlipCorrected)/Wx               # Comparing the two methods of finding enthalpy change
-            # Wx = dh0SlipCorrected
+            # Wx = dh0SlipCorrected                                   # Work set to be given by slip corrected euler equation 
             
 
-            # ------------------- Impeller outlet calculation. Stagnation properties denoted by zero. -------------------
-            T02m = settingsOffDesign.T00 + Wx * (settingsOffDesign.k - 1) / (settingsOffDesign.k * settingsOffDesign.R)                                                     # Stagnation exit temperature [K]     , from dh=cp*Dt   (settingsOffDesign.k - 1) / (settingsOffDesign.k * settingsOffDesign.R) = 1/cp
-            P02m = settingsOffDesign.P00 * ((etaStage * Wx * (settingsOffDesign.k - 1)  / (settingsOffDesign.k * settingsOffDesign.R * settingsOffDesign.T00)) + 1) ** (settingsOffDesign.k / (settingsOffDesign.k - 1))     # Exit Stagnation Pressure [Pa]       , from (... todo ...)
-            # P02m =( ( T02m/settingsOffDesign.T00 )**(settingsOffDesign.k/(settingsOffDesign.k-1)) )*settingsOffDesign.P00
-
-
-            T2m = T02m - (settingsOffDesign.k - 1) / (2 * settingsOffDesign.k * settingsOffDesign.R) * (C2 **2)                                             # Exit temperature [K]                            from stagnation temperature
-            P2m = P02m / ((T02m / T2m) ** (settingsOffDesign.k / (settingsOffDesign.k - 1)))                                                # Exit pressure [Pa]                              from stagnation pressure, isentropic relation
+            """ Impeller outlet calculation. Stagnation properties denoted by zero. Isentropic relations applied on next four rows. """
+            T02m = settingsOffDesign.T00 + Wx * (settingsOffDesign.k - 1) / (settingsOffDesign.k * settingsOffDesign.R)                                                     # Stagnation exit temperature [K]     , from dh=cp*Dt   
+            P02m = settingsOffDesign.P00 * ((dh0s * (settingsOffDesign.k - 1)  / (settingsOffDesign.k * settingsOffDesign.R * settingsOffDesign.T00)) + 1) ** (settingsOffDesign.k / (settingsOffDesign.k - 1))     # Exit Stagnation Pressure, isentropic [Pa]      
+            T2m = T02m - (settingsOffDesign.k - 1) / (2 * settingsOffDesign.k * settingsOffDesign.R) * (C2 **2)             # Exit temperature [K]                            from stagnation temperature
+            P2m = P02m / ((T02m / T2m) ** (settingsOffDesign.k / (settingsOffDesign.k - 1)))                                # Exit pressure [Pa]                              from stagnation pressure, isentropic relation
             rho2m = P2m / (T2m * settingsOffDesign.R)                                                                       # Exit density [kg/m^3]                           from ideal gas law
             A2 = settingsOffDesign.mdot / (rho2m * Cm2m)                                                                    # Exit area [m^2]                                 from continuity
-            b2 = A2 / (math.pi * D2)                                                                        # Depth of impeller exit [m]                      from geometry
-            M2 = U2/np.sqrt(settingsOffDesign.k*settingsOffDesign.R*T02m)                                                                   # Impeller exit blade mach number 
+            b2 = A2 / (math.pi * D2)                                                                                        # Impeller exit cylinder height [m]               from geometry
+            M2 = U2/np.sqrt(settingsOffDesign.k*settingsOffDesign.R*T02m)                                                   # Impeller exit blade mach number                 from definition
             
 
             # ------------------- Finding diffuser properties -------------------
@@ -208,18 +220,18 @@ for iz in range(len(ZBarr)):
             # ------------------- Overall performance -------------------
             etaiterate, Prest, PressureTestOuterLoop = geometrySystemFunctions.systemTotalPerformance(P03, T02m, U2, T1, workInputCoeff)
             
-            """ Checking if iteration conditions are sustained """
+            """ Checking if iteration conditions are sustained. the iterated efficiency is only accepted if
+                    the pressure estimate error is less than the iteration tolerance and if the iterated
+                     efficiency is within the reasonable limits etaUpperLimit and etaLowerLimit """
             if (etaiterate > settingsOffDesign.etaUpperLimit or etaiterate < settingsOffDesign.etaLowerLimit) or ( etaStage > settingsOffDesign.etaUpperLimit or etaStage < settingsOffDesign.etaLowerLimit ):
-                trueFalse2 = False
+                trueFalseCheck = False
             elif abs(PressureTestOuterLoop) > settingsOffDesign.iterTol:
                 checkOuterLoop = False
-                trueFalse2 = False
+                trueFalseCheck = False
             else:
-                trueFalse2 = True
+                trueFalseCheck = True
 
-
-
-            trueFalseMat[ib, iz] = trueFalse2
+            # trueFalseCheck = True
 
             
             if ib == 20 and iz ==20:
@@ -229,19 +241,18 @@ for iz in range(len(ZBarr)):
                 break
             
             """ Updating values from nan's if iteration criterion is upheld"""
-            if  ( trueFalse2 == True ) and U2 < settingsOffDesign.bladeVelUpperLimit:
-                # etaMat[ib, iz] = etaStage
+            if  ( trueFalseCheck == True ) and U2 < settingsOffDesign.bladeVelUpperLimit:
                 etaMat[ib, iz] = etaiterate
                 pressErrorMat[ib, iz] = abs(PressureTestOuterLoop)
                 MachExitMat[ib, iz] = M2
                 b2Mat[ib, iz] = b2
-                c2Mat[ib, iz] = C2
-                c2mMat[ib, iz] = Cm2m
                 PrestMat[ib, iz] = Prest
-                VslipMat[ib, iz] = Cslip1
-                Ctheta2Mat[ib, iz] = Ctheta2m
                 WxMat[ib, iz] = Wx
                 dh0SlipCorrMAt[ib, iz] = dh0SlipCorrected
+                c2Mat[ib, iz] = C2
+                c2mMat[ib, iz] = Cm2m
+                Ctheta2Mat[ib, iz] = Ctheta2m
+                VslipMat[ib, iz] = Cslip1
                 sigmaMat[ib, iz] = sigma
                 beta2flowMat[ib, iz] = beta2flow
 
@@ -265,31 +276,31 @@ for iz in range(len(ZBarr)):
 """ making nice text to go with plots """
 maxEta = np.nanmax(etaMat)
 minEta = np.nanmin(etaMat)
-countTrue = np.sum(trueFalseMat)
+countTrue = np.count_nonzero(~np.isnan(etaMat))
 totalCases = len(ZBarr)*len(beta2BArr)
 
 text1 = "\n" \
         r"Valid cases: " + str(countTrue) + '/'  +str(totalCases) + "\n" \
-        r"Desired $PR^*$: " + str(settingsOffDesign.Pr) +  "\n" \
         r"$\eta _{max}$ = " + str(round(maxEta, 3)) + "   " \
         r"$\eta _{min}$ = " + str(round(minEta, 3)) + "\n" \
-        r"$W_{1t}= $" + str(round(W1t, 3)) + "   " \
-        r"$C_{m1}= $" + str(round(Cm1, 3)) + "\n" \
-        r"$U_{1t}= $" + str(round(U1t, 3)) + "   " \
+        r"$W_{1t}= $" + str(round(W1t, 3)) + "m/s   " \
+        r"$C_{m1}= $" + str(round(Cm1, 3)) + "m/s"+"\n" \
+        r"$U_{1t}= $" + str(round(U1t, 3)) + "m/s"+"   " \
         r"$M_{1f}= $" + str(round(M1, 3)) + "\n" \
-        r"$U_{2t}$ = "  +str(round(U2, 3)) + "   " \
-        r"$U_{2t,crit}= $" + str(round(U2Crit, 3)) + "\n" \
+        r"$U_{2t}$ = "  +str(round(U2, 3)) + "m/s"+"   " \
+        r"$U_{2t,crit}= $" + str(round(U2Crit, 3)) +"m/s"+ "\n" \
 
 text2 = "\n" \
-        r"$\frac{r_h}{r_1}{*}$ = "  +str(settingsOffDesign.rhDivr1) + r" $\frac{m}{m} $" +"    " \
-        r"$\frac{r_1}{r_2}{*}$ = " + str(settingsOffDesign.r1Divr2) + r" $\frac{m}{m} $" +"\n" \
         r"$r_{t1}$ = " +str(round(r1, 3)) + r"$m$" +" \n" \
         r"$r_{h1}$ = " +str(round(rh1, 3)) + r"$m$" +" \n" \
         r"$r_{t2}$ = " +str(round(r2, 3)) + r"$m$" +" \n" \
-        r"$N^{*}$ = " +str(round(Ndes, 1)) + r"$rpm$" +" \n" \
         r"$N_{crit}$ = " +str(round(Ncrit, 3)) + r"$rpm$" +" \n" \
         
 text3 = "\n" \
+        r"Desired $PR^*$: " + str(settingsOffDesign.Pr) +  "\n" \
+        r"$\frac{r_h}{r_1}{*}$ = "  +str(settingsOffDesign.rhDivr1) + r" $\frac{m}{m} $" +"    " \
+        r"$\frac{r_1}{r_2}{*}$ = " + str(settingsOffDesign.r1Divr2) + r" $\frac{m}{m} $" +"\n" \
+        r"$N^{*}$ = " +str(round(Ndes, 1)) + r"$rpm$" +" \n" \
         r"Proposed efficiency $\eta *=$  " + str(settingsOffDesign.etaStage0) + "\n" \
         r"Exit swirl number $\lambda_2 *$: " + str(settingsOffDesign.lambda20) +  "\n" \
         r"Tolerance*: " + str(round(settingsOffDesign.iterTol, 3)) + "   " \
@@ -300,8 +311,8 @@ systemVar = [settingsOffDesign.etaStage0,settingsOffDesign.lambda2, settingsOffD
 designParam = [r1, r2, rh1, Ncrit, Ndes]
 flowVar = [settingsOffDesign.Pr, W1t, Cm1, U1t, U2, U2Crit]
 
-""" One Z(...)-array goes to one plot function"""
-Zflow = [Ctheta2Mat, pressErrorMat, etaMat, MachExitMat, PrestMat, trueFalseMat, WxMat, dh0SlipCorrMAt]     # Goes to plotFlow.py
+""" One Z(...)-array goes to one plot function. For example: Zflow goes to plotFlow.py, Zsystem goes to plotSystem.py etc."""
+Zflow = [Ctheta2Mat, pressErrorMat, etaMat, MachExitMat, PrestMat, WxMat, dh0SlipCorrMAt]     # Goes to plotFlow.py
 Zcompressor = [b2Mat, VslipMat, beta2flowMat]                                                               # Goes to plotCompressor.py
 Zsystem = [WxMat, dh0SlipCorrMAt,sigmaMat,etaMat, PrestMat]                                                 # Goes to plotSystem.py
 Zvelocities = [c2Mat, Ctheta2Mat, c2mMat, MachExitMat, VslipMat]                                            # Goes to plotVelocities.py
@@ -316,9 +327,12 @@ text = [text1, text2, text3]                                                    
 # # plt.title("Minimisation of W1t")
 # plt.grid()
 
-
-
 print('Critical RPM: ' + str(round(Ncrit, 2)) )
 print('Applied RPM: ' + str(round(Ndes, 2)) )
+print('Rotational velocity: ' + str(round(U2, 2)))
+print('rh: ' + str(round(rh1, 3)) + 'm' )
+print('r1: ' + str(round(r1, 3)) + 'm')
+print('r2: ' + str(round(r2, 3)) + 'm' )
+
 print('Geometry.py successfully run. \n')
 

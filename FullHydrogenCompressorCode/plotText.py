@@ -20,15 +20,15 @@ def plotText(text ):
     fig.set_figwidth(15)
     fig.set_figheight(15)
     fig.tight_layout(pad=7.0)
-    fig.suptitle(r'System output data', y=0.98, x=0.38)
     fig.subplots_adjust(top=0.9, bottom=0.09)
+    fig.canvas.manager.set_window_title('text')
 
   
     # -------------- Textbox -------------
     i=0
     j=0
     axs21[j].axis('off')  # Turn off the axis
-    axs21[j].text(0.0, 0.5, text3, ha='left', va='bottom', fontsize=12, linespacing = 1.8 )
+    axs21[j].text(0.0, 0.5, text3, ha='left', va='center', fontsize=12, linespacing = 1.8 )
     # -------------- Textbox -------------
     i=0
     j=1

@@ -1,7 +1,7 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-
+import settingsOffDesign
 def plotFlowConditions(systemVar, Zflow, designParam, flowVar ):
     # ------------- PLOTTING ------------ 
     """
@@ -16,9 +16,8 @@ def plotFlowConditions(systemVar, Zflow, designParam, flowVar ):
     etaMat = Zflow[2] 
     MachExitMat = Zflow[3]
     PrestMat = Zflow[4]
-    trueFalseMat = Zflow[5]
-    WxMat = Zflow[6]
-    dh0SlipCorr =  Zflow[7]
+    WxMat = Zflow[5]
+    dh0SlipCorr =  Zflow[6]
 
     etaStage0 = systemVar[0]
     lambda2 = systemVar[1]
@@ -51,13 +50,13 @@ def plotFlowConditions(systemVar, Zflow, designParam, flowVar ):
 
     X, Y = np.meshgrid(x, y)  
     lvls = 30
-    colorTheme = 'Reds'
+    colorTheme = 'viridis'
 
     fig, axs21 = plt.subplots(2,3 )
     fig.set_figwidth(15)
     fig.set_figheight(15)
     fig.tight_layout(pad=7.0)
-    fig.suptitle(r'Pressure', y=0.98, x=0.38)
+    fig.canvas.manager.set_window_title('flowResults')
     fig.subplots_adjust(top=0.9, bottom=0.09)
 
     # -------------- slip corrected compressor work plot -------------
@@ -77,10 +76,10 @@ def plotFlowConditions(systemVar, Zflow, designParam, flowVar ):
     # cbar = fig.colorbar(con, ax=axs21[i, j])
     # cbar.ax.tick_params(labelsize=10)
     axs21[i, j].invert_yaxis()
-    axs21[i, j].set_xticks([1, 10, 20 , 30, 40 ,50])
-    axs21[i, j].set_xticklabels([1, 10, 20 , 30, 40 ,50], fontsize=10)
-    axs21[i, j].set_yticks(np.arange(-5, -66, -10))
-    axs21[i, j].set_yticklabels(np.arange(-5, -66, -10), fontsize=10)
+    axs21[i, j].set_xticks(np.arange(0, settingsOffDesign.bladeMax+1, 5))
+    axs21[i, j].set_xticklabels(np.arange(0, settingsOffDesign.bladeMax+1, 5), fontsize=10)
+    axs21[i, j].set_yticks(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10))
+    axs21[i, j].set_yticklabels(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10), fontsize=10)
     axs21[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
     axs21[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
     axs21[i, j].set_title(r'Slip corrected compressor work [KJ/kg]' , fontsize=12)
@@ -95,10 +94,10 @@ def plotFlowConditions(systemVar, Zflow, designParam, flowVar ):
     cbar = fig.colorbar(con, ax=axs21[i, j])
     cbar.ax.tick_params(labelsize=10)
     axs21[i, j].invert_yaxis()
-    axs21[i, j].set_xticks([1, 10, 20 , 30, 40 ,50])
-    axs21[i, j].set_xticklabels([1, 10, 20 , 30, 40 ,50], fontsize=10)
-    axs21[i, j].set_yticks(np.arange(-5, -66, -10))
-    axs21[i, j].set_yticklabels(np.arange(-5, -66, -10), fontsize=10)
+    axs21[i, j].set_xticks(np.arange(0, settingsOffDesign.bladeMax+1, 5))
+    axs21[i, j].set_xticklabels(np.arange(0, settingsOffDesign.bladeMax+1, 5), fontsize=10)
+    axs21[i, j].set_yticks(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10))
+    axs21[i, j].set_yticklabels(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10), fontsize=10)
     axs21[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
     axs21[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
     axs21[i, j].set_title(r'Estimated PR [-] ' , fontsize=12)
@@ -115,10 +114,10 @@ def plotFlowConditions(systemVar, Zflow, designParam, flowVar ):
     cbar = fig.colorbar(con, ax=axs21[i, j])
     cbar.ax.tick_params(labelsize=10)
     axs21[i, j].invert_yaxis()
-    axs21[i, j].set_xticks([1, 10, 20 , 30, 40 ,50])
-    axs21[i, j].set_xticklabels([1, 10, 20 , 30, 40 ,50], fontsize=10)
-    axs21[i, j].set_yticks(np.arange(-5, -66, -10))
-    axs21[i, j].set_yticklabels(np.arange(-5, -66, -10), fontsize=10)
+    axs21[i, j].set_xticks(np.arange(0, settingsOffDesign.bladeMax+1, 5))
+    axs21[i, j].set_xticklabels(np.arange(0, settingsOffDesign.bladeMax+1, 5), fontsize=10)
+    axs21[i, j].set_yticks(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10))
+    axs21[i, j].set_yticklabels(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10), fontsize=10)
     axs21[i, j].set_xlabel(r'Blade number $Z_B$ [deg]' , fontsize=12)
     axs21[i, j].set_ylabel(r'$ \beta _{2B}$', fontsize=12)
     axs21[i, j].set_title(r'Pressure estimate error contour plot [-]', fontsize=12)
@@ -135,10 +134,10 @@ def plotFlowConditions(systemVar, Zflow, designParam, flowVar ):
     cbar = fig.colorbar(con, ax=axs21[i, j])
     cbar.ax.tick_params(labelsize=10)
     axs21[i, j].invert_yaxis()
-    axs21[i, j].set_xticks([1, 10, 20 , 30, 40 ,50])
-    axs21[i, j].set_xticklabels([1, 10, 20 , 30, 40 ,50], fontsize=10)
-    axs21[i, j].set_yticks(np.arange(-5, -66, -10))
-    axs21[i, j].set_yticklabels(np.arange(-5, -66, -10), fontsize=10)
+    axs21[i, j].set_xticks(np.arange(0, settingsOffDesign.bladeMax+1, 5))
+    axs21[i, j].set_xticklabels(np.arange(0, settingsOffDesign.bladeMax+1, 5), fontsize=10)
+    axs21[i, j].set_yticks(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10))
+    axs21[i, j].set_yticklabels(np.arange(-5, settingsOffDesign.beta2Bmax+1, -10), fontsize=10)
     axs21[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
     axs21[i, j].set_ylabel(r' $ \beta _{2B}$ [deg]', fontsize=12)
     axs21[i, j].set_title(r'Efficiency [-]', fontsize=12)

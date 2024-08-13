@@ -58,6 +58,7 @@ def off_design_performance(Nrpm):
     x = 10                                                                                                                      # Streamline angle [degrees] from axial direction
     VelCr = math.sqrt(2 * settingsOffDesign.k / (settingsOffDesign.k + 1) * settingsOffDesign.R * settingsOffDesign.T00)        # Critical Velocity wrt resonance [m/s]  
     V0DivVcr = np.linspace(0.1, 0.686, 50)                                                                                      # Compressor inlet absolute critical velocity ratio wrt resonance [-]
+    # V0DivVcr = np.linspace(0.1, 0.45, 50)                                                                                      # Compressor inlet absolute critical velocity ratio wrt resonance [-]
     Cm1h = V0DivVcr * VelCr                                                                                                     # Absolute meridional velocity of the hub [m/s]
     kBL = 0.6                                                                                                                   # Blading loss coefficient [-]
     visc = 1.778e-5                                                                                                             # Air viscosity based on total conditions
@@ -199,7 +200,6 @@ def off_design_performance(Nrpm):
         dhid = (dhaero - dhInc - dhSF - dhDF - dhBL)                                                            # (B68) Ideal enthalpy rise [J/kg]
         etaR = dhid / dhaero                                                                                    # (B69) Impeller efficiency [-]
         P2oabs = (P1arms * (etaR * dhaero / (settingsOffDesign.Cp * settingsOffDesign.T00) + 1) ** (settingsOffDesign.k / (settingsOffDesign.k - 1)))       # (B70) Iteration of the off design exit absolute pressure [Pa]
-        
         """ Checking for invalid temperatures"""
         for Temp in T2o:
             if Temp < 0:             # MSG: Added this if statement to raise error if negative temperatures
@@ -263,7 +263,7 @@ def off_design_performance(Nrpm):
                         P2o.append(Densityiteration(rho[- 1])[12][i])
                     else:
                         rho.append(Densityiteration(rho[- 1])[0][i])
-        return [RHO, T2o, dhaero, dhBL, dhDF, dhSF, dhid, T2oabs, P2oabs, Vtheta2, Vm2m, Df, P2o]
+        return [RHO, T2o, dhaero, dhBL, dhDF, dhSF, dhid, T2oabs, P2oabs, Vtheta2, Vm2m, Df, P2o, ]
 
 
     rho2 = np.array(Density()[0])
@@ -287,6 +287,7 @@ def off_design_performance(Nrpm):
     """ Finding impeller exit velocity"""
     for i in range(0, len(V0DivVcr)):
         C2o.append((Vm2m[i] ** 2 + Vtheta2[i] ** 2) ** 0.5)
+    M2o = C2o/np.sqrt(settingsOffDesign.k*settingsOffDesign.R*T2oabs)
 
 
     ### Recirculation Loss, work done on fluid going back 
@@ -325,7 +326,10 @@ def off_design_performance(Nrpm):
         etaAppend = (dhaero[i] - (dhInc[i] + dhBL[i] + dhSF[i] + dhVLD[i])) / (dhaero[i] + dhRC[i] + dhDF[i])       #debugging
         etao.append(etaAppend)      
         P3append = P3o[i]           #debugging
+        # P3append = P3oabs[i]           #debugging
         Pro.append(P3append / settingsOffDesign.P00)
+        if P3append / settingsOffDesign.P00 < 1:
+            debug=1
         if P3append < settingsOffDesign.P00:
             debug= 0
 
@@ -357,7 +361,7 @@ def off_design_performance(Nrpm):
     # y = settingsOffDesign.k                 # Ratio of specific heats
     # # P = 0.1013              # Inlet pressure [MPa]
     # eta = geometryV8.etaMat[iB][iZ]              # Assumed efficiency
-
+    debug = M2o
 
     ### Line of constant power------------------------------------------------------------------------------
     # def pressure_ratio1(mdot, eta, comp_power, T1, y, cp):
@@ -378,4 +382,4 @@ def off_design_performance(Nrpm):
   
 
 
-    return Pro, P03o, T2oabs, mdoto, etao, U2o
+    return Pro, P03o, T2oabs, mdoto, etao, U2o, M2o
