@@ -42,7 +42,7 @@ beta2BArr = beta2BArr[:, np.newaxis]                                            
 
 """ Making matrices for iteration later. Filling with nans that are only replaced if all conditions are met. """
 rhsExpLimitMat = np.exp(-8.16* np.cos( beta2BArr)/ ZBarr)                                                                   # Matrix for epsilon_limit from wiesner condition           
-etaMat = np.array([[ np.nan for _ in range(np.shape(rhsExpLimitMat)[1])] for _ in range(np.shape(rhsExpLimitMat)[0])] )     # Matrix for efficiency
+etaMat = np.array([[ np.nan for _ in range(np.shape(rhsExpLimitMat)[1])] for _ in range(np.shape(rhsExpLimitMat)[0])] )     # Matrix for efficiency. Replace by fill matrix with same shape as rhsExpLimitMAt with nans 
 sigmaWiesnerMat = 1 - (np.sqrt(np.cos(np.radians(beta2BArr))) / (ZBarr ** 0.7))                                             # Matrix for wiesner slip factor 
 sigmaMat = np.copy(etaMat)                                                                                                  # Matrix for slip factor found to be valid
 b2Mat = np.copy(etaMat)                                                                                                     # Matrix for impeller exit cylinder height
@@ -60,6 +60,7 @@ beta2flowMat= np.copy(etaMat)                                                   
 # Declaring variables for off-design.py
 U1t = 0
 beta1 = 0
+
 
 ### Inducer calculation----------------------------------------------------------------------------------
 """
@@ -133,7 +134,7 @@ while (U2) >= U2Crit and Ndes > 0:
     U1ti, W1ti, r1, Ctheta1, C1, T1, M1, P1, rho1, A1, U1t, Cm1, beta1, W1t, omega = inducerFlowWRTminimumRelativeVelocity(N=Ndes)
     U2 = (U1t/settings.r1Divr2)
 
-    if (U2Crit) > settings.bladeVelUpperLimit:
+    if (U2Crit) > settings.bladeVelUpperLimit:      # Can skip this break to avoid crashing code
         break
     if (U2) >= U2Crit:
         Ndes -= 1000
@@ -232,9 +233,6 @@ for iz in range(len(ZBarr)):
 
             # trueFalseCheck = True
 
-            
-            if ib == 20 and iz ==20:
-                debug = 1
 
             if etaStage <= settings.etaLowerLimit or etaStage >= settings.etaUpperLimit:
                 break
@@ -258,7 +256,7 @@ for iz in range(len(ZBarr)):
 
 
             """ Updating efficiency for next iteration"""
-            etaStage = pressureOverUnderEstimate( PressureTestOuterLoop, etaStage)
+            etaStage = pressureOverUnderEstimate(PressureTestOuterLoop, etaStage)
     
     
         #     debug = 1       # Breakpoint for debugging

@@ -46,7 +46,6 @@ T00 = 293                                       # Inlet stagnation temperature [
 Cm1i = np.arange(10, 600.5, 1)                  # Inlet Absolute meridional velocity [m/s]
 alpha1 = 0                                      # Absolute inlet velocity angle [deg]
 B1 = 0.04                                       # Boundary layer blockage [-],        substance viscocity dependant
-AR = 2.5                                        # inlet/outlet area ratio of the diffuser [-]         
 T00i = np.full(len(Cm1i), 293)                  # Inlet stagnation temperature [K]
 rho0 = P00/(R*T00)
 
@@ -58,14 +57,15 @@ impellerTensileStrength = 900* 10**6       # Approximate ultimate tensile streng
 """ -------------- Impeller exit flow parameters -------------- """
 lambda2 = 2                 # Exit swirl parameter                                         
 lambda20 = lambda2          # Exit swirl parameter, used for iteration
-etaStage = 0.6              # Isentropic Stage efficiency [-]           
-etaStage0 = etaStage        # Isentropic Stage efficiency [-], used for iteration                 
+etaStage = 0.6              # Isentropic Stage efficiency [-]. Used for iteration     
+etaStage0 = etaStage        # Isentropic Stage efficiency [-]. Store initial value for iteration                 
 
   
 
 
 """ -------------- Diffuser parameters -------------- """
 etad = 0.85                                 # diffuser efficiency
+AR = 2.5                                    # inlet/outlet area ratio of the diffuser [-]         
 CpDi = 1 - 1 / (AR ** 2)                    # Ideal pressure recovery coefficient
 CpD = etad * CpDi                           # 
 
@@ -78,7 +78,7 @@ beta2Bmax = -50                             # "Maximum" beta iterated over
 beta2Bmin = 0                               # "Minimum" beta iterated over  
 bladeMin = 2                                # Lowest bladenumber allowed
 bladeMax = 30                               # Highest bladenumber allowed
-iterTol = 0.01                              # loop tolerance condition
+iterTol = 0.01                              # loop tolerance condition for pressure ratio
 # iterTol = 0.02                              # loop tolerance condition
 
 
