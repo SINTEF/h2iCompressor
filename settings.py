@@ -1,97 +1,125 @@
 """
-The following Python code takes a set of variables as inputs and calculates the geometry of an inducer, 
-impeller and diffuser for a centrifugal compressor.
+The following Python code defines classes which load variables for the working fluid, inlet conditions and compressor from toml files. 
+
+
+TO-DO:
+    - When defining functions in other scripts, let functions take classes as arguments instead of individual variables
+    - Make sure that all variables are defined in the classes (search for ex. Compressor in other scripts)
 
 Reference: Lowe, Mitchell (2016-08-21). Design of a load dissipation device for a 100 kW supercritical CO2 turbine, https://doi.org/10.14264/uql.2017.244
-Author: Petter Resell (SINTEF Energy Research, 2024)
-
+Author(s): Petter Resell (summer intern, 2024), Martin Spillum Grønli (SINTEF Energy Research, 2024)
 """
 
-import math
+
+# Import
 import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
-# import logic
-# import main as m
+import toml
 
 
+class Fluid:
+    """ Class with fluid properties """
+    def __init__(self, path_to_properties_toml):
+        self.fluid_properties = toml.load(path_to_properties_toml)['fluid_properties']              # Load properties from toml file
+        self.Cp = self.fluid_properties['Cp']
+        self.MolarMass = self.fluid_properties['MolarMass']
+        self.k = self.fluid_properties['k']
+        self.R_uni = self.fluid_properties['R_uni']
+        self.R = self.R_uni / self.MolarMass
 
 
-
-### -------------- Parameters --------------
-#  
-""" -------------- Inlet flow parameters -------------- """
-global mdot, R, k, Cp, MolarMass, impellerDensity, impellerTensileStrength, etaStage0
-global T00, P00, T00i, Pr, Cm1i, N0, rho0
-global alpha1, B1, B2, AR, lambda2, lambda20
-global etad, CpD, CpDi
-global rhDivr1, r1Divr2
-global etaLowerLimit, etaUpperLimit, bladeVelUpperLimit, bladeVelLowerLimit, beta2Bmax, beta2Bmin, bladeMin, bladeMax, iterTol
-
-""" -------------- Fluid and system parameters -------------- """
-mdot = 25                               # Mass flow rate [kg/s]   , mdot = ( (300* 10**3 )/( 60**2 ) )/6  
-CpAir = 1006                            # Cp air [J/kg/K], 
-CpH2 = 14310                            # Engineering toolbox Cp hydrogen, [J/kgK]                                       
-Cp = CpH2                               # Choose Air or Hydrogen                                      
-MolarMassAir = 0.02897                  # Molecular weight of air [kg/mol].   
-MolarMassH2 = 2.01568 * 10**-3          # Molecular weight of H2 [kg/mol]. 
-MolarMass = MolarMassH2                 # Molecular weight of H2 [kg/mol]. 
-k = 1.41                                # Basicly similar for air and hydrogen
-R_uni = 8.314                           # Universal gas constant [J/mol/K]
-R = R_uni / MolarMass                   # Specific gas constant [J/kg /K]
-
-""" -------------- inlet conditions -------------- """
-P00 = 30 * (10**2) * (10**3)                    # Inlet stagnation pressure [Pa]
-T00 = 293                                       # Inlet stagnation temperature [K]
-Cm1i = np.arange(10, 600.5, 1)                  # Inlet Absolute meridional velocity [m/s]
-alpha1 = 0                                      # Absolute inlet velocity angle [deg]
-B1 = 0.04                                       # Boundary layer blockage [-],        substance viscocity dependant
-T00i = np.full(len(Cm1i), 293)                  # Inlet stagnation temperature [K]
-rho0 = P00/(R*T00)
-
-""" -------------- Ti-6Al-2Sn-4Zr-2Mo --------------> titanium  properties https://www.azom.com/article.aspx?ArticleID=9298 """
-impellerDensity = 1540                     # [kg/m3]
-impellerTensileStrength = 900* 10**6       # Approximate ultimate tensile strength UTS [Pa]
+class InletConditions:
+    """ Class with inlet conditions """
+    def __init__(self, fluid_class, path_to_inlet_toml):
+        self.inlet_conditions = toml.load(path_to_inlet_toml)['inlet_conditions']                   # Load inlet conditions from toml file
+        self.mdot = self.inlet_conditions['mdot']
+        self.P00 = self.inlet_conditions['P00']
+        self.T00 = self.inlet_conditions['T00']
+        
+        self.Cm1i = np.arange(self.inlet_conditions['Cm1i_min'], self.inlet_conditions['Cm1i_max'], self.inlet_conditions['Cm1i_step']) # MSG: Move this to be part of Compressor under inducer? C1i is part of Compressor
+        self.alpha1 = self.inlet_conditions['alpha1']
+        self.B1 = self.inlet_conditions['B1']
+        self.T00i = np.full(len(self.Cm1i), self.T00)
+        self.rho0 = self.P00 / (fluid_class.R * self.T00)      # MSG: Need to get R from fluid class
 
 
-""" -------------- Impeller exit flow parameters -------------- """
-lambda2 = 2                 # Exit swirl parameter                                         
-lambda20 = lambda2          # Exit swirl parameter, used for iteration
-etaStage = 0.6              # Isentropic Stage efficiency [-]. Used for iteration     
-etaStage0 = etaStage        # Isentropic Stage efficiency [-]. Store initial value for iteration                 
+class Compressor:
+    """ Class with compressor properties """
+    def __init__(self, path_to_compressor_toml):
+        self.impeller_properties = toml.load(path_to_compressor_toml)['impeller_properties']        # Load impeller properties from toml file
+        self.impellerDensity = self.impeller_properties['impellerDensity']
+        self.impellerTensileStrength = self.impeller_properties['impellerTensileStrength']
+        
+        # Inducer parameters
+        self.Ctheta1i = None        # MSG: Change these from Ctheta1i to Ctheta1 etc.?
+        self.U1t = None
+        self.C1i = None
+        self.T1i = None
+        self.M1i = None
+        self.P1i = None
+        self.rho1i = None
+        self.A1i = None
+        self.rt1i = None
+        self.rh1 = None     # Hub radius
 
-  
+        # Impeller
+        self.r2 = None      # Impeller tip radius
+        self.D2 = None      # Impeller tip diameter
+        self.U2 = None     
+
+        # Impeller exit flow parameters
+        self.lambda2 = self.impeller_properties['lambda2']
+        self.lambda20 = self.lambda2        # MSG: Duplicate?
+        self.etaStage = self.impeller_properties['etaStage']
+        self.etaStage0 = self.etaStage
+
+        self.diffuser_properties = toml.load(path_to_compressor_toml)['diffuser_properties']        # Load diffuser properties from toml file
+        self.etad = self.diffuser_properties['etad']
+        self.AR = self.diffuser_properties['AR']
+        self.CpDi = 1 - 1 / (self.AR ** 2)
+        self.CpD = self.etad * self.CpDi
+
+        self.iteration_parameters = toml.load(path_to_compressor_toml)['iteration_parameters']      # Load iteration parameters from toml file
+        self.etaLowerLimit = self.iteration_parameters['etaLowerLimit']
+        self.etaUpperLimit = self.iteration_parameters['etaUpperLimit']
+        self.bladeVelUpperLimit = self.iteration_parameters['bladeVelUpperLimit']
+        self.bladeVelLowerLimit = self.iteration_parameters['bladeVelLowerLimit']
+        self.beta2Bmax = self.iteration_parameters['beta2Bmax']
+        self.beta2Bmin = self.iteration_parameters['beta2Bmin']
+        self.bladeMin = self.iteration_parameters['bladeMin']
+        self.bladeMax = self.iteration_parameters['bladeMax']
+        self.iterTol = self.iteration_parameters['iterTol']
+
+        self.parameters_to_vary = toml.load(path_to_compressor_toml)['parameters_to_vary']          # Load parameters to vary from toml file
+        self.Pr = self.parameters_to_vary['Pr']
+        self.N0 = self.parameters_to_vary['N0']
+        self.rhDivr1 = self.parameters_to_vary['rhDivr1']
+        self.r1Divr2 = self.parameters_to_vary['r1Divr2']
+        
+        self.off_design_parameters = toml.load(path_to_compressor_toml)['off_design_parameters']    # Load off-design parameters from toml file
+        self.bladeAngle = np.deg2rad(self.off_design_parameters['bladeAngle'])
+        self.bladeNumber = self.off_design_parameters['bladeNumber']
 
 
-""" -------------- Diffuser parameters -------------- """
-etad = 0.85                                 # diffuser efficiency
-AR = 2.5                                    # inlet/outlet area ratio of the diffuser [-]         
-CpDi = 1 - 1 / (AR ** 2)                    # Ideal pressure recovery coefficient
-CpD = etad * CpDi                           # 
+class IterationMatrix:
+    """ Class with iteration matrices """
+    def __init__(self, Compressor):
+        self.ZBarr = np.arange(Compressor.bladeMin, Compressor.bladeMax + 1, 1)                    # Array with increasing blade number
+        self.beta2BArr = np.radians(np.arange(Compressor.beta2Bmax, Compressor.beta2Bmin, 1))      # Array with decreasing (absolute) discharge angles [rad] MSG: Is this discharge angle or blade angle?
+        self.beta2BArr = self.beta2BArr[:, np.newaxis]                                              # Flipping from row to column vector to make matrix on next lines
 
-""" ------------- Iteration control ----------"""
-etaLowerLimit = 0.4                        # Lowest efficiency allowed
-etaUpperLimit = 0.9                        # Highest efficiency allowed
-bladeVelUpperLimit = 1200                   # Highest blade velocity allowed
-bladeVelLowerLimit = 0                      # lowest blade velocity allowed 
-beta2Bmax = -50                             # "Maximum" beta iterated over
-beta2Bmin = 0                               # "Minimum" beta iterated over  
-bladeMin = 2                                # Lowest bladenumber allowed
-bladeMax = 30                               # Highest bladenumber allowed
-iterTol = 0.01                              # loop tolerance condition for pressure ratio
-# iterTol = 0.02                              # loop tolerance condition
-
-
-""" ------- VARY THESE PARAMETERS ------- """
-Pr = 1.24                                       # Pressure ratio [-]
-N0 = 40000                                  # Rotational speed
-rhDivr1=0.35                                # Ratio commonly given
-r1Divr2 = 0.65                              # rt1 divided by rt2 ,making rt2 increase through array progression
-
-bladeAngle = np.deg2rad(-35)                # blade angle of interest for off-desing_performance.py
-bladeNumber = 12                            # blade number of interest for off-desing_performance.py
-
-
-""" ------------------------------------- """
-
-
+        """ Making matrices for iteration later. Filling with nans that are only replaced if all conditions are met. """
+        self.rhsExpLimitMat = np.exp(- 8.16 * np.cos(self.beta2BArr) / self.ZBarr)                                                              # Matrix for epsilon_limit from wiesner condition           
+        self.etaMat = np.array([[ np.nan for _ in range(np.shape(self.rhsExpLimitMat)[1])] for _ in range(np.shape(self.rhsExpLimitMat)[0])] )  # Matrix for efficiency. Replace by fill matrix with same shape as rhsExpLimitMAt with nans 
+        self.sigmaWiesnerMat = 1 - (np.sqrt(np.cos(np.radians(self.beta2BArr))) / (self.ZBarr ** 0.7))                                          # Matrix for wiesner slip factor 
+        self.sigmaMat = np.copy(self.etaMat)                                                                                                    # Matrix for slip factor found to be valid
+        self.b2Mat = np.copy(self.etaMat)                                                                                                       # Matrix for impeller exit cylinder height
+        self.c2Mat = np.copy(self.etaMat)                                                                                                       # Matrix for impeller absolute discharge velocity
+        self.c2mMat = np.copy(self.etaMat)                                                                                                      # Matrix for meridonal component of impeller discharge velocity
+        self.PrestMat = np.copy(self.etaMat)                                                                                                    # Matrix for pressure estimate
+        self.VslipMat = np.copy(self.etaMat)                                                                                                    # Matrix for slip velocity
+        self.pressErrorMat = np.copy(self.etaMat)                                                                                               # Matrix for pressure error
+        self.MachExitMat = np.copy(self.etaMat)                                                                                                 # Matrix for impeller mach number
+        self.WxMat = np.copy(self.etaMat)                                                                                                       # Matrix for compression work
+        self.Ctheta2Mat = np.copy(self.etaMat)                                                                                                  # Matrix for angular component of discharge velocity
+        self.dh0SlipCorrMAt = np.copy(self.etaMat)                                                                                              # Matrix for work found by slip corrected euler equation
+        self.beta2flowMat= np.copy(self.etaMat)                                                                                                 # Matrix for discharge flow angle found by slip relations
