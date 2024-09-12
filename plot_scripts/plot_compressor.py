@@ -1,9 +1,8 @@
-import math
-import numpy as np
-import matplotlib.pyplot as plt
-import settings
-
-def plotCompressorParam(systemVar, Zcompressor, designParam, flowVar):
+def plotCompressorParam(Compressor, IterationMatrix):
+    # Import
+    import numpy as np
+    import matplotlib.pyplot as plt
+    
     # ------------- PLOTTING ------------ 
     """
     systemVar = [etaStage0, lambda2, iterTol, Zbarr, beta2bArr]
@@ -11,7 +10,10 @@ def plotCompressorParam(systemVar, Zcompressor, designParam, flowVar):
     designParam = [r1, rt2, rh, Ncrit, N]
     flowVar = [PR, W1t, Cm1, U1t, U2, U2Crit]
     """
-
+    systemVar = [Compressor.etaStage0, Compressor.lambda2, Compressor.iterTol, IterationMatrix.ZBarr, IterationMatrix.beta2BArr]
+    designParam = [Compressor.r1, Compressor.r2, Compressor.rh1, Compressor.Ncrit, Compressor.Ndes]
+    flowVar = [Compressor.Pr, Compressor.W1t, Compressor.Cm1, Compressor.U1t, Compressor.U2, Compressor.U2Crit]
+    Zcompressor = [IterationMatrix.b2Mat, IterationMatrix.VslipMat, IterationMatrix.beta2flowMat]                                                               # Goes to plotCompressor.py
 
 
     h2Mat = Zcompressor[0]
@@ -31,8 +33,8 @@ def plotCompressorParam(systemVar, Zcompressor, designParam, flowVar):
     rt1 = designParam[0]
     rt2 = designParam[1]
     rh1 = designParam[2]
-    rhDivr1 = rh1/rt1
-    r1Dr2 = rt1/rt2
+    rhDivr1 = rh1 / rt1
+    r1Dr2 = rt1 / rt2
     Ncrit = designParam[3]
     N = designParam[4]
 
@@ -54,70 +56,65 @@ def plotCompressorParam(systemVar, Zcompressor, designParam, flowVar):
     fig.set_figwidth(15)
     fig.set_figheight(15)
     fig.canvas.manager.set_window_title('compressor')
-    fig.tight_layout(pad=7.0)
-    fig.subplots_adjust(top=0.9, bottom=0.09)
+    fig.tight_layout(pad = 7.0)
+    fig.subplots_adjust(top = 0.9, bottom = 0.09)
 
 
     # -------------- Outlet exit height plot -------------
-    i=0
-    j=1
+    i = 0
+    j = 1
     Z = h2Mat                  
-    con = axs2[i, j].contourf(X, Y, Z, levels = lvls, cmap=colorTheme)
+    con = axs2[i, j].contourf(X, Y, Z, levels = lvls, cmap = colorTheme)
     cbar = fig.colorbar(con, ax=axs2[i, j])
-    cbar.ax.tick_params(labelsize=10)
+    cbar.ax.tick_params(labelsize = 10)
     axs2[i, j].invert_yaxis()
-    axs2[i, j].set_xticks(np.arange(0, settings.bladeMax+1, 5))
-    axs2[i, j].set_xticklabels(np.arange(0, settings.bladeMax+1, 5), fontsize=10)
-    axs2[i, j].set_yticks(np.arange(-5, settings.beta2Bmax+1, -10))
-    axs2[i, j].set_yticklabels(np.arange(-5, settings.beta2Bmax+1, -10), fontsize=10)
-    axs2[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
-    axs2[i, j].set_ylabel(r' $ \beta _{2B}$ [deg]', fontsize=12)
-    axs2[i, j].set_title(r'Impeller cylinder height [m]', fontsize=12)
+    axs2[i, j].set_xticks(np.arange(0, Compressor.bladeMax + 1, 5))
+    axs2[i, j].set_xticklabels(np.arange(0, Compressor.bladeMax + 1, 5), fontsize = 10)
+    axs2[i, j].set_yticks(np.arange(- 5, Compressor.beta2Bmax + 1, - 10))
+    axs2[i, j].set_yticklabels(np.arange(- 5, Compressor.beta2Bmax + 1, - 10), fontsize = 10)
+    axs2[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize = 12)
+    axs2[i, j].set_ylabel(r' $ \beta _{2B}$ [deg]', fontsize = 12)
+    axs2[i, j].set_title(r'Impeller cylinder height [m]', fontsize = 12)
     axs2[i, j].grid()
-
-
-
 
 
     # -------------- Slip velocity -------------
-    i=0
-    j=0
+    i = 0
+    j = 0
     Z = VslipMat                  
-    con = axs2[i, j].contourf(X, Y, Z, levels = lvls, cmap=colorTheme)
-    cbar = fig.colorbar(con, ax=axs2[i, j])
-    cbar.ax.tick_params(labelsize=10)
+    con = axs2[i, j].contourf(X, Y, Z, levels = lvls, cmap = colorTheme)
+    cbar = fig.colorbar(con, ax = axs2[i, j])
+    cbar.ax.tick_params(labelsize = 10)
     axs2[i, j].invert_yaxis()
-    axs2[i, j].set_xticks(np.arange(0, settings.bladeMax+1, 5))
-    axs2[i, j].set_xticklabels(np.arange(0, settings.bladeMax+1, 5), fontsize=10)
-    axs2[i, j].set_yticks(np.arange(-5, settings.beta2Bmax+1, -10))
-    axs2[i, j].set_yticklabels(np.arange(-5, settings.beta2Bmax+1, -10), fontsize=10)
-    axs2[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
-    axs2[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
-    axs2[i, j].set_title(r'Slip velocity [m/s] ' , fontsize=12)
+    axs2[i, j].set_xticks(np.arange(0, Compressor.bladeMax + 1, 5))
+    axs2[i, j].set_xticklabels(np.arange(0, Compressor.bladeMax + 1, 5), fontsize = 10)
+    axs2[i, j].set_yticks(np.arange(- 5, Compressor.beta2Bmax + 1, - 10))
+    axs2[i, j].set_yticklabels(np.arange(- 5, Compressor.beta2Bmax + 1, - 10), fontsize = 10)
+    axs2[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize = 12)
+    axs2[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize = 12)
+    axs2[i, j].set_title(r'Slip velocity [m/s] ' , fontsize = 12)
     axs2[i, j].grid()
 
     # -------------- Outlet flow angle -------------
-    i=0
-    j=2
+    i = 0
+    j = 2
     Z = beta2FlowMat                  
-    con = axs2[i, j].contourf(X, Y, Z, levels = lvls, cmap=colorTheme)
-    cbar = fig.colorbar(con, ax=axs2[i, j])
-    cbar.ax.tick_params(labelsize=10)
+    con = axs2[i, j].contourf(X, Y, Z, levels = lvls, cmap = colorTheme)
+    cbar = fig.colorbar(con, ax = axs2[i, j])
+    cbar.ax.tick_params(labelsize = 10)
 
-    contour10s = axs2[i, j].contour(X, Y, Z,[10, 20, 30, 40, 50, 60, 70], colors=('k',),linestyles=('-',),linewidths=(1))
+    contour10s = axs2[i, j].contour(X, Y, Z, [10, 20, 30, 40, 50, 60, 70], colors = ('k',), linestyles = ('-',), linewidths = (1))
     contourData = contour10s.allsegs[0]
     x_coords = [segment[:, 0] for segment in contourData]
     y_coords = [segment[:, 1] for segment in contourData]
-    axs2[i, j].clabel(contour10s, inline=True, fontsize=8)
+    axs2[i, j].clabel(contour10s, inline = True, fontsize = 8)
 
     axs2[i, j].invert_yaxis()
-    axs2[i, j].set_xticks(np.arange(0, settings.bladeMax+1, 5))
-    axs2[i, j].set_xticklabels(np.arange(0, settings.bladeMax+1, 5), fontsize=10)
-    axs2[i, j].set_yticks(np.arange(-5, settings.beta2Bmax+1, -10))
-    axs2[i, j].set_yticklabels(np.arange(-5, settings.beta2Bmax+1, -10), fontsize=10)
-    axs2[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
-    axs2[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
-    axs2[i, j].set_title(r'Outlet flow angle $ \beta _{2}$ [m/s] ' , fontsize=12)
+    axs2[i, j].set_xticks(np.arange(0, Compressor.bladeMax + 1, 5))
+    axs2[i, j].set_xticklabels(np.arange(0, Compressor.bladeMax + 1, 5), fontsize = 10)
+    axs2[i, j].set_yticks(np.arange(- 5, Compressor.beta2Bmax + 1, - 10))
+    axs2[i, j].set_yticklabels(np.arange(- 5, Compressor.beta2Bmax+1, - 10), fontsize = 10)
+    axs2[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize = 12)
+    axs2[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize = 12)
+    axs2[i, j].set_title(r'Outlet flow angle $ \beta _{2}$ [m/s] ' , fontsize = 12)
     axs2[i, j].grid()
-
-

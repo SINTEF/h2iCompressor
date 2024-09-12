@@ -1,8 +1,4 @@
-import math
-import numpy as np
-import matplotlib.pyplot as plt
-import settings
-def plotFlowConditions(systemVar, Zflow, designParam, flowVar ):
+def plotFlowConditions(Compressor, IterationMatrix):
     # ------------- PLOTTING ------------ 
     """
     systemVar = [etaStage0, lambda2, iterTol, Zbarr, beta2bArr]
@@ -10,7 +6,16 @@ def plotFlowConditions(systemVar, Zflow, designParam, flowVar ):
     designParam = [r1, rt2, rh, Ncrit, N]
     flowVar = [PR, W1t, Cm1, U1t, U2, U2Crit]
     """
+    
+    # Import
+    import numpy as np
+    import matplotlib.pyplot as plt
 
+    systemVar = [Compressor.etaStage0, Compressor.lambda2, Compressor.iterTol, IterationMatrix.ZBarr, IterationMatrix.beta2BArr]
+    designParam = [Compressor.r1, Compressor.r2, Compressor.rh1, Compressor.Ncrit, Compressor.Ndes]
+    flowVar = [Compressor.Pr, Compressor.W1t, Compressor.Cm1, Compressor.U1t, Compressor.U2, Compressor.U2Crit]
+    Zflow = [IterationMatrix.Ctheta2Mat, IterationMatrix.pressErrorMat, IterationMatrix.etaMat, IterationMatrix.MachExitMat, IterationMatrix.PrestMat, IterationMatrix.WxMat, IterationMatrix.dh0SlipCorrMAt]     # Goes to plotFlow.py
+    
     Ctheta2Mat = Zflow[0]
     pressErrorMat = Zflow[1]
     etaMat = Zflow[2] 
@@ -31,8 +36,8 @@ def plotFlowConditions(systemVar, Zflow, designParam, flowVar ):
     rt1 = designParam[0]
     rt2 = designParam[1]
     rh1 = designParam[2]
-    rhDivr1 = rh1/rt1
-    r1Dr2 = rt1/rt2
+    rhDivr1 = rh1 / rt1
+    r1Dr2 = rt1 / rt2
     Ncrit = designParam[3]
     N = designParam[4]
 
@@ -43,8 +48,6 @@ def plotFlowConditions(systemVar, Zflow, designParam, flowVar ):
     U2 = flowVar[4]
     U2Crit = flowVar[5]
 
-
-
     x = ZBarr                  # SAME FOR ALL COUNTOURS
     y = np.rad2deg(beta2bArr)     # SAME FOR ALL COUNTOURS
 
@@ -52,101 +55,95 @@ def plotFlowConditions(systemVar, Zflow, designParam, flowVar ):
     lvls = 30
     colorTheme = 'viridis'
 
-    fig, axs21 = plt.subplots(2,3 )
+    fig, axs21 = plt.subplots(2, 3)
     fig.set_figwidth(15)
     fig.set_figheight(15)
-    fig.tight_layout(pad=7.0)
+    fig.tight_layout(pad = 7.0)
     fig.canvas.manager.set_window_title('flowResults')
-    fig.subplots_adjust(top=0.9, bottom=0.09)
+    fig.subplots_adjust(top = 0.9, bottom = 0.09)
 
     # -------------- slip corrected compressor work plot -------------
 
-    i=1
-    j=2
-    Z = dh0SlipCorr*(10**-3)                 
-    Z = np.abs(dh0SlipCorr-WxMat)/WxMat
-    con = axs21[i, j].contourf(X, Y, Z, levels = 20, cmap=colorTheme)
+    i = 1
+    j = 2
+    Z = dh0SlipCorr * (10 ** (- 3))                 
+    Z = np.abs(dh0SlipCorr - WxMat) / WxMat
+    con = axs21[i, j].contourf(X, Y, Z, levels = 20, cmap = colorTheme)
 
-    contour5percent = axs21[i, j].contour(X, Y, Z,[0.03], colors=('k',),linestyles=('-',),linewidths=(1))
+    contour5percent = axs21[i, j].contour(X, Y, Z,[0.03], colors = ('k',), linestyles = ('-',), linewidths = (1))
     contourData = contour5percent.allsegs[0]
     x_coords = [segment[:, 0] for segment in contourData]
     y_coords = [segment[:, 1] for segment in contourData]
-    axs21[i, j].clabel(contour5percent, inline=True, fontsize=8)
+    axs21[i, j].clabel(contour5percent, inline = True, fontsize = 8)
 
-    # cbar = fig.colorbar(con, ax=axs21[i, j])
-    # cbar.ax.tick_params(labelsize=10)
+    # cbar = fig.colorbar(con, ax = axs21[i, j])
+    # cbar.ax.tick_params(labelsize = 10)
     axs21[i, j].invert_yaxis()
-    axs21[i, j].set_xticks(np.arange(0, settings.bladeMax+1, 5))
-    axs21[i, j].set_xticklabels(np.arange(0, settings.bladeMax+1, 5), fontsize=10)
-    axs21[i, j].set_yticks(np.arange(-5, settings.beta2Bmax+1, -10))
-    axs21[i, j].set_yticklabels(np.arange(-5, settings.beta2Bmax+1, -10), fontsize=10)
-    axs21[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
-    axs21[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
-    axs21[i, j].set_title(r'Slip corrected compressor work [KJ/kg]' , fontsize=12)
+    axs21[i, j].set_xticks(np.arange(0, Compressor.bladeMax + 1, 5))
+    axs21[i, j].set_xticklabels(np.arange(0, Compressor.bladeMax + 1, 5), fontsize = 10)
+    axs21[i, j].set_yticks(np.arange(- 5, Compressor.beta2Bmax + 1, - 10))
+    axs21[i, j].set_yticklabels(np.arange(- 5, Compressor.beta2Bmax + 1, - 10), fontsize = 10)
+    axs21[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize = 12)
+    axs21[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize = 12)
+    axs21[i, j].set_title(r'Slip corrected compressor work [KJ/kg]' , fontsize = 12)
     axs21[i, j].grid()
     axs21[i, j].cla()  # Turn off the axis
 
     # -------------- PR plot -------------
-    i=0
-    j=1
+    i = 0
+    j = 1
     Z = PrestMat                  
-    con = axs21[i, j].contourf(X, Y, Z, levels = lvls, cmap=colorTheme)
+    con = axs21[i, j].contourf(X, Y, Z, levels = lvls, cmap = colorTheme)
     cbar = fig.colorbar(con, ax=axs21[i, j])
     cbar.ax.tick_params(labelsize=10)
     axs21[i, j].invert_yaxis()
-    axs21[i, j].set_xticks(np.arange(0, settings.bladeMax+1, 5))
-    axs21[i, j].set_xticklabels(np.arange(0, settings.bladeMax+1, 5), fontsize=10)
-    axs21[i, j].set_yticks(np.arange(-5, settings.beta2Bmax+1, -10))
-    axs21[i, j].set_yticklabels(np.arange(-5, settings.beta2Bmax+1, -10), fontsize=10)
-    axs21[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
-    axs21[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
-    axs21[i, j].set_title(r'Estimated PR [-] ' , fontsize=12)
+    axs21[i, j].set_xticks(np.arange(0, Compressor.bladeMax + 1, 5))
+    axs21[i, j].set_xticklabels(np.arange(0, Compressor.bladeMax + 1, 5), fontsize = 10)
+    axs21[i, j].set_yticks(np.arange(- 5, Compressor.beta2Bmax + 1, - 10))
+    axs21[i, j].set_yticklabels(np.arange(- 5, Compressor.beta2Bmax + 1, - 10), fontsize = 10)
+    axs21[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize = 12)
+    axs21[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize = 12)
+    axs21[i, j].set_title(r'Estimated PR [-] ' , fontsize = 12)
     axs21[i, j].grid()
     for xx, yy in zip(x_coords, y_coords):
         axs21[i, j].plot(xx, yy, 'k-')
 
 
     # ---------------- Pressure estimate error plot ---------------
-    i=0 
-    j=2
+    i = 0 
+    j = 2
     Z = pressErrorMat
-    con = axs21[i, j].contourf(X, Y, Z, levels = lvls, cmap=colorTheme)
-    cbar = fig.colorbar(con, ax=axs21[i, j])
-    cbar.ax.tick_params(labelsize=10)
+    con = axs21[i, j].contourf(X, Y, Z, levels = lvls, cmap = colorTheme)
+    cbar = fig.colorbar(con, ax = axs21[i, j])
+    cbar.ax.tick_params(labelsize = 10)
     axs21[i, j].invert_yaxis()
-    axs21[i, j].set_xticks(np.arange(0, settings.bladeMax+1, 5))
-    axs21[i, j].set_xticklabels(np.arange(0, settings.bladeMax+1, 5), fontsize=10)
-    axs21[i, j].set_yticks(np.arange(-5, settings.beta2Bmax+1, -10))
-    axs21[i, j].set_yticklabels(np.arange(-5, settings.beta2Bmax+1, -10), fontsize=10)
-    axs21[i, j].set_xlabel(r'Blade number $Z_B$ [deg]' , fontsize=12)
-    axs21[i, j].set_ylabel(r'$ \beta _{2B}$', fontsize=12)
-    axs21[i, j].set_title(r'Pressure estimate error contour plot [-]', fontsize=12)
+    axs21[i, j].set_xticks(np.arange(0, Compressor.bladeMax + 1, 5))
+    axs21[i, j].set_xticklabels(np.arange(0, Compressor.bladeMax + 1, 5), fontsize = 10)
+    axs21[i, j].set_yticks(np.arange(- 5, Compressor.beta2Bmax + 1, - 10))
+    axs21[i, j].set_yticklabels(np.arange(- 5, Compressor.beta2Bmax + 1, - 10), fontsize = 10)
+    axs21[i, j].set_xlabel(r'Blade number $Z_B$ [deg]' , fontsize = 12)
+    axs21[i, j].set_ylabel(r'$ \beta _{2B}$', fontsize = 12)
+    axs21[i, j].set_title(r'Pressure estimate error contour plot [-]', fontsize = 12)
     axs21[i, j].grid()
     for xx, yy in zip(x_coords, y_coords):
         axs21[i, j].plot(xx, yy, 'k-')
 
 
     # -------------- Efficiency plot -------------
-    i=0
-    j=0
+    i = 0
+    j = 0
     Z = Zflow[2]                  
-    con = axs21[i, j].contourf(X, Y, Z, levels = lvls, cmap=colorTheme)
-    cbar = fig.colorbar(con, ax=axs21[i, j])
-    cbar.ax.tick_params(labelsize=10)
+    con = axs21[i, j].contourf(X, Y, Z, levels = lvls, cmap = colorTheme)
+    cbar = fig.colorbar(con, ax = axs21[i, j])
+    cbar.ax.tick_params(labelsize = 10)
     axs21[i, j].invert_yaxis()
-    axs21[i, j].set_xticks(np.arange(0, settings.bladeMax+1, 5))
-    axs21[i, j].set_xticklabels(np.arange(0, settings.bladeMax+1, 5), fontsize=10)
-    axs21[i, j].set_yticks(np.arange(-5, settings.beta2Bmax+1, -10))
-    axs21[i, j].set_yticklabels(np.arange(-5, settings.beta2Bmax+1, -10), fontsize=10)
-    axs21[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
-    axs21[i, j].set_ylabel(r' $ \beta _{2B}$ [deg]', fontsize=12)
-    axs21[i, j].set_title(r'Efficiency [-]', fontsize=12)
+    axs21[i, j].set_xticks(np.arange(0, Compressor.bladeMax + 1, 5))
+    axs21[i, j].set_xticklabels(np.arange(0, Compressor.bladeMax + 1, 5), fontsize = 10)
+    axs21[i, j].set_yticks(np.arange(- 5, Compressor.beta2Bmax + 1, - 10))
+    axs21[i, j].set_yticklabels(np.arange(- 5, Compressor.beta2Bmax + 1, - 10), fontsize = 10)
+    axs21[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize = 12)
+    axs21[i, j].set_ylabel(r' $ \beta _{2B}$ [deg]', fontsize = 12)
+    axs21[i, j].set_title(r'Efficiency [-]', fontsize = 12)
     axs21[i, j].grid()
     for xx, yy in zip(x_coords, y_coords):
         axs21[i, j].plot(xx, yy, 'k-')
-
-
-
-
-
-

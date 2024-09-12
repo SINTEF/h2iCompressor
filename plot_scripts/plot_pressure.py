@@ -1,14 +1,11 @@
-import math
-import numpy as np
-import matplotlib.pyplot as plt
-
 def pressurePlot4GIF(Zpress, systemVar, text):
-
+    # Import
+    import numpy as np
+    import matplotlib.pyplot as plt
 
     pressErrorMat = Zpress[0]
     PrestMat = Zpress[1]
     VslipMat = Zpress[2]
-
     
     text1 = text[0]
     text2 = text[1]
