@@ -12,15 +12,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-"""
-# Plotting files and functions:
-from plot_scripts.plot_flow import plotFlowConditions
-from plot_scripts.plot_system import plotSystemVariables
-from plot_scripts.plot_compressor import plotCompressorParam
-from plot_scripts.plot_velocities import plotVelocities
-from plot_scripts.plot_text import plotText
-"""
-# from find_flow import inducerFlowWRTminimumRelativeVelocity
+
 from pressure_test import pressureOverUnderEstimate
 import geometry_system_functions
 
