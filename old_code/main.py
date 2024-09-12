@@ -7,7 +7,7 @@ The script called settings.py is used for all parametrization of for instance fl
 Authors: Petter Resell (summer intern, 2024), Martin Spillum Grønli (SINTEF Energy Research, 2024)
 """
 
-"""
+
 # Import 
 import math
 import numpy as np
@@ -22,26 +22,6 @@ from plot_scripts.plot_system import  plotSystemVariables
 from plot_scripts.plot_compressor import plotCompressorParam
 from plot_scripts.plot_velocities import plotVelocities
 from plot_scripts.plot_text import plotText
-
-"""
-def main():
-    fluid_name = 'h2'       # Select working fluid, 'h2' or 'air'
-    import settings
-    import geometry
-    Fluid = settings.Fluid('./properties/' + fluid_name + '.toml')
-    InletConditions = settings.InletConditions(Fluid, './properties/' + fluid_name + '.toml')
-    Compressor = settings.Compressor('./properties/compressor.toml')
-    IterationMatrix = settings.IterationMatrix(Compressor)
-
-    geometry.inducer_calculations(Fluid, InletConditions, Compressor)
-    geometry.impeller_calculations(Fluid, InletConditions, Compressor)
-    geometry.iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, IterationMatrix)
-    geometry.print_geometry_things(Compressor, IterationMatrix)
-    
-
-
-if __name__ == '__main__':
-    main()
 
 
 # Set plot parameters------------------------------------------------------------------------------

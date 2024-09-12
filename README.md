@@ -2,4 +2,4 @@ Centrifugal compressor code developed by NASA (https://software.nasa.gov/softwar
 
 The code has been further developed by a summer intern at SINTEF Energy Research in 2024.
 
-Authors: Petter Resell, Martin Spillum Grønli (SINTEF Energy Research, 2024)
+Authors: Petter Resell (summer intern), Martin Spillum Grønli (SINTEF Energy Research, 2024)
