@@ -8,65 +8,49 @@ Author: Petter Resell (summer intern, 2024)
 """
 
 ### Import-------------------------------------------------------------------------------------------
-import math
 import numpy as np
 import matplotlib.pyplot as plt
-
 
 from pressure_test import pressureOverUnderEstimate
 import geometry_system_functions
 
-plt.rcParams.update(plt.rcParamsDefault)            # For plotting
-plt.rcParams.update({'font.size': 15})
 
-print('\n' + 'Running Geometry.py')  
+def minimize_relative_velocity(N, Fluid, InletConditions, Compressor):
+    """ Function to find the inducer properties which minimizes the relative velocity for a given rotational speed N. """
+    
+    # Make arrays for all possible values of Cm1
+    Ctheta1i = InletConditions.Cm1i * np.tan(np.radians(InletConditions.alpha1))    # Inducer absolute tangential velocity [degrees]          Trigonometry
+    C1i = (Ctheta1i ** 2 + InletConditions.Cm1i ** 2) ** 0.5                        # Inducer Absolute velocity C1 [m/s]                      Pythagoras theorem from velocity triangle 
+    T1i = InletConditions.T00i - (C1i ** 2) / (2 * Fluid.Cp)                        # Inducer temperature [K]                                 Stagnation temperature relation             
+    M1i = C1i / ((Fluid.k * Fluid.R * T1i) ** 0.5)                                  # Inducer Mach number [-]                                 by definition
+    P1i = InletConditions.P00 * (T1i / InletConditions.T00) ** (Fluid.k / (Fluid.k - 1))    # Inducer pressure [Pa]                                   Isentropic relation                        
+    rho1i = P1i / (Fluid.R * T1i)                                                   # Inducer density  [kg/m^3]                               Assuming ideal gas                          
+    A1i = InletConditions.mdot / (rho1i * InletConditions.Cm1i * (1 - InletConditions.B1))  # Inducer flow area [m^2]                                 Continuity                                                        
+    rt1i = (A1i / (np.pi * (1 - Compressor.rhDivr1 ** 2))) ** 0.5                   # Inducer tip radius [m]                                  Geometry
+    U1ti = 2 * np.pi * rt1i * N / 60                                                # Inducer blade tip speed [m/s]
+    W1ti = (InletConditions.Cm1i ** 2 + (U1ti - Ctheta1i) ** 2) ** 0.5              # Inducer relative velocity [m/s]
+    InletConditions.W1ti = W1ti                                                          # Store relative velocities for plotting
 
-
-# Declaring variables for off-design.py. MSG: I think these can be removed or moved to off-design_performance.py
-#U1t = 0     # MSG: Try deleting this. Should now be part of Compressor class
-#beta1 = 0
-
-
-def inducer_calculations(Fluid, InletConditions, Compressor):
-    """ Inducer calculations
-    For each value of Cm1 in settings.Cm1i, we calculate the corresponding values of C1, T1, M1, P1, rho1, A1, r1, U1t, W1t, Cm1 and beta1.
-        The value of Cm1 will affect the values of U1t and Ctheta1 (through ex. r1), which in turn affects the value of W1t. Isentropic relations 
-            linking the static to the total conditions. Velocity triangles are also applied. 
-                By plotting W1t against Cm1, we then find the value of Cm1 that minimises W1t. """
-    Compressor.Ctheta1i = InletConditions.Cm1i * math.tan(math.radians(InletConditions.alpha1))                         # Inducer absolute tangential velocity [degrees]          Trigonometry
-    Compressor.C1i = (Compressor.Ctheta1i ** 2 + InletConditions.Cm1i ** 2) ** 0.5                                      # Inducer Absolute velocity C1 [m/s]                      Pythagoras theorem from velocity triangle 
-    Compressor.T1i = InletConditions.T00i - (Compressor.C1i ** 2) / (2 * Fluid.Cp)                                      # Inducer temperature [K]                                 Stagnation temperature relation             
-    Compressor.M1i = Compressor.C1i / ((Fluid.k * Fluid.R * Compressor.T1i) ** 0.5)                                     # Inducer Mach number [-]                                 by definition
-    Compressor.P1i = InletConditions.P00 * (Compressor.T1i / InletConditions.T00) ** (Fluid.k / (Fluid.k - 1))          # Inducer pressure [Pa]                                   Isentropic relation                        
-    Compressor.rho1i = Compressor.P1i / (Fluid.R * Compressor.T1i)                                                      # Inducer density  [kg/m^3]                               Assuming ideal gas                          
-    Compressor.A1i = InletConditions.mdot / (Compressor.rho1i * InletConditions.Cm1i * (1 - InletConditions.B1))        # Inducer flow area [m^2]                                 Continuity                                                        
-    Compressor.rt1i = (Compressor.A1i / (math.pi * (1 - Compressor.rhDivr1 ** 2) )) ** 0.5                              # Inducer tip radius [m]                                  Geometry
-
-
-def inducerFlowWRTminimumRelativeVelocity(N, Compressor, InletConditions):
-        """ This function takes a rotational speed N and findes the relative velocity. This is then minimized to increase efficiency. 
-            Inducer properties and velocities are then found at the point where the relative velocity is the smallest. 
-            This is at w1ti_index_min """
-        Compressor.U1ti = 2 * math.pi * Compressor.rt1i * N / 60                                                # Inducer blade tip speed [m/s]
-        Compressor.W1ti = (InletConditions.Cm1i ** 2 + (Compressor.U1ti - Compressor.Ctheta1i) ** 2) ** 0.5     # Inducer relative velocity [m/s]
-        Compressor.w1ti_index_min = np.argmin(Compressor.W1ti)                                                  # Index of smallest relative velocity [m/s]     # MSG: I think this guarantees the optimal Cm1
-        Compressor.r1 = Compressor.rt1i[Compressor.w1ti_index_min]                                              # Inducer tip radius [m]
-        Compressor.Ctheta1 = Compressor.Ctheta1i[Compressor.w1ti_index_min]                                     # Inducer angular velocity [m/s]
-        Compressor.C1 = Compressor.C1i[Compressor.w1ti_index_min]                                               # Inducer velocity [m/s]
-        Compressor.T1 = Compressor.T1i[Compressor.w1ti_index_min]                                               # Inducer temperature [K]
-        Compressor.M1 = Compressor.M1i[Compressor.w1ti_index_min]                                               # Inducer Mach number [-]
-        Compressor.P1 = Compressor.P1i[Compressor.w1ti_index_min]                                               # Inducer pressure [Pa]
-        Compressor.rho1 = Compressor.rho1i[Compressor.w1ti_index_min]                                           # Inducer density [kg/m3]
-        Compressor.A1 = Compressor.A1i[Compressor.w1ti_index_min]                                               # Inducer flow area [m3]
-        Compressor.U1t = Compressor.U1ti[Compressor.w1ti_index_min]                                             # Inducer tip speed [m/s]
-        Compressor.Cm1 = InletConditions.Cm1i[Compressor.w1ti_index_min]                                        # Inducer meridonal velocity [m/s]
-        Compressor.beta1 = math.degrees(math.atan((Compressor.U1t - Compressor.Ctheta1) / Compressor.Cm1))                 # Inducer relative velocity angle [deg]
-        Compressor.W1t = Compressor.W1ti[Compressor.w1ti_index_min]                                             # Inducer relative velocity [m/s]
-        Compressor.omega = Compressor.U1t / Compressor.r1                                                                  # Angular velocity [rad/s]          =(2*np.pi*N/60)
+    # Get the index of the minimum relative velocity
+    w1ti_index_min = np.argmin(W1ti)                                                # Index of smallest relative velocity [m/s]
+    
+    # Set inducer properties to the values that minimize the relative velocity
+    Compressor.r1 = rt1i[w1ti_index_min]                                            # Inducer tip radius [m]
+    Compressor.Ctheta1 = Ctheta1i[w1ti_index_min]                                   # Inducer angular velocity [m/s]
+    Compressor.C1 = C1i[w1ti_index_min]                                             # Inducer velocity [m/s]
+    Compressor.T1 = T1i[w1ti_index_min]                                             # Inducer temperature [K]
+    Compressor.M1 = M1i[w1ti_index_min]                                             # Inducer Mach number [-]
+    Compressor.P1 = P1i[w1ti_index_min]                                             # Inducer pressure [Pa]
+    Compressor.rho1 = rho1i[w1ti_index_min]                                         # Inducer density [kg/m3]
+    Compressor.A1 = A1i[w1ti_index_min]                                             # Inducer flow area [m2]
+    Compressor.U1t = U1ti[w1ti_index_min]                                           # Inducer tip speed [m/s]
+    Compressor.Cm1 = InletConditions.Cm1i[w1ti_index_min]                                        # Inducer meridional velocity [m/s]
+    Compressor.beta1 = np.degrees(np.arctan((Compressor.U1t - Compressor.Ctheta1) / Compressor.Cm1))        # Inducer relative velocity angle [deg]
+    Compressor.W1t = W1ti[w1ti_index_min]                                             # Inducer relative velocity [m/s]
+    Compressor.omega = Compressor.U1t / Compressor.r1                                                       # Angular velocity [rad/s]          =(2*np.pi*N/60)
 
 
-
-def impeller_calculations(Fluid, InletConditions, Compressor):
+def inducer_and_impeller_calculations(Fluid, InletConditions, Compressor):
     """ Impeller calculations """
     
     """ The isentropic enthalpy demand is used to find the approximate required work. This is done through iterating the isentropic efficiency.
@@ -77,42 +61,31 @@ def impeller_calculations(Fluid, InletConditions, Compressor):
             since the pressure ratio increase for increasing efficiency. Hence its necessary to check if the pressure estimate is an 
                 under- or over-estimate before adjusting the efficiency eta. From then the efficiency can be either increased or decreased. """
 
-
-    """ Specific isentropic compression enthalpy, constant value [kJ/kg/K]. dh0s is constant throughout the full iteration scheme. """
-    Compressor.dh0s = ((Fluid.k * Fluid.R * InletConditions.T00) / (Fluid.k - 1) ) * (Compressor.Pr ** ((Fluid.k - 1) / Fluid.k) - 1)                     
-
-
-
-    """ Calculating critical property of a rotating disk to use as constraint for RPM/rotational velocity/radiusettings. Disk will break at outermost point, therefore r2 and U2. """                                                                                                 
-    U2Crit = np.sqrt(2 * Compressor.impellerTensileStrength / Compressor.impellerDensity)      # Applying tensile strength of disk. Titanium used.        
-    Compressor.U2Crit = U2Crit
-    U2 = U2Crit        
-                                                                                    # initializing for loop 
-
     """ Iterating to find a impeller tip velocity that satisfy material constraint. Taking the rotational speed set in settings.py and
             checking if the corresponding rotational velocity U2 is bigger than the critical rotational velocity. If it is then 
                 inducerFlowWRTminimumRelativeVelocity(N=Ndes) finds all inducer flow properties for the new N and U2. For the first iteration U2=U_crit 
                 so it runs at least one iteration anyways. If the new U2 is found to be to large then it is lowered by increments of 1000.
                     This could be replaced by seting the rotational velocity to for example 70% or 80% of the critical one.  """
     
-    Ndes = Compressor.N0
-    while (U2) >= U2Crit and Ndes > 0:      # MSG: Does this give the optimal Cm1? I rememeber that this was plotted.
+    U2 = Compressor.U2Crit      # Initial guess for U2   
+    Ndes = Compressor.N0        # Initial guess for N
+    while (U2) >= Compressor.U2Crit and Ndes > 0:   
+        minimize_relative_velocity(N = Ndes, Fluid = Fluid, InletConditions = InletConditions, Compressor = Compressor)
+        U2 = (Compressor.U1t / Compressor.r1Divr2)
 
-        inducerFlowWRTminimumRelativeVelocity(N = Ndes, Compressor = Compressor, InletConditions = InletConditions) 
-        U2 = (Compressor.U1t/Compressor.r1Divr2)
-
-        if (U2Crit) > Compressor.bladeVelUpperLimit:      # Can skip this break to avoid crashing code
+        if (Compressor.U2Crit) > Compressor.bladeVelUpperLimit:      # Can skip this break to avoid crashing code
             break
-        if (U2) >= U2Crit:
+        if (U2) >= Compressor.U2Crit:
             Ndes -= 1000
-    Compressor.U2 = U2
-    Compressor.Ndes = Ndes      # MSG: Change this to N0 instead of Ndes?
 
-    """ Can find design parameters after finding U2"""
-    Compressor.r2 = Compressor.U2 / Compressor.omega                          # Impeller tip radius
-    Compressor.D2 = 2 * Compressor.r2                              # Impeller tip diameter
-    Compressor.rh1 = Compressor.rhDivr1 * Compressor.r1            # Hub radius
-    Compressor.Ncrit = 60 * U2Crit / (2 * np.pi * Compressor.r2)   # Critical rpm for the newly found impeller tip radius. 
+    Compressor.U2 = U2
+    Compressor.Ndes = Ndes      # MSG: Change this to N instead of Ndes?
+
+    """ Find design parameters dependent on calculated U2 """
+    Compressor.r2 = Compressor.U2 / Compressor.omega                            # Impeller tip radius [m]
+    Compressor.D2 = 2 * Compressor.r2                                           # Impeller tip diameter [m]
+    Compressor.rh1 = Compressor.rhDivr1 * Compressor.r1                         # Hub radius [m]
+    Compressor.Ncrit = 60 * Compressor.U2Crit / (2 * np.pi * Compressor.r2)     # Critical rotational speed [rpm]
 
 
 def checkUpdateSlipFactorSigma(epsilonLimit, slipFactor, Compressor):
@@ -178,7 +151,7 @@ def iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, Ite
                 P2m = P02m / ((T02m / T2m) ** (Fluid.k / (Fluid.k - 1)))                                # Exit pressure [Pa]                              from stagnation pressure, isentropic relation
                 rho2m = P2m / (T2m * Fluid.R)                                                                       # Exit density [kg/m^3]                           from ideal gas law
                 A2 = InletConditions.mdot / (rho2m * Cm2m)                                                                    # Exit area [m^2]                                 from continuity
-                b2 = A2 / (math.pi * Compressor.D2)                                                                                        # Impeller exit cylinder height [m]               from geometry
+                b2 = A2 / (np.pi * Compressor.D2)                                                                                        # Impeller exit cylinder height [m]               from geometry
                 M2 = Compressor.U2 / np.sqrt(Fluid.k*Fluid.R*T02m)                                                   # Impeller exit blade mach number                 from definition
                 
 
@@ -200,9 +173,6 @@ def iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, Ite
                 else:
                     trueFalseCheck = True
 
-                # trueFalseCheck = True
-
-
                 if etaStage <= Compressor.etaLowerLimit or etaStage >= Compressor.etaUpperLimit:
                     break
                 
@@ -222,27 +192,34 @@ def iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, Ite
                     IterationMatrix.sigmaMat[ib, iz] = sigma
                     IterationMatrix.beta2flowMat[ib, iz] = beta2flow
 
-
-
                 """ Updating efficiency for next iteration"""
                 etaStage = pressureOverUnderEstimate(PressureTestOuterLoop, etaStage)   # MSG: Function needs to be updated with classes
         
-        
-            #     debug = 1       # Breakpoint for debugging
-            # debug =1            # Breakpoint for debugging
-                
+
+    # Check if any valid geometries were found
+    countTrue = np.count_nonzero(~np.isnan(IterationMatrix.etaMat))  
+    if countTrue == 0:
+        raise Exception(f"Combination of rh/r1, r1/r2 and N gave zero valid cases. RPM to low to achieve desired pressure ratio!")
+    else:
+        print('\nGeometry successfully calculated')                
 
 
-def print_geometry_things(Compressor, IterationMatrix):
-    # ------------- Preparing data for nice plotting ------------ 
+def print_and_plot_geometry(Compressor, InletConditions, IterationMatrix):
+    # ------------- Preparing data for plotting ------------ 
     """ Plotting functions plotCompressor.py, plotFlow.py, plotSystem.py, plotVelocities.py and plotText.py are 
             called from logic.py but prepared here since data is produced here."""
 
+    print('Critical RPM: ' + str(round(Compressor.Ncrit, 2)) )
+    print('Applied RPM: ' + str(round(Compressor.Ndes, 2)) )
+    print('Rotational velocity: ' + str(round(Compressor.U2, 2)))
+    print('rh: ' + str(round(Compressor.rh1, 3)) + 'm' )
+    print('r1: ' + str(round(Compressor.r1, 3)) + 'm')
+    print('r2: ' + str(round(Compressor.r2, 3)) + 'm' )
 
-    """ making nice text to go with plots """
+    """ Making text to go with plots """
     maxEta = np.nanmax(IterationMatrix.etaMat)
     minEta = np.nanmin(IterationMatrix.etaMat)
-    countTrue = np.count_nonzero(~np.isnan(IterationMatrix.etaMat))
+    countTrue = np.count_nonzero(~np.isnan(IterationMatrix.etaMat))   # MSG: Understand this condition
     totalCases = len(IterationMatrix.ZBarr) * len(IterationMatrix.beta2BArr)
 
     text1 = "\n" \
@@ -254,14 +231,12 @@ def print_geometry_things(Compressor, IterationMatrix):
             r"$U_{1t}= $" + str(round(Compressor.U1t, 3)) + "m/s"+"   " \
             r"$M_{1f}= $" + str(round(Compressor.M1, 3)) + "\n" \
             r"$U_{2t}$ = "  +str(round(Compressor.U2, 3)) + "m/s"+"   " \
-            r"$U_{2t,crit}= $" + str(round(Compressor.U2Crit, 3)) +"m/s"+ "\n" \
-
+            r"$U_{2t,crit}= $" + str(round(Compressor.U2Crit, 3)) +"m/s"+ "\n" 
     text2 = "\n" \
             r"$r_{t1}$ = " +str(round(Compressor.r1, 3)) + r"$m$" +" \n" \
             r"$r_{h1}$ = " +str(round(Compressor.rh1, 3)) + r"$m$" +" \n" \
             r"$r_{t2}$ = " +str(round(Compressor.r2, 3)) + r"$m$" +" \n" \
-            r"$N_{crit}$ = " +str(round(Compressor.Ncrit, 3)) + r"$rpm$" +" \n" \
-            
+            r"$N_{crit}$ = " +str(round(Compressor.Ncrit, 3)) + r"$rpm$" +" \n"  
     text3 = "\n" \
             r"Desired $PR^*$: " + str(Compressor.Pr) +  "\n" \
             r"$\frac{r_h}{r_1}{*}$ = "  +str(Compressor.rhDivr1) + r" $\frac{m}{m} $" +"    " \
@@ -269,38 +244,35 @@ def print_geometry_things(Compressor, IterationMatrix):
             r"$N^{*}$ = " +str(round(Compressor.Ndes, 1)) + r"$rpm$" +" \n" \
             r"Proposed efficiency $\eta *=$  " + str(Compressor.etaStage0) + "\n" \
             r"Exit swirl number $\lambda_2 *$: " + str(Compressor.lambda20) +  "\n" \
-            r"Tolerance*: " + str(round(Compressor.iterTol, 3)) + "   " \
-
-    """ Preparing input to plottting functions"""
-    """ Common input for all plotting functions"""
-    systemVar = [Compressor.etaStage0, Compressor.lambda2, Compressor.iterTol, IterationMatrix.ZBarr, IterationMatrix.beta2BArr]
-    designParam = [Compressor.r1, Compressor.r2, Compressor.rh1, Compressor.Ncrit, Compressor.Ndes]
-    flowVar = [Compressor.Pr, Compressor.W1t, Compressor.Cm1, Compressor.U1t, Compressor.U2, Compressor.U2Crit]
-
-    """ One Z(...)-array goes to one plot function. For example: Zflow goes to plotFlow.py, Zsystem goes to plotSystem.py etc."""
-    Zflow = [IterationMatrix.Ctheta2Mat, IterationMatrix.pressErrorMat, IterationMatrix.etaMat, IterationMatrix.MachExitMat, IterationMatrix.PrestMat, IterationMatrix.WxMat, IterationMatrix.dh0SlipCorrMAt]     # Goes to plotFlow.py
-    Zcompressor = [IterationMatrix.b2Mat, IterationMatrix.VslipMat, IterationMatrix.beta2flowMat]                                                               # Goes to plotCompressor.py
-    Zsystem = [IterationMatrix.WxMat, IterationMatrix.dh0SlipCorrMAt, IterationMatrix.sigmaMat, IterationMatrix.etaMat, IterationMatrix.PrestMat]                                                 # Goes to plotSystem.py
-    Zvelocities = [IterationMatrix.c2Mat, IterationMatrix.Ctheta2Mat, IterationMatrix.c2mMat, IterationMatrix.MachExitMat, IterationMatrix.VslipMat]                                            # Goes to plotVelocities.py
+            r"Tolerance*: " + str(round(Compressor.iterTol, 3)) + "   "
     text = [text1, text2, text3]                                                                                # Goes to plotText.py
 
-    """ Plot of relative velocities """
-    # fig, ax11 = plt.subplots()
-    # plt.plot(Compressor.Cm1i, W1ti, '--g')
-    # ax11.tick_params(axis='both', which='major', labelsize=10)
-    # plt.xlabel(r"$C_{m1}  [m/s]$",fontsize=12)
-    # plt.ylabel(r'$W_{1t} [m/s]$', fontsize=12)
-    # plt.title("Minimisation of W1t")
-    # plt.grid()
+    """ Plot of relative velocities as a function of inlet meridional velocity """
+    fig, ax11 = plt.subplots()
+    plt.plot(InletConditions.Cm1i, InletConditions.W1ti)
+    ax11.tick_params(axis = 'both', which = 'major', labelsize = 10)
+    plt.xlabel(r'$C_{\mathrm{m1}}$ [m/s]', fontsize = 12)
+    plt.ylabel(r'$W_{\mathrm{1t}}$ [m/s]', fontsize = 12)
+    plt.title(r'Minimization of relative velocity $W_{\mathrm{1t}}$')
+    plt.grid()
 
-    print('Critical RPM: ' + str(round(Compressor.Ncrit, 2)) )
-    print('Applied RPM: ' + str(round(Compressor.Ndes, 2)) )
-    print('Rotational velocity: ' + str(round(Compressor.U2, 2)))
-    print('rh: ' + str(round(Compressor.rh1, 3)) + 'm' )
-    print('r1: ' + str(round(Compressor.r1, 3)) + 'm')
-    print('r2: ' + str(round(Compressor.r2, 3)) + 'm' )
 
-    if countTrue == 0:
-        raise Exception(f"combination of rh/r1, r1/r2 and N gave zero valid cases. RPM to low to achieve desired pressure ratio!")
-
-    print('Geometry.py successfully run. \n')
+    # Import plotting scripts
+    from plot_scripts.plot_compressor import plotCompressorParam
+    from plot_scripts.plot_flow import plotFlowConditions
+    from plot_scripts.plot_velocities import plotVelocities
+    from plot_scripts.plot_system import plotSystemVariables
+    from plot_scripts.plot_text import plotText
+    
+    # Set plot parameters------------------------------------------------------------------------------
+    plt.rcParams.update(plt.rcParamsDefault)
+    plt.rcParams.update({'font.size': 15})
+    #plt.close('all')
+    
+    # ------------------- Plotting from geometry.py -------------------
+    plotCompressorParam(Compressor = Compressor, IterationMatrix = IterationMatrix)
+    plotFlowConditions(Compressor = Compressor, IterationMatrix = IterationMatrix)
+    plotVelocities(Compressor = Compressor, IterationMatrix = IterationMatrix)
+    plotSystemVariables(Compressor = Compressor, IterationMatrix = IterationMatrix)
+    plotText(text)
+    #plt.show()

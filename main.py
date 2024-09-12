@@ -7,60 +7,34 @@ The script called settings.py is used for all parametrization of for instance fl
 Authors: Petter Resell (summer intern, 2024), Martin Spillum Grønli (SINTEF Energy Research, 2024)
 """
 
-"""
-# Import 
-import math
-import numpy as np
-from scipy.interpolate import griddata
 
-import matplotlib.pyplot as plt
-import geometry
-import off_design_performance as odp
-import settings
-from plot_scripts.plot_flow import plotFlowConditions
-from plot_scripts.plot_system import  plotSystemVariables
-from plot_scripts.plot_compressor import plotCompressorParam
-from plot_scripts.plot_velocities import plotVelocities
-from plot_scripts.plot_text import plotText
-
-"""
 def main():
-    fluid_name = 'h2'       # Select working fluid, 'h2' or 'air'
+    fluid_name = 'h2'           # Select working fluid, 'h2' or 'air'
     import settings
     import geometry
-    Fluid = settings.Fluid('./properties/' + fluid_name + '.toml')
-    InletConditions = settings.InletConditions(Fluid, './properties/' + fluid_name + '.toml')
-    Compressor = settings.Compressor('./properties/compressor.toml')
-    IterationMatrix = settings.IterationMatrix(Compressor)
+    import matplotlib       
+    matplotlib.use('tkagg')     # Use tkagg to avoid crashing when using X11-forwarding for plotting
+    from matplotlib import pyplot as plt    
 
-    geometry.inducer_calculations(Fluid, InletConditions, Compressor)
-    geometry.impeller_calculations(Fluid, InletConditions, Compressor)
-    geometry.iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, IterationMatrix)
-    geometry.print_geometry_things(Compressor, IterationMatrix)
+    # Load and make instances of classes for fluid, inlet conditions, compressor and iteration matrices
+    Fluid = settings.Fluid(path_to_fluid_properties_toml = './properties/' + fluid_name + '.toml')
+    InletConditions = settings.InletConditions(fluid_instance = Fluid, path_to_inlet_toml = './properties/' + fluid_name + '.toml')
+    Compressor = settings.Compressor(fluid_instance = Fluid, inlet_conditions_instance = InletConditions, path_to_compressor_toml = './properties/compressor.toml')
+    IterationMatrix = settings.IterationMatrix(compressor_instance = Compressor)
     
+    print('\nCalculating geometry...') 
+    geometry.inducer_and_impeller_calculations(Fluid, InletConditions, Compressor)
+    geometry.iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, IterationMatrix)
+    geometry.print_and_plot_geometry(Compressor, InletConditions, IterationMatrix)
+    plt.show()
+
+    print('\nCalculating off-design performance...')
 
 
 if __name__ == '__main__':
     main()
 
 
-# Set plot parameters------------------------------------------------------------------------------
-plt.rcParams.update(plt.rcParamsDefault)
-plt.rcParams.update({'font.size': 15})
-plt.close('all')
-# ------------------------------
-
-"""
-showGeometryPlots = plt.show()
-
-
-# ------------------- Plotting from geometry.py -------------------
-plotCompressorParam(geometry.systemVar, geometry.Zcompressor, geometry.designParam, geometry.flowVar)
-# plotFlowConditions(geometry.systemVar, geometry.Zflow, geometry.designParam, geometry.flowVar)
-plotVelocities(geometry.systemVar, geometry.Zvelocities, geometry.designParam, geometry.flowVar)
-plotSystemVariables(geometry.systemVar, geometry.Zsystem, geometry.designParam, geometry.flowVar)
-plotText(geometry.text)
-"""
 
 """ Running off-desing_performance.py for rotational speeds of 15000rpm to the critical speed with increments of 5000 """
 Narr = np.arange(15000, geometry.Ncrit , 5000)      

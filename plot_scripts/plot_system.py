@@ -1,8 +1,4 @@
-import math
-import numpy as np
-import matplotlib.pyplot as plt
-import settings
-def plotSystemVariables(systemVar, Zsystem, designParam, flowVar ):
+def plotSystemVariables(Compressor, IterationMatrix):
     # ------------- PLOTTING ------------ 
     """
     systemVar = [etaStage0, lambda2, iterTol, Zbarr, beta2bArr]
@@ -10,7 +6,15 @@ def plotSystemVariables(systemVar, Zsystem, designParam, flowVar ):
     designParam = [r1, rt2, rh, Ncrit, N]
     flowVar = [PR, W1t, Cm1, U1t, U2, U2Crit]
     """
- 
+    # Import
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    systemVar = [Compressor.etaStage0, Compressor.lambda2, Compressor.iterTol, IterationMatrix.ZBarr, IterationMatrix.beta2BArr]
+    designParam = [Compressor.r1, Compressor.r2, Compressor.rh1, Compressor.Ncrit, Compressor.Ndes]
+    flowVar = [Compressor.Pr, Compressor.W1t, Compressor.Cm1, Compressor.U1t, Compressor.U2, Compressor.U2Crit]
+    Zsystem = [IterationMatrix.WxMat, IterationMatrix.dh0SlipCorrMAt, IterationMatrix.sigmaMat, IterationMatrix.etaMat, IterationMatrix.PrestMat]                                                 # Goes to plotSystem.py
+
 
     WxMat = Zsystem[0]
     dh0SlipCorr = Zsystem[1]
@@ -30,8 +34,8 @@ def plotSystemVariables(systemVar, Zsystem, designParam, flowVar ):
     rt1 = designParam[0]
     rt2 = designParam[1]
     rh1 = designParam[2]
-    rhDivr1 = rh1/rt1
-    r1Dr2 = rt1/rt2
+    rhDivr1 = rh1 / rt1
+    r1Dr2 = rt1 / rt2
     Ncrit = designParam[3]
     N = designParam[4]
 
@@ -73,10 +77,10 @@ def plotSystemVariables(systemVar, Zsystem, designParam, flowVar ):
     # axs21[i, j].clabel(contour5percent, inline=True, fontsize=8)
     
     axs21[i, j].invert_yaxis()
-    axs21[i, j].set_xticks(np.arange(0, settings.bladeMax+1, 5))
-    axs21[i, j].set_xticklabels(np.arange(0, settings.bladeMax+1, 5), fontsize=10)
-    axs21[i, j].set_yticks(np.arange(-5, settings.beta2Bmax+1, -10))
-    axs21[i, j].set_yticklabels(np.arange(-5, settings.beta2Bmax+1, -10), fontsize=10)
+    axs21[i, j].set_xticks(np.arange(0, Compressor.bladeMax+1, 5))
+    axs21[i, j].set_xticklabels(np.arange(0, Compressor.bladeMax+1, 5), fontsize=10)
+    axs21[i, j].set_yticks(np.arange(-5, Compressor.beta2Bmax+1, -10))
+    axs21[i, j].set_yticklabels(np.arange(-5, Compressor.beta2Bmax+1, -10), fontsize=10)
     axs21[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
     axs21[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
     axs21[i, j].set_title(r'Work deviation [%]' , fontsize=12)
@@ -94,10 +98,10 @@ def plotSystemVariables(systemVar, Zsystem, designParam, flowVar ):
     cbar = fig.colorbar(con, ax=axs21[i, j])
     cbar.ax.tick_params(labelsize=10)
     axs21[i, j].invert_yaxis()
-    axs21[i, j].set_xticks(np.arange(0, settings.bladeMax+1, 5))
-    axs21[i, j].set_xticklabels(np.arange(0, settings.bladeMax+1, 5), fontsize=10)
-    axs21[i, j].set_yticks(np.arange(-5, settings.beta2Bmax+1, -10))
-    axs21[i, j].set_yticklabels(np.arange(-5, settings.beta2Bmax+1, -10), fontsize=10)
+    axs21[i, j].set_xticks(np.arange(0, Compressor.bladeMax+1, 5))
+    axs21[i, j].set_xticklabels(np.arange(0, Compressor.bladeMax+1, 5), fontsize=10)
+    axs21[i, j].set_yticks(np.arange(-5, Compressor.beta2Bmax+1, -10))
+    axs21[i, j].set_yticklabels(np.arange(-5, Compressor.beta2Bmax+1, -10), fontsize=10)
     axs21[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
     axs21[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
     axs21[i, j].set_title(r'Work by efficiency corr. [KJ/kg] ' , fontsize=12)
@@ -113,10 +117,10 @@ def plotSystemVariables(systemVar, Zsystem, designParam, flowVar ):
     cbar = fig.colorbar(con, ax=axs21[i, j])
     cbar.ax.tick_params(labelsize=10)
     axs21[i, j].invert_yaxis()
-    axs21[i, j].set_xticks(np.arange(0, settings.bladeMax+1, 5))
-    axs21[i, j].set_xticklabels(np.arange(0, settings.bladeMax+1, 5), fontsize=10)
-    axs21[i, j].set_yticks(np.arange(-5, settings.beta2Bmax+1, -10))
-    axs21[i, j].set_yticklabels(np.arange(-5, settings.beta2Bmax+1, -10), fontsize=10)
+    axs21[i, j].set_xticks(np.arange(0, Compressor.bladeMax+1, 5))
+    axs21[i, j].set_xticklabels(np.arange(0, Compressor.bladeMax+1, 5), fontsize=10)
+    axs21[i, j].set_yticks(np.arange(-5, Compressor.beta2Bmax+1, -10))
+    axs21[i, j].set_yticklabels(np.arange(-5, Compressor.beta2Bmax+1, -10), fontsize=10)
     axs21[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
     axs21[i, j].set_ylabel(r' $ \beta _{2B}$ [deg]', fontsize=12)
     axs21[i, j].set_title(r'Work by slip velocity corr. [KJ/kg]', fontsize=12)
@@ -135,10 +139,10 @@ def plotSystemVariables(systemVar, Zsystem, designParam, flowVar ):
     cbar = fig.colorbar(con, ax=axs21[i, j])
     cbar.ax.tick_params(labelsize=10)
     axs21[i, j].invert_yaxis()
-    axs21[i, j].set_xticks(np.arange(0, settings.bladeMax+1, 5))
-    axs21[i, j].set_xticklabels(np.arange(0, settings.bladeMax+1, 5), fontsize=10)
-    axs21[i, j].set_yticks(np.arange(-5, settings.beta2Bmax+1, -10))
-    axs21[i, j].set_yticklabels(np.arange(-5, settings.beta2Bmax+1, -10), fontsize=10)
+    axs21[i, j].set_xticks(np.arange(0, Compressor.bladeMax+1, 5))
+    axs21[i, j].set_xticklabels(np.arange(0, Compressor.bladeMax+1, 5), fontsize=10)
+    axs21[i, j].set_yticks(np.arange(-5, Compressor.beta2Bmax+1, -10))
+    axs21[i, j].set_yticklabels(np.arange(-5, Compressor.beta2Bmax+1, -10), fontsize=10)
     axs21[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
     axs21[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
     axs21[i, j].set_title(r'slip factor [-] ' , fontsize=12)
@@ -154,10 +158,10 @@ def plotSystemVariables(systemVar, Zsystem, designParam, flowVar ):
     cbar = fig.colorbar(con, ax=axs21[i, j])
     cbar.ax.tick_params(labelsize=10)
     axs21[i, j].invert_yaxis()
-    axs21[i, j].set_xticks(np.arange(0, settings.bladeMax+1, 5))
-    axs21[i, j].set_xticklabels(np.arange(0, settings.bladeMax+1, 5), fontsize=10)
-    axs21[i, j].set_yticks(np.arange(-5, settings.beta2Bmax+1, -10))
-    axs21[i, j].set_yticklabels(np.arange(-5, settings.beta2Bmax+1, -10), fontsize=10)
+    axs21[i, j].set_xticks(np.arange(0, Compressor.bladeMax+1, 5))
+    axs21[i, j].set_xticklabels(np.arange(0, Compressor.bladeMax+1, 5), fontsize=10)
+    axs21[i, j].set_yticks(np.arange(-5, Compressor.beta2Bmax+1, -10))
+    axs21[i, j].set_yticklabels(np.arange(-5, Compressor.beta2Bmax+1, -10), fontsize=10)
     axs21[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
     axs21[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
     axs21[i, j].set_title(r' Efficiency demand' , fontsize=12)
@@ -180,10 +184,10 @@ def plotSystemVariables(systemVar, Zsystem, designParam, flowVar ):
     cbar = fig.colorbar(con, ax=axs21[i, j])
     cbar.ax.tick_params(labelsize=10)
     axs21[i, j].invert_yaxis()
-    axs21[i, j].set_xticks(np.arange(0, settings.bladeMax+1, 5))
-    axs21[i, j].set_xticklabels(np.arange(0, settings.bladeMax+1, 5), fontsize=10)
-    axs21[i, j].set_yticks(np.arange(-5, settings.beta2Bmax+1, -10))
-    axs21[i, j].set_yticklabels(np.arange(-5, settings.beta2Bmax+1, -10), fontsize=10)
+    axs21[i, j].set_xticks(np.arange(0, Compressor.bladeMax+1, 5))
+    axs21[i, j].set_xticklabels(np.arange(0, Compressor.bladeMax+1, 5), fontsize=10)
+    axs21[i, j].set_yticks(np.arange(-5, Compressor.beta2Bmax+1, -10))
+    axs21[i, j].set_yticklabels(np.arange(-5, Compressor.beta2Bmax+1, -10), fontsize=10)
     axs21[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
     axs21[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
     axs21[i, j].set_title(r' Pressure ratio [-] ' , fontsize=12)
@@ -191,11 +195,6 @@ def plotSystemVariables(systemVar, Zsystem, designParam, flowVar ):
     contourEfficiency = axs21[i, j].contour(X, Y, etaMat,np.arange(0, 1, 0.1), colors=('w',),linestyles=('-',),linewidths=(1))
     contourData = contourEfficiency.allsegs[0]
     axs21[i, j].clabel(contourEfficiency, inline=True, fontsize=8)
-    contourPr124 = axs21[i, j].contour(X, Y, Z,[settings.Pr], colors=('w',),linestyles=('--',),linewidths=(1))
+    contourPr124 = axs21[i, j].contour(X, Y, Z,[Compressor.Pr], colors=('w',),linestyles=('--',),linewidths=(1))
     contourData = contourPr124.allsegs[0]
     axs21[i, j].clabel(contourPr124, inline=True, fontsize=8)
- 
-
-
-
-
