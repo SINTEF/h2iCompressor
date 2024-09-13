@@ -77,7 +77,6 @@ class Compressor:
 
         # Impeller exit flow parameters
         self.lambda2 = self.impeller_properties['lambda2']
-        self.lambda20 = self.lambda2        # MSG: Duplicate?
         self.etaStage = self.impeller_properties['etaStage']
         self.etaStage0 = self.etaStage
 
