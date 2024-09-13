@@ -113,8 +113,8 @@ def iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, Ite
             
 
             """ Handling slip factor. Updating if the conditions for wiesner relation is not upheld. """
-            epsilonLimit = IterationMatrix.rhsExpLimitMat[ib, iz]                                                          # right hand side of wiesner slip factor condition
-            sigma = checkUpdateSlipFactorSigma(epsilonLimit = epsilonLimit, slipFactor = sigma, Compressor = Compressor)            # updating slip factor wrt wiesner condition
+            epsilonLimit = IterationMatrix.rhsExpLimitMat[ib, iz]                                                           # right hand side of wiesner slip factor condition
+            sigma = checkUpdateSlipFactorSigma(epsilonLimit = epsilonLimit, slipFactor = sigma, Compressor = Compressor)    # updating slip factor wrt wiesner condition
             
             """ impellerOutletVelocities() finds the impeller outlet velocities and work output coeff. """
             workInputCoeff, Ctheta2m, Cm2m, C2 = geometry_system_functions.impellerOutletVelocities(slipFactor = sigma, beta2B = (IterationMatrix.beta2BArr[ib])[0], U2 = Compressor.U2, lambda2 = Compressor.lambda2)          # Finding impeller outlet velocities     # MSG: Function need to be updated with classes
@@ -128,9 +128,6 @@ def iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, Ite
             Cslip1 = Ctheta2ideal - CTheta2Real
             beta2flow = np.rad2deg(np.arctan((Cslip1 + Cm2m * np.tan(np.abs(IterationMatrix.beta2BArr[ib]))) / Cm2m))
             dh0SlipCorrected =  Compressor.U2 * (CTheta2Real) - Compressor.U1t * Compressor.Ctheta1   # Alternative for finding fluid enthalpy change, for comparison
-
-
-
 
             """ The while loop iterates for a given combination of blade number and blade angle. It iterates the efficiency demand
                     while the estimated pressure ratio is not within the given tolerance of the desired pressure ratio. It is updated in 
@@ -216,6 +213,8 @@ def print_and_plot_geometry(Compressor, InletConditions, IterationMatrix):
     print('r1: ' + str(round(Compressor.r1, 3)) + 'm')
     print('r2: ' + str(round(Compressor.r2, 3)) + 'm' )
 
+    print('\nPlotting geometry...')
+
     """ Making text to go with plots """
     maxEta = np.nanmax(IterationMatrix.etaMat)
     minEta = np.nanmin(IterationMatrix.etaMat)
@@ -243,9 +242,9 @@ def print_and_plot_geometry(Compressor, InletConditions, IterationMatrix):
             r"$\frac{r_1}{r_2}{*}$ = " + str(Compressor.r1Divr2) + r" $\frac{m}{m} $" +"\n" \
             r"$N^{*}$ = " +str(round(Compressor.Ndes, 1)) + r"$rpm$" +" \n" \
             r"Proposed efficiency $\eta *=$  " + str(Compressor.etaStage0) + "\n" \
-            r"Exit swirl number $\lambda_2 *$: " + str(Compressor.lambda20) +  "\n" \
+            r"Exit swirl number $\lambda_2 *$: " + str(Compressor.lambda2) +  "\n" \
             r"Tolerance*: " + str(round(Compressor.iterTol, 3)) + "   "
-    text = [text1, text2, text3]                                                                                # Goes to plotText.py
+    text = [text1, text2, text3]     # Used in plotText.py
 
     """ Plot of relative velocities as a function of inlet meridional velocity """
     fig, ax11 = plt.subplots()
@@ -255,7 +254,6 @@ def print_and_plot_geometry(Compressor, InletConditions, IterationMatrix):
     plt.ylabel(r'$W_{\mathrm{1t}}$ [m/s]', fontsize = 12)
     plt.title(r'Minimization of relative velocity $W_{\mathrm{1t}}$')
     plt.grid()
-
 
     # Import plotting scripts
     from plot_scripts.plot_compressor import plotCompressorParam
