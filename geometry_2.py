@@ -1,6 +1,5 @@
 """
-The following Python code takes a set of variables as inputs and calculates the geometry of an inducer, 
-impeller and diffuser for a centrifugal compressor.
+The following Python code is an alternative to geometry.py, where the radiuses rh, r1 and r2 are given as inputs and instead of setting the ratios rh/r1 and r1/r2.
 
 Reference: Lowe, Mitchell (2016-08-21). Design of a load dissipation device for a 100 kW supercritical CO2 turbine, https://doi.org/10.14264/uql.2017.244
 Author(s): Petter Resell (summer intern, 2024), Martin Spillum Grønli (SINTEF Energy Research, 2024)
@@ -10,45 +9,37 @@ Author(s): Petter Resell (summer intern, 2024), Martin Spillum Grønli (SINTEF E
 ### Import-------------------------------------------------------------------------------------------
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.optimize import fsolve
 
 from pressure_test import pressureOverUnderEstimate
 import geometry_system_functions
 
 
-def minimize_relative_velocity(N, Fluid, InletConditions, Compressor):
-    """ Function to find the inducer properties which minimizes the relative velocity for a given rotational speed N. """
+def set_inudcer_properties(N, Fluid, InletConditions, Compressor):
+    """ Find inducer properties for a given rh, r1, r2 and N """
     
-    # Make arrays for all possible values of Cm1
-    Ctheta1i = InletConditions.Cm1i * np.tan(np.radians(InletConditions.alpha1))    # Inducer absolute tangential velocity [degrees]          Trigonometry
-    C1i = (Ctheta1i ** 2 + InletConditions.Cm1i ** 2) ** 0.5                        # Inducer Absolute velocity C1 [m/s]                      Pythagoras theorem from velocity triangle 
-    
-    T1i = InletConditions.T00i - (C1i ** 2) / (2 * Fluid.Cp)                        # Inducer temperature [K]                                 Stagnation temperature relation             
-    M1i = C1i / ((Fluid.k * Fluid.R * T1i) ** 0.5)                                  # Inducer Mach number [-]                                 by definition
-    P1i = InletConditions.P00 * (T1i / InletConditions.T00) ** (Fluid.k / (Fluid.k - 1))    # Inducer pressure [Pa]                           Isentropic relation                        
-    rho1i = P1i / (Fluid.R * T1i)                                                   # Inducer density  [kg/m^3]                               Assuming ideal gas                          
-    A1i = InletConditions.mdot / (rho1i * InletConditions.Cm1i * (1 - InletConditions.B1))  # Inducer flow area [m^2]                         Continuity                                                        
-    rt1i = (A1i / (np.pi * (1 - Compressor.rhDivr1 ** 2))) ** 0.5                   # Inducer tip radius [m]                                  Geometry
-    U1ti = 2 * np.pi * rt1i * N / 60                                                # Inducer blade tip speed [m/s]
-    W1ti = (InletConditions.Cm1i ** 2 + (U1ti - Ctheta1i) ** 2) ** 0.5              # Inducer relative velocity [m/s]
-    InletConditions.W1ti = W1ti                                                     # Store relative velocities for plotting
+    Compressor.U1t = 2 * np.pi * Compressor.r1 * N / 60                                             # Inducer tip speed [m/s]
+    Compressor.A1 = Compressor.r1 ** 2 * (np.pi * (1 - Compressor.rh ** 2 / Compressor.r1 ** 2))    # Inducer flow area [m2]
 
-    # Get the index of the minimum relative velocity
-    w1ti_index_min = np.argmin(W1ti)                                                # Index of smallest relative velocity [m/s]
-    
-    # Set inducer properties to the values that minimize the relative velocity
-    Compressor.r1 = rt1i[w1ti_index_min]                                            # Inducer tip radius [m]
-    Compressor.Ctheta1 = Ctheta1i[w1ti_index_min]                                   # Inducer angular velocity [m/s]
-    Compressor.C1 = C1i[w1ti_index_min]                                             # Inducer velocity [m/s]
-    Compressor.T1 = T1i[w1ti_index_min]                                             # Inducer temperature [K]
-    Compressor.M1 = M1i[w1ti_index_min]                                             # Inducer Mach number [-]
-    Compressor.P1 = P1i[w1ti_index_min]                                             # Inducer pressure [Pa]
-    Compressor.rho1 = rho1i[w1ti_index_min]                                         # Inducer density [kg/m3]
-    Compressor.A1 = A1i[w1ti_index_min]                                             # Inducer flow area [m2]
-    Compressor.U1t = U1ti[w1ti_index_min]                                           # Inducer tip speed [m/s]
-    Compressor.Cm1 = InletConditions.Cm1i[w1ti_index_min]                           # Inducer meridional velocity [m/s]
+    C1_function = lambda C1: C1 ** (Fluid.k - 1) * (1 - C1 ** 2 / (2 * Fluid.Cp * InletConditions.T00)) \
+                    - (InletConditions.mdot * Fluid.R * np.sqrt(1 + np.tan(np.radians(InletConditions.alpha1)) ** 2) * InletConditions.T00 \
+                    / (Compressor.A1 * (1 - InletConditions.B1) * InletConditions.P00)) ** (Fluid.k - 1)  # Function to solve for C1
+    solution, info, ier, msg = fsolve(C1_function, x0 = 5000, full_output = True)                                     
+    Compressor.C1 = solution[0]                                                                     # Inducer velocity [m/s]
+    if ier != 1:
+        raise ValueError("fsolve did not find a solution for the inducer velocity C1. Try different initial guess x0?")                                                 
+    else:
+        print('Inducer velocity C1 =', Compressor.C1, 'm/s')
+
+    Compressor.Cm1 = Compressor.C1 / np.sqrt(1 + np.tan(np.radians(InletConditions.alpha1)) ** 2)   # Inducer meridional velocity [m/s]
+    Compressor.Ctheta1 = np.sqrt(Compressor.C1 ** 2 - Compressor.Cm1 ** 2)                          # Inducer tangential velocity [m/s]
+    Compressor.T1 = InletConditions.T00 - Compressor.C1 ** 2 / (2 * Fluid.Cp)                       # Inducer temperature [K]
+    Compressor.M1 = Compressor.C1 / np.sqrt(Fluid.k * Fluid.R * Compressor.T1)                      # Inducer Mach number [-]
+    Compressor.P1 = InletConditions.P00 * (Compressor.T1 / InletConditions.T00) ** (Fluid.k / (Fluid.k - 1))    # Inducer pressure [Pa]
+    Compressor.rho1 = Compressor.P1 / (Fluid.R * Compressor.T1)                                     # Inducer density [kg/m3]
     Compressor.beta1 = np.degrees(np.arctan((Compressor.U1t - Compressor.Ctheta1) / Compressor.Cm1))    # Inducer relative velocity angle [deg]
-    Compressor.W1t = W1ti[w1ti_index_min]                                           # Inducer relative velocity [m/s]
-    Compressor.omega = Compressor.U1t / Compressor.r1                               # Angular velocity [rad/s]   
+    Compressor.omega = Compressor.U1t / Compressor.r1                                               # Angular velocity [rad/s]   
+    Compressor.W1t = (Compressor.Cm1 ** 2 + (Compressor.U1t - Compressor.Ctheta1) ** 2) ** 0.5      # Inducer relative velocity [m/s] 
 
 
 def inducer_and_impeller_calculations(Fluid, InletConditions, Compressor):
@@ -70,10 +61,10 @@ def inducer_and_impeller_calculations(Fluid, InletConditions, Compressor):
     
     U2 = Compressor.U2Crit      # Initial guess for U2   
     Ndes = Compressor.N0        # Initial guess for N
-    while (U2) >= Compressor.U2Crit and Ndes > 0:       # MSG: Find a way to find the lowest rotational speed, instead of the highest?    
-        minimize_relative_velocity(N = Ndes, Fluid = Fluid, InletConditions = InletConditions, Compressor = Compressor)
-        U2 = (Compressor.U1t / Compressor.r1Divr2)
-
+    while (U2) >= Compressor.U2Crit and Ndes > 0:   
+        set_inudcer_properties(N = Ndes, Fluid = Fluid, InletConditions = InletConditions, Compressor = Compressor)
+        U2 = (Compressor.U1t / (Compressor.r1 / Compressor.r2))
+    
         if (Compressor.U2Crit) > Compressor.bladeVelUpperLimit:      # Can skip this break to avoid crashing code
             break
         if (U2) >= Compressor.U2Crit:
@@ -85,7 +76,7 @@ def inducer_and_impeller_calculations(Fluid, InletConditions, Compressor):
     """ Find design parameters dependent on calculated U2 """
     Compressor.r2 = Compressor.U2 / Compressor.omega                            # Impeller tip radius [m]
     Compressor.D2 = 2 * Compressor.r2                                           # Impeller tip diameter [m]
-    Compressor.rh1 = Compressor.rhDivr1 * Compressor.r1                         # Hub radius [m]
+    Compressor.rh1 = Compressor.rh                                              # Hub radius [m]
     Compressor.Ncrit = 60 * Compressor.U2Crit / (2 * np.pi * Compressor.r2)     # Critical rotational speed [rpm]
 
 
@@ -93,8 +84,8 @@ def checkUpdateSlipFactorSigma(epsilonLimit, slipFactor, Compressor):
     """ Function to check if condition for the use of wiesner slip factor is upheld. If its not upheld then slip factor 
             is updated by the correction equation. If the condition is upheld it just returns the same slip factor. 
             The Function is implemented when iterating through all blade numbers and blade angles below.  """
-    if Compressor.r1Divr2 >= epsilonLimit:
-        return slipFactor * (1 - ((Compressor.r1Divr2 - epsilonLimit) / (1 - epsilonLimit)) ** 3)
+    if Compressor.r1 / Compressor.r2 >= epsilonLimit:
+        return slipFactor * (1 - ((Compressor.r1 / Compressor.r2 - epsilonLimit) / (1 - epsilonLimit)) ** 3)
     else:
         return slipFactor
 
@@ -111,7 +102,7 @@ def iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, Ite
             trueFalseCheck = False                              # iteration control for while loop
             
 
-            """ Handling slip factor. Updating if the conditions for wiesner relation is not upheld. """
+            """ Handling slip factor. Updating if the conditions for Wiesner relation is not upheld. """
             epsilonLimit = IterationMatrix.rhsExpLimitMat[ib, iz]                                                           # right hand side of wiesner slip factor condition
             sigma = checkUpdateSlipFactorSigma(epsilonLimit = epsilonLimit, slipFactor = sigma, Compressor = Compressor)    # updating slip factor wrt wiesner condition
             
@@ -131,7 +122,7 @@ def iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, Ite
             """ The while loop iterates for a given combination of blade number and blade angle. It iterates the efficiency demand
                     while the estimated pressure ratio is not within the given tolerance of the desired pressure ratio. It is updated in 
                     the function called pressureOverUnderEstimate. The guess efficiency is increased or decreased varying if the 
-                    pressure ratio is under- or overestimated. """
+                    oressure ratio is under- or overestimated. """
             while ((trueFalseCheck == False) and (etaStage < Compressor.etaUpperLimit and etaStage > Compressor.etaLowerLimit)):
                 
                 # -------Fluid------------ Updating work with the new isentropic efficiency -------------------
@@ -148,7 +139,7 @@ def iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, Ite
                 rho2m = P2m / (T2m * Fluid.R)                                                # Exit density [kg/m^3]                           from ideal gas law
                 A2 = InletConditions.mdot / (rho2m * Cm2m)                                   # Exit area [m^2]                                 from continuity
                 b2 = A2 / (np.pi * Compressor.D2)                                            # Impeller exit cylinder height [m]               from geometry
-                M2 = Compressor.U2 / np.sqrt(Fluid.k*Fluid.R*T02m)                           # Impeller exit blade mach number                 from definition
+                M2 = Compressor.U2 / np.sqrt(Fluid.k * Fluid.R * T02m)                       # Impeller exit blade mach number                 from definition
                 
 
                 # ------------------- Finding diffuser properties -------------------
@@ -161,7 +152,7 @@ def iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, Ite
                 """ Checking if iteration conditions are sustained. the iterated efficiency is only accepted if
                         the pressure estimate error is less than the iteration tolerance and if the iterated
                         efficiency is within the reasonable limits etaUpperLimit and etaLowerLimit """
-                if (etaiterate > Compressor.etaUpperLimit or etaiterate < Compressor.etaLowerLimit) or ( etaStage > Compressor.etaUpperLimit or etaStage < Compressor.etaLowerLimit ):
+                if (etaiterate > Compressor.etaUpperLimit or etaiterate < Compressor.etaLowerLimit) or (etaStage > Compressor.etaUpperLimit or etaStage < Compressor.etaLowerLimit):
                     trueFalseCheck = False
                 elif abs(PressureTestOuterLoop) > Compressor.iterTol:
                     checkOuterLoop = False
@@ -190,7 +181,6 @@ def iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, Ite
 
                 """ Updating efficiency for next iteration"""
                 etaStage = pressureOverUnderEstimate(PressureTestOuterLoop, etaStage)   # MSG: Function needs to be updated with classes
-        
 
     # Check if any valid geometries were found
     countTrue = np.count_nonzero(~np.isnan(IterationMatrix.etaMat))  
@@ -208,9 +198,9 @@ def print_and_plot_geometry(Compressor, InletConditions, IterationMatrix):
     print('Critical RPM: ' + str(round(Compressor.Ncrit, 2)) )
     print('Applied RPM: ' + str(round(Compressor.Ndes, 2)) )
     print('Rotational velocity: ' + str(round(Compressor.U2, 2)))
-    print('rh: ' + str(round(Compressor.rh1, 10)) + 'm' )
-    print('r1: ' + str(round(Compressor.r1, 10)) + 'm')
-    print('r2: ' + str(round(Compressor.r2, 10)) + 'm' )
+    print('rh: ' + str(round(Compressor.rh1, 3)) + 'm' )
+    print('r1: ' + str(round(Compressor.r1, 3)) + 'm')
+    print('r2: ' + str(round(Compressor.r2, 3)) + 'm' )
 
     print('\nPlotting geometry...')
 
@@ -237,23 +227,15 @@ def print_and_plot_geometry(Compressor, InletConditions, IterationMatrix):
             r"$N_{crit}$ = " + str(round(Compressor.Ncrit, 3)) + r"$rpm$" +" \n"  
     text3 = "\n" \
             r"Desired $PR^*$: " + str(Compressor.Pr) +  "\n" \
-            r"$\frac{r_h}{r_1}{*}$ = " + str(Compressor.rhDivr1) + r" $\frac{m}{m} $" +"    " \
-            r"$\frac{r_1}{r_2}{*}$ = " + str(Compressor.r1Divr2) + r" $\frac{m}{m} $" +"\n" \
+            r"$\frac{r_h}{r_1}{*}$ = " + str(Compressor.rh / Compressor.r1) + r" $\frac{m}{m} $" +"    " \
+            r"$\frac{r_1}{r_2}{*}$ = " + str(Compressor.r1 / Compressor.r2) + r" $\frac{m}{m} $" +"\n" \
             r"$N^{*}$ = " +str(round(Compressor.Ndes, 1)) + r"$rpm$" +" \n" \
             r"Proposed efficiency $\eta *=$  " + str(Compressor.etaStage0) + "\n" \
             r"Exit swirl number $\lambda_2 *$: " + str(Compressor.lambda2) +  "\n" \
             r"Tolerance*: " + str(round(Compressor.iterTol, 3)) + "   "
     text = [text1, text2, text3]     # Used in plotText.py
 
-    """ Plot of relative velocities as a function of inlet meridional velocity """
-    fig, ax11 = plt.subplots()
-    plt.plot(InletConditions.Cm1i, InletConditions.W1ti)
-    ax11.tick_params(axis = 'both', which = 'major', labelsize = 10)
-    plt.xlabel(r'$C_{\mathrm{m1}}$ [m/s]', fontsize = 12)
-    plt.ylabel(r'$W_{\mathrm{1t}}$ [m/s]', fontsize = 12)
-    plt.title(r'Minimization of relative velocity $W_{\mathrm{1t}}$')
-    plt.grid()
-
+    
     # Import plotting scripts
     from plot_scripts.plot_compressor import plotCompressorParam
     from plot_scripts.plot_flow import plotFlowConditions

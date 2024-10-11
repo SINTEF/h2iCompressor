@@ -79,8 +79,8 @@ def plotSystemVariables(Compressor, IterationMatrix):
     axs21[i, j].invert_yaxis()
     axs21[i, j].set_xticks(np.arange(0, Compressor.bladeMax+1, 5))
     axs21[i, j].set_xticklabels(np.arange(0, Compressor.bladeMax+1, 5), fontsize=10)
-    axs21[i, j].set_yticks(np.arange(-5, Compressor.beta2Bmax+1, -10))
-    axs21[i, j].set_yticklabels(np.arange(-5, Compressor.beta2Bmax+1, -10), fontsize=10)
+    axs21[i, j].set_yticks(np.arange(- 5, Compressor.beta2Bmax+1, -10))
+    axs21[i, j].set_yticklabels(np.arange(- 5, Compressor.beta2Bmax+1, -10), fontsize=10)
     axs21[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
     axs21[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
     axs21[i, j].set_title(r'Work deviation [%]' , fontsize=12)
@@ -93,7 +93,7 @@ def plotSystemVariables(Compressor, IterationMatrix):
     # -------------- Work plot -------------
     i=0
     j=0
-    Z = WxMat* 10**(-3)                  
+    Z = WxMat * 10 ** (- 3)                  
     con = axs21[i, j].contourf(X, Y, Z, levels = lvls, cmap=colorTheme, vmin=Wmin *10**-3, vmax=Wmax *10**-3)
     cbar = fig.colorbar(con, ax=axs21[i, j])
     cbar.ax.tick_params(labelsize=10)

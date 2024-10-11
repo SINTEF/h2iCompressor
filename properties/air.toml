@@ -2,15 +2,5 @@
 Cp = 1006                                   # Cp air [J/kg/K], 
 MolarMass = 0.02897                         # Molecular weight of air [kg/mol].   
 k = 1.41                                    # Basicly similar for air and hydrogen
+viscosity = 1.778e-5                        # Air viscosity based on total conditions
 R_uni = 8.314                               # Universal gas constant [J/mol/K]
-
-
-[inlet_conditions]
-mdot = 25                                   # Mass flow rate [kg/s] ((300* 10**3 )/( 60**2 ) )/6  
-P00 = 3e6                                   # Inlet stagnation pressure [Pa]
-T00 = 293                                   # Inlet stagnation temperature [K]
-Cm1i_min = 10                               # Minimum inlet absolute meridional velocity [m/s]
-Cm1i_max = 600.5                            # Maximal inlet absolute meridional velocity [m/s]
-Cm1i_step = 1                               # Step length for inlet absolute meridional velocity [m/s]
-alpha1 = 0                                  # Absolute inlet velocity angle [deg]
-B1 = 0.04                                   # Boundary layer blockage [-],        substance viscocity dependant
