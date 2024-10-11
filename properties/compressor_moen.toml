@@ -40,12 +40,13 @@ iterTol = 0.01                                  # Loop tolerance condition for p
 
 [parameters_to_vary]
 # VARY THESE PARAMETERS
-Pr = 1.24                                       # Pressure ratio [-]
-N0 = 40000                                      # Rotational speed
-rhDivr1 = 0.35                                  # Ratio commonly given
-r1Divr2 = 0.65                                  # rt1 divided by rt2 ,making rt2 increase through array progression
+Pr = 2.15                                       # Pressure ratio [-]
+N0 = 1e5                                        # Rotational speed
+rh = 0.0118                                     # In case we use geometry_2
+r1 = 0.021                                      # In case we use geometry_2
+r2 = 0.0724                                     # In case we use geometry_2
 
 
 [off_design_parameters]
-bladeAngle = - 35                               # Blade angle of interest for off-desing_performance.py [degrees]
-bladeNumber = 30                                # Blade number of interest for off-desing_performance.py
+bladeAngle = - 10                               # Blade angle of interest for off-desing_performance.py [degrees]
+bladeNumber = 15                                # Blade number of interest for off-desing_performance.py

@@ -10,24 +10,38 @@ Authors: Petter Resell (summer intern, 2024), Martin Spillum Grønli (SINTEF Ene
 
 def main():
     """ Main function that finds and plots compressor geometry and compressor off-design performance """
-    fluid_name = 'h2'           # Select working fluid, 'h2' or 'air'
+    fluid_name = 'air'                   # Select working fluid, 'h2' or 'air'
+    path_to_fluid_properties_toml = './properties/' + fluid_name + '.toml'
+    path_to_inlet_toml = './properties/inlet_conditions_moen.toml'
+    path_to_compressor_toml = './properties/compressor_moen.toml'
+    #path_to_inlet_toml = './properties/inlet_conditions.toml'
+    #path_to_compressor_toml = './properties/compressor.toml'
+   
+    # Import necessary modules
     import settings
     import geometry
+    import geometry_2
     import off_design_performance
+    
     import matplotlib       
     matplotlib.use('tkagg')     # Use tkagg to avoid crashing when using X11-forwarding for plotting
     from matplotlib import pyplot as plt    
 
     # Load and make instances of classes for fluid, inlet conditions, compressor and iteration matrices
-    Fluid = settings.Fluid(path_to_fluid_properties_toml = './properties/' + fluid_name + '.toml')
-    InletConditions = settings.InletConditions(fluid_instance = Fluid, path_to_inlet_toml = './properties/' + fluid_name + '.toml')
-    Compressor = settings.Compressor(fluid_instance = Fluid, inlet_conditions_instance = InletConditions, path_to_compressor_toml = './properties/compressor.toml')
+    Fluid = settings.Fluid(path_to_fluid_properties_toml = path_to_fluid_properties_toml)
+    InletConditions = settings.InletConditions(fluid_instance = Fluid, path_to_inlet_toml = path_to_inlet_toml)
+    Compressor = settings.Compressor(fluid_instance = Fluid, inlet_conditions_instance = InletConditions, path_to_compressor_toml = path_to_compressor_toml)
     IterationMatrix = settings.IterationMatrix(compressor_instance = Compressor)
     
     print('\nCalculating geometry...') 
-    geometry.inducer_and_impeller_calculations(Fluid, InletConditions, Compressor)
-    geometry.iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, IterationMatrix)
-    geometry.print_and_plot_geometry(Compressor, InletConditions, IterationMatrix)
+    if Compressor.optimize_inducer_geometry:
+        geometry.inducer_and_impeller_calculations(Fluid, InletConditions, Compressor)
+        geometry.iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, IterationMatrix)
+        geometry.print_and_plot_geometry(Compressor, InletConditions, IterationMatrix)
+    else:
+        geometry_2.inducer_and_impeller_calculations(Fluid, InletConditions, Compressor)
+        geometry_2.iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, IterationMatrix)
+        geometry_2.print_and_plot_geometry(Compressor, InletConditions, IterationMatrix)
     #plt.show()
 
     print('\nCalculating off-design performance...')

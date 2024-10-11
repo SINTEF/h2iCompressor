@@ -30,7 +30,7 @@ for k in range(0, len(beta2b), 1):
 
     for j in range(len(ZB)):
         zb = ZB[j]
-        sigmaW[j] = 1 - (math.sqrt(math.cos(np.deg2rad(b)) ) )/(zb **0.7)
+        sigmaW[j] = 1 - (math.sqrt(math.cos(np.deg2rad(b)) ) ) / (zb **0.7)
         sigW[j, k] = sigmaW[j]
     title = r'$\beta_{2B} =$' + str(b) + r'$ deg$'
     axs[k].plot(ZB, sigmaW, '-bo' )
