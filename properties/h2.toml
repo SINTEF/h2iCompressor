@@ -2,4 +2,4 @@
 Cp = 14310                                  # Engineering toolbox Cp hydrogen, [J/kgK]                                       
 MolarMass = 0.00201568                      # Molecular weight of H2 [kg/mol]. 
 k = 1.41                                    # Basicly similar for air and hydrogen
-viscosity = 0.88e-5                         # H2 viscosity based on total conditions
+viscosity = 0.88e-5                         # H2 (dynamic) viscosity based on total conditions

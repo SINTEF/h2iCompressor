@@ -24,8 +24,9 @@ def set_inudcer_properties(N, Fluid, InletConditions, Compressor):
     C1_function = lambda C1: C1 ** (Fluid.k - 1) * (1 - C1 ** 2 / (2 * Fluid.Cp * InletConditions.T00)) \
                     - (InletConditions.mdot * Fluid.R * np.sqrt(1 + np.tan(np.radians(InletConditions.alpha1)) ** 2) * InletConditions.T00 \
                     / (Compressor.A1 * (1 - InletConditions.B1) * InletConditions.P00)) ** (Fluid.k - 1)  # Function to solve for C1
-    solution, info, ier, msg = fsolve(C1_function, x0 = 5000, full_output = True)                                     
-    Compressor.C1 = solution[0]                                                                     # Inducer velocity [m/s]
+
+    solution, info, ier, msg = fsolve(C1_function, x0 = 100, full_output = True)           # MSG: If two solutions, which value do we choose? Seems like both are minima of inducer relative velocity W1t                                
+    Compressor.C1 = solution[0]                                                                   # Inducer velocity [m/s]
     if ier != 1:
         raise ValueError("fsolve did not find a solution for the inducer velocity C1. Try different initial guess x0?")                                                 
     else:
@@ -97,6 +98,8 @@ def iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, Ite
     for iz in range(len(IterationMatrix.ZBarr)):
         for ib in range(len(IterationMatrix.beta2BArr)):
             #print('Blade number:', IterationMatrix.ZBarr[iz], 'Blade angle:', np.rad2deg(IterationMatrix.beta2BArr[ib][0]))
+            blade_nr = IterationMatrix.ZBarr[iz]
+            blade_ang = np.rad2deg(IterationMatrix.beta2BArr[ib][0])
             sigma = IterationMatrix.sigmaWiesnerMat[ib, iz]     # slip factor for given blade number and blade angle
             etaStage = Compressor.etaStage0                     # resetting the guessed efficiency for each new combination of blade number and blade angle
             trueFalseCheck = False                              # iteration control for while loop
@@ -185,7 +188,29 @@ def iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, Ite
     # Check if any valid geometries were found
     countTrue = np.count_nonzero(~np.isnan(IterationMatrix.etaMat))  
     if countTrue == 0:
-        raise Exception(f"Combination of rh/r1, r1/r2 and N gave zero valid cases. RPM to low to achieve desired pressure ratio!")
+        # If no valid geometries were found for the pressure ratio, lower the pressure ratio and try again
+        IterationMatrix.etaMat[:] = np.nan          # Reset all values to nan
+        IterationMatrix.pressErrorMat[:] = np.nan
+        IterationMatrix.MachExitMat[:] = np.nan
+        IterationMatrix.b2Mat[:] = np.nan
+        IterationMatrix.PrestMat[:] = np.nan
+        IterationMatrix.WxMat[:] = np.nan
+        IterationMatrix.dh0SlipCorrMAt[:] = np.nan
+        IterationMatrix.c2Mat[:] = np.nan
+        IterationMatrix.c2mMat[:] = np.nan
+        IterationMatrix.Ctheta2Mat[:] = np.nan
+        IterationMatrix.VslipMat[:] = np.nan
+        IterationMatrix.sigmaMat[:] = np.nan
+        IterationMatrix.beta2flowMat[:] = np.nan
+        
+        Pr_old = Compressor.Pr
+        Compressor.Pr *= 0.99
+        if Compressor.Pr <= 1.0:
+            print(f"Combination of rh/r1, r1/r2 and N gave zero valid cases for pressure ratios greater than 1.0")
+            #raise Exception(f"Combination of rh/r1, r1/r2 and N gave zero valid cases for pressure ratios greater than 1.0")
+        else:
+            print(f"No valid cases found for pressure ratio {np.round(Pr_old, 2)}. Lowering pressure ratio to {np.round(Compressor.Pr, 2)} and trying again.")
+            iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, IterationMatrix)
     else:
         print('\nGeometry successfully calculated')                
 
@@ -201,6 +226,7 @@ def print_and_plot_geometry(Compressor, InletConditions, IterationMatrix):
     print('rh: ' + str(round(Compressor.rh1, 3)) + 'm' )
     print('r1: ' + str(round(Compressor.r1, 3)) + 'm')
     print('r2: ' + str(round(Compressor.r2, 3)) + 'm' )
+    print('Pressure ratio: ', IterationMatrix.PrestMat)
 
     print('\nPlotting geometry...')
 

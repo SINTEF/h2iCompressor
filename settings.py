@@ -94,7 +94,7 @@ class Compressor:
         self.curvet1 = self.off_design_parameters_unknown['curvet1']        # Inducer inlet tip wall curvature [m^-1]
         self.curveh1 = self.off_design_parameters_unknown['curveh1']        # Inducer inlet hub wall curvature [m^-1]
         self.x = self.off_design_parameters_unknown['x']                    # Streamline angle [degrees] from axial direction
-        self.V0DivVcr = np.linspace(0.8, 0.9, 300)                          # Compressor inlet absolute critical velocity ratio wrt resonance [-]       # MSG: Move to toml file. This must be updated when running with different fluids and geometries. Look at impeller mach speed, effiency, pressure ratio, etc. 
+        self.V0DivVcr = np.linspace(0.41, 0.58, 300)                          # Compressor inlet absolute critical velocity ratio wrt resonance [-]       # MSG: Move to toml file. This must be updated when running with different fluids and geometries. Look at impeller mach speed, effiency, pressure ratio, etc. 
         #self.V0DivVcr = np.linspace(0.1, 0.45, 50)                         # Compressor inlet absolute critical velocity ratio wrt resonance [-]
         self.kBL = self.off_design_parameters_unknown['kBL']                # Blading loss coefficient [-]
         self.kSF = self.off_design_parameters_unknown['kSF']                # Skin friction coefficient [-]
@@ -138,7 +138,7 @@ class IterationMatrix:
     """ Class with iteration matrices """
     def __init__(self, compressor_instance):
         self.ZBarr = np.arange(compressor_instance.bladeMin, compressor_instance.bladeMax + 1, 1)                   # Array with increasing blade number
-        self.beta2BArr = np.radians(np.arange(compressor_instance.beta2Bmax, compressor_instance.beta2Bmin, 1))     # Array with decreasing (absolute) discharge angles [rad] MSG: Is this discharge angle or blade angle?
+        self.beta2BArr = np.radians(np.arange(compressor_instance.beta2Bmax, compressor_instance.beta2Bmin + 1, 1))     # Array with decreasing (absolute) discharge angles [rad] MSG: Is this discharge angle or blade angle?
         self.beta2BArr = self.beta2BArr[:, np.newaxis]                                                              # Flipping from row to column vector to make matrix on next lines
 
         """ Making matrices for iteration later. Filling with nans that are only replaced if all conditions are met. """

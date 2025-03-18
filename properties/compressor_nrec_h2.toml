@@ -1,0 +1,56 @@
+# Concepts NREC H2 compressor (https://doi.org/10.1115/GT2024-125811)
+
+[impeller_properties]
+# Ti-6Al-2Sn-4Zr-2Mo titanium  properties https://www.azom.com/article.aspx?ArticleID=9298
+impellerDensity = 1540                          # Impeller density [kg/m3]
+impellerTensileStrength = 9e8              # Approximate ultimate tensile strength UTS [Pa]
+
+# Impeller exit flow parameters
+lambda2 = 2.25                                     # Exit swirl parameter                                         
+etaStage = 0.8                                  # Isentropic Stage efficiency [-]. Used for iteration     
+
+
+[diffuser_properties]
+# Diffuser parameters
+etad = 0.85                                     # Diffuser efficiency. MSG: Not defined by Galvas 
+AR = 1.9                                      # Inlet/outlet area ratio of the diffuser [-] MSG: AR in Galvas is the vaned diffuser area ratio. However, we assume a vaneless diffuser? So wrong?     
+
+
+[off_design_parameters_unknown]
+No = 1.0                                        # Off design speed percentage that requires performance prediction [rpm]
+tu = 0.003                                      # Blade thickness [m]
+curvet1 = 0                                     # Inducer inlet tip wall curvature [m^-1]
+curveh1 = 7                                     # Inducer inlet hub wall curvature [m^-1]
+x = 0                                           # Streamline angle [degrees] from axial direction
+kBL = 0.75                                       # Blading loss coefficient [-]
+kSF = 5.6                                       # Skin friction coefficient [-]
+Cf = 0.006                                      # Friction coefficient [-]
+    
+
+[iteration_parameters]
+# Iteration control
+etaLowerLimit = 0                               # Lowest efficiency allowed
+etaUpperLimit = 0.9999                          # Highest efficiency allowed
+bladeVelUpperLimit = 1200                       # Highest blade velocity allowed
+bladeVelLowerLimit = 0                          # Lowest blade velocity allowed 
+beta2Bmax = - 5                                # "Maximum" beta iterated over
+beta2Bmin = - 0                                # "Minimum" beta iterated over  
+bladeMin = 30                                   # Lowest bladenumber allowed
+bladeMax = 35                                   # Highest bladenumber allowed
+iterTol = 0.01                                  # Loop tolerance condition for pressure ratio
+
+
+[parameters_to_vary]
+# VARY THESE PARAMETERS
+Pr = 1.263                                       # Pressure ratio [-]
+N0 = 60000                                      # Rotational speed
+#rhDivr1 = 0.4                                   # Ratio commonly given
+#r1Divr2 = 0.6                               # rt1 divided by rt2 ,making rt2 increase through array progression
+rh = 0.0243                                    # In case we use geometry_2
+r1 = 0.0608                                    # In case we use geometry_2
+r2 = 0.1015                                    # In case we use geometry_2
+
+
+[off_design_parameters]
+bladeAngle = - 2                               # Blade angle of interest for off-desing_performance.py [degrees]
+bladeNumber = 32                                # Blade number of interest for off-desing_performance.py

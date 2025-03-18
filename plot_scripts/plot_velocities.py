@@ -1,3 +1,9 @@
+import numpy as np
+import matplotlib
+matplotlib.use('tkagg')
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Cursor
+
 def plotVelocities(Compressor, IterationMatrix):
     # ------------- PLOTTING ------------ 
     """
@@ -7,14 +13,10 @@ def plotVelocities(Compressor, IterationMatrix):
     flowVar = [PR, W1t, Cm1, U1t, U2, U2Crit]
     """
 
-    # Import
-    import numpy as np
-    import matplotlib.pyplot as plt
-
     systemVar = [Compressor.etaStage0, Compressor.lambda2, Compressor.iterTol, IterationMatrix.ZBarr, IterationMatrix.beta2BArr]
     designParam = [Compressor.r1, Compressor.r2, Compressor.rh1, Compressor.Ncrit, Compressor.Ndes]
     flowVar = [Compressor.Pr, Compressor.W1t, Compressor.Cm1, Compressor.U1t, Compressor.U2, Compressor.U2Crit]
-    Zvelocities = [IterationMatrix.c2Mat, IterationMatrix.Ctheta2Mat, IterationMatrix.c2mMat, IterationMatrix.MachExitMat, IterationMatrix.VslipMat]                                            # Goes to plotVelocities.py
+    Zvelocities = [IterationMatrix.c2Mat, IterationMatrix.Ctheta2Mat, IterationMatrix.c2mMat, IterationMatrix.MachExitMat, IterationMatrix.VslipMat]
 
     c2Mat = Zvelocities[0]
     Ctheta2Mat = Zvelocities[1]
@@ -46,8 +48,8 @@ def plotVelocities(Compressor, IterationMatrix):
     U2 = flowVar[4]
     U2Crit = flowVar[5]
 
-    x = ZBarr                  # SAME FOR ALL COUNTOURS
-    y = np.rad2deg(beta2bArr)     # SAME FOR ALL COUNTOURS
+    x = ZBarr
+    y = np.rad2deg(beta2bArr)
 
     X, Y = np.meshgrid(x, y)  
     lvls = 15
@@ -55,8 +57,6 @@ def plotVelocities(Compressor, IterationMatrix):
 
     vmin = min(np.nanmin(c2Mat), np.nanmin(c2mMat))
     vmax = max(np.nanmax(c2Mat), np.nanmax(c2mMat))
-    
-
 
     fig, axs2 = plt.subplots(2, 3)
     fig.set_figwidth(15)
@@ -65,100 +65,46 @@ def plotVelocities(Compressor, IterationMatrix):
     fig.tight_layout(pad = 7.0)
     fig.subplots_adjust(top = 0.9, bottom = 0.09)
 
-    # -------------- C2 -------------
-    i = 0
-    j = 0
-    Z = c2Mat                  
-    con1 = axs2[i, j].contourf(X, Y, Z, levels = lvls, cmap = colorTheme, vmin = vmin, vmax = vmax)
-    cbar = fig.colorbar(con1, ax = axs2[i, j])#, extend='both')
-    # cbar.set_ticks(np.linspace(vmin, vmax, 15))
-    # cbar.set_ticks([vmin, 100, 200, 400, 600, 800, 1000, vmax])
-    # cbar.set_ticks(np.linspace(vmin, vmax, 10))
-    cbar.ax.tick_params(labelsize = 10)
-    axs2[i, j].invert_yaxis()
-    axs2[i, j].set_xticks(np.arange(0, Compressor.bladeMax + 1, 5))
-    axs2[i, j].set_xticklabels(np.arange(0, Compressor.bladeMax + 1, 5), fontsize = 10)
-    axs2[i, j].set_yticks(np.arange(- 5, Compressor.beta2Bmax + 1, - 10))
-    axs2[i, j].set_yticklabels(np.arange(- 5, Compressor.beta2Bmax + 1, - 10), fontsize = 10)
-    axs2[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize = 12)
-    axs2[i, j].set_ylabel(r' $ \beta _{2B}$ [deg]', fontsize = 12)
-    axs2[i, j].set_title(r'Absolute discharge velocity [m/s]', fontsize = 12)
-    axs2[i, j].grid()
+    def format_coord_factory(X, Y, Z):
+        def format_coord(x, y):
+            return f'x={x:.2f}, y={y:.2f}, z={get_z_value(X, Y, Z, x, y):.2f}'
+        return format_coord
 
+    plot_configs = [
+        (0, 0, c2Mat, r'Absolute discharge velocity [m/s]', vmin, vmax),
+        (0, 1, c2mMat, r'Meridonal discharge velocity [m/s]', vmin, vmax),
+        (0, 2, Ctheta2Mat, r'Angular discharge velocity [m/s]', vmin, vmax),
+        (1, 0, MachExitMat, r'Discharge Mach number [-]', None, None),
+        (1, 1, VslipMat, r'Slip velocity [m/s]', None, None)
+    ]
 
-    # -------------- C2m -------------
-    i=0
-    j=1
-    Z = c2mMat
-    con = axs2[i, j].contourf(X, Y, Z, levels = lvls, cmap=colorTheme, vmin=vmin, vmax=vmax)
-    cbar = fig.colorbar(con, ax=axs2[i, j])# cax=cbar_ax)#, ticks=[vmin, (vmin + vmax) / 2, vmax])
-    cbar.ax.tick_params(labelsize=10)
-    axs2[i, j].invert_yaxis()
-    axs2[i, j].set_xticks(np.arange(0, Compressor.bladeMax+1, 5))
-    axs2[i, j].set_xticklabels(np.arange(0, Compressor.bladeMax+1, 5), fontsize=10)
-    axs2[i, j].set_yticks(np.arange(-5, Compressor.beta2Bmax+1, -10))
-    axs2[i, j].set_yticklabels(np.arange(-5, Compressor.beta2Bmax+1, -10), fontsize=10)
-    axs2[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
-    axs2[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
-    axs2[i, j].set_title(r'Meridonal discharge velocity [m/s] ' , fontsize=12)
-    axs2[i, j].grid()
+    for i, j, Z, title, vmin, vmax in plot_configs:
+        con = axs2[i, j].contourf(X, Y, Z, levels=lvls, cmap=colorTheme, vmin=vmin, vmax=vmax)
+        cbar = fig.colorbar(con, ax=axs2[i, j])
+        cbar.ax.tick_params(labelsize=10)
+        axs2[i, j].invert_yaxis()
+        axs2[i, j].set_xticks(np.arange(0, Compressor.bladeMax+1, 5))
+        axs2[i, j].set_xticklabels(np.arange(0, Compressor.bladeMax+1, 5), fontsize=10)
+        axs2[i, j].set_yticks(np.arange(-5, Compressor.beta2Bmax+1, -10))
+        axs2[i, j].set_yticklabels(np.arange(-5, Compressor.beta2Bmax+1, -10), fontsize=10)
+        axs2[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
+        axs2[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
+        axs2[i, j].set_title(title, fontsize=12)
+        axs2[i, j].grid()
 
-    # -------------- Angular velocity -------------
-    i=0
-    j=2
-    Z = Ctheta2Mat
-    con = axs2[i, j].contourf(X, Y, Z, levels = lvls, cmap=colorTheme, vmin=vmin, vmax=vmax)
-    cbar = fig.colorbar(con, ax=axs2[i, j])
-    cbar.ax.tick_params(labelsize=10)
-    axs2[i, j].invert_yaxis()
-    axs2[i, j].set_xticks(np.arange(0, Compressor.bladeMax+1, 5))
-    axs2[i, j].set_xticklabels(np.arange(0, Compressor.bladeMax+1, 5), fontsize=10)
-    axs2[i, j].set_yticks(np.arange(-5, Compressor.beta2Bmax+1, -10))
-    axs2[i, j].set_yticklabels(np.arange(-5, Compressor.beta2Bmax+1, -10), fontsize=10)
-    axs2[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
-    axs2[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
-    axs2[i, j].set_title(r'Angular discharge velocity [m/s] ' , fontsize=12)
-    axs2[i, j].grid()
-
-    # -------------- Mach number velocity -------------
-    i=1
-    j=0
-    Z = MachExitMat
-    con = axs2[i, j].contourf(X, Y, Z, levels = lvls, cmap=colorTheme)
-    cbar = fig.colorbar(con, ax=axs2[i, j])
-    cbar.ax.tick_params(labelsize=10)
-    axs2[i, j].invert_yaxis()
-    axs2[i, j].set_xticks(np.arange(0, Compressor.bladeMax+1, 5))
-    axs2[i, j].set_xticklabels(np.arange(0, Compressor.bladeMax+1, 5), fontsize=10)
-    axs2[i, j].set_yticks(np.arange(-5, Compressor.beta2Bmax+1, -10))
-    axs2[i, j].set_yticklabels(np.arange(-5, Compressor.beta2Bmax+1, -10), fontsize=10)
-    axs2[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
-    axs2[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
-    axs2[i, j].set_title(r'Discharge Mach number [-] ' , fontsize=12)
-    axs2[i, j].grid()
-
-    # -------------- Slip velocity -------------
-    i=1
-    j=1
-    Z = VslipMat
-    con = axs2[i, j].contourf(X, Y, Z, levels = lvls, cmap=colorTheme)
-    cbar = fig.colorbar(con, ax=axs2[i, j])
-    cbar.ax.tick_params(labelsize=10)
-    axs2[i, j].invert_yaxis()
-    axs2[i, j].set_xticks(np.arange(0, Compressor.bladeMax+1, 5))
-    axs2[i, j].set_xticklabels(np.arange(0, Compressor.bladeMax+1, 5), fontsize=10)
-    axs2[i, j].set_yticks(np.arange(-5, Compressor.beta2Bmax+1, -10))
-    axs2[i, j].set_yticklabels(np.arange(-5, Compressor.beta2Bmax+1, -10), fontsize=10)
-    axs2[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
-    axs2[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
-    axs2[i, j].set_title(r'Slip velocity [m/s] ' , fontsize=12)
-    axs2[i, j].grid()
+        cursor = Cursor(axs2[i, j], useblit=True, color='red', linewidth=1)
+        axs2[i, j].format_coord = format_coord_factory(X, Y, Z)
 
     fig.delaxes(axs2[1, 2])
 
     # -------------- Textbox -------------
-    i=1
-    j=2          
-    axs2[i, j].axis('off')  # Turn off the axis
-    axs2[i, j].text(0.0, 0.5, "Vacant plot space", ha='left', va='center', fontsize=12, linespacing = 1.8 )
-    # Ready to be filled by plot
+    axs2[1, 2].axis('off')
+    axs2[1, 2].text(0.0, 0.5, "Vacant plot space", ha='left', va='center', fontsize=12, linespacing = 1.8)
+
+
+def get_z_value(X, Y, Z, x, y):
+    if X.min() <= x <= X.max() and Y.min() <= y <= Y.max():
+        x_idx = np.abs(X[0] - x).argmin()
+        y_idx = np.abs(Y[:, 0] - y).argmin()
+        return Z[y_idx, x_idx]
+    return np.nan
