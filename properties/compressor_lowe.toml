@@ -5,12 +5,12 @@ impellerTensileStrength = 9e8                   # Approximate ultimate tensile s
 
 # Impeller exit flow parameters
 lambda2 = 2                                     # Exit swirl parameter                                         
-etaStage = 0.6                                  # Isentropic Stage efficiency [-]. Used for iteration     
+etaStage = 0.72                                  # Isentropic Stage efficiency [-]. Used for iteration     
 
 
 [diffuser_properties]
 # Diffuser parameters
-etad = 0.85                                     # Diffuser efficiency (-)
+etad = 0.85                                     # Diffuser efficiency
 AR = 2.5                                        # Inlet/outlet area ratio of the diffuser [-]         
 
 
@@ -28,7 +28,7 @@ Cf = 0.01                                       # Friction coefficient [-]
 [iteration_parameters]
 # Iteration control
 etaLowerLimit = 0                               # Lowest efficiency allowed
-etaUpperLimit = 0.9                             # Highest efficiency allowed
+etaUpperLimit = 0.999                             # Highest efficiency allowed
 bladeVelUpperLimit = 1200                       # Highest blade velocity allowed
 bladeVelLowerLimit = 0                          # Lowest blade velocity allowed 
 beta2Bmax = - 50                                # "Maximum" beta iterated over
@@ -40,12 +40,16 @@ iterTol = 0.01                                  # Loop tolerance condition for p
 
 [parameters_to_vary]
 # VARY THESE PARAMETERS
-Pr = 1.24                                       # Pressure ratio [-]
-N0 = 40000                                      # Rotational speed
-rhDivr1 = 0.35                                  # Ratio commonly given
-r1Divr2 = 0.65                                  # rt1 divided by rt2 ,making rt2 increase through array progression
+Pr = 1.625                                        # Pressure ratio [-]
+N0 = 120000                                     # Rotational speed
+rh = 0.00575                                    # In case we use geometry_2
+r1 = 0.0186                                     # In case we use geometry_2
+r2 = 0.024                                      # In case we use geometry_2
+
+#rhDivr1 = 0.5313                               # Inducer hub radius over inducer tip radius
+#r1Divr2 = 0.5614                               # Inducer tip radius over impeller exit diameter. rt1 divided by rt2 ,making rt2 increase through array progression
 
 
 [off_design_parameters]
-bladeAngle = - 35                               # Blade angle of interest for off-desing_performance.py [degrees]
-bladeNumber = 30                                # Blade number of interest for off-desing_performance.py
+bladeAngle = - 40                             # Blade angle of interest for off-desing_performance.py [degrees]
+bladeNumber = 12                                # Blade number of interest for off-desing_performance.py

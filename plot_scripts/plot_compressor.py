@@ -1,8 +1,10 @@
+import numpy as np
+import matplotlib
+matplotlib.use('tkagg')
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Cursor
+
 def plotCompressorParam(Compressor, IterationMatrix):
-    # Import
-    import numpy as np
-    import matplotlib.pyplot as plt
-    
     # ------------- PLOTTING ------------ 
     """
     systemVar = [etaStage0, lambda2, iterTol, Zbarr, beta2bArr]
@@ -13,13 +15,11 @@ def plotCompressorParam(Compressor, IterationMatrix):
     systemVar = [Compressor.etaStage0, Compressor.lambda2, Compressor.iterTol, IterationMatrix.ZBarr, IterationMatrix.beta2BArr]
     designParam = [Compressor.r1, Compressor.r2, Compressor.rh1, Compressor.Ncrit, Compressor.Ndes]
     flowVar = [Compressor.Pr, Compressor.W1t, Compressor.Cm1, Compressor.U1t, Compressor.U2, Compressor.U2Crit]
-    Zcompressor = [IterationMatrix.b2Mat, IterationMatrix.VslipMat, IterationMatrix.beta2flowMat]                                                               # Goes to plotCompressor.py
-
+    Zcompressor = [IterationMatrix.b2Mat, IterationMatrix.VslipMat, IterationMatrix.beta2flowMat]
 
     h2Mat = Zcompressor[0]
     VslipMat = Zcompressor[1]
     beta2FlowMat = Zcompressor[2]
-
 
     etaStage0 = systemVar[0]
     lambda2 = systemVar[1]
@@ -45,8 +45,8 @@ def plotCompressorParam(Compressor, IterationMatrix):
     U2 = flowVar[4]
     U2Crit = flowVar[5]
 
-    x = ZBarr                  # SAME FOR ALL COUNTOURS
-    y = np.rad2deg(beta2bArr)     # SAME FOR ALL COUNTOURS
+    x = ZBarr
+    y = np.rad2deg(beta2bArr)
 
     X, Y = np.meshgrid(x, y)  
     lvls = 30
@@ -59,62 +59,39 @@ def plotCompressorParam(Compressor, IterationMatrix):
     fig.tight_layout(pad = 7.0)
     fig.subplots_adjust(top = 0.9, bottom = 0.09)
 
+    def format_coord_factory(X, Y, Z):
+        def format_coord(x, y):
+            return f'x={x:.2f}, y={y:.2f}, z={get_z_value(X, Y, Z, x, y):.2f}'
+        return format_coord
 
-    # -------------- Outlet exit height plot -------------
-    i = 0
-    j = 1
-    Z = h2Mat                  
-    con = axs2[i, j].contourf(X, Y, Z, levels = lvls, cmap = colorTheme)
-    cbar = fig.colorbar(con, ax=axs2[i, j])
-    cbar.ax.tick_params(labelsize = 10)
-    axs2[i, j].invert_yaxis()
-    axs2[i, j].set_xticks(np.arange(0, Compressor.bladeMax + 1, 5))
-    axs2[i, j].set_xticklabels(np.arange(0, Compressor.bladeMax + 1, 5), fontsize = 10)
-    axs2[i, j].set_yticks(np.arange(- 5, Compressor.beta2Bmax + 1, - 10))
-    axs2[i, j].set_yticklabels(np.arange(- 5, Compressor.beta2Bmax + 1, - 10), fontsize = 10)
-    axs2[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize = 12)
-    axs2[i, j].set_ylabel(r' $ \beta _{2B}$ [deg]', fontsize = 12)
-    axs2[i, j].set_title(r'Impeller cylinder height [m]', fontsize = 12)
-    axs2[i, j].grid()
+    plot_configs = [
+        (0, 1, h2Mat, r'Impeller cylinder height [m]'),
+        (0, 0, VslipMat, r'Slip velocity [m/s]'),
+        (0, 2, beta2FlowMat, r'Outlet flow angle $ \beta _{2}$ [deg]')
+    ]
+
+    for i, j, Z, title in plot_configs:
+        con = axs2[i, j].contourf(X, Y, Z, levels=lvls, cmap=colorTheme)
+        cbar = fig.colorbar(con, ax=axs2[i, j])
+        cbar.ax.tick_params(labelsize=10)
+        axs2[i, j].invert_yaxis()
+        axs2[i, j].set_xticks(np.arange(0, Compressor.bladeMax+1, 5))
+        axs2[i, j].set_xticklabels(np.arange(0, Compressor.bladeMax+1, 5), fontsize=10)
+        axs2[i, j].set_yticks(np.arange(-5, Compressor.beta2Bmax+1, -10))
+        axs2[i, j].set_yticklabels(np.arange(-5, Compressor.beta2Bmax+1, -10), fontsize=10)
+        axs2[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
+        axs2[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
+        axs2[i, j].set_title(title, fontsize=12)
+        axs2[i, j].grid()
+
+        cursor = Cursor(axs2[i, j], useblit=True, color='red', linewidth=1)
+        axs2[i, j].format_coord = format_coord_factory(X, Y, Z)
 
 
-    # -------------- Slip velocity -------------
-    i = 0
-    j = 0
-    Z = VslipMat                  
-    con = axs2[i, j].contourf(X, Y, Z, levels = lvls, cmap = colorTheme)
-    cbar = fig.colorbar(con, ax = axs2[i, j])
-    cbar.ax.tick_params(labelsize = 10)
-    axs2[i, j].invert_yaxis()
-    axs2[i, j].set_xticks(np.arange(0, Compressor.bladeMax + 1, 5))
-    axs2[i, j].set_xticklabels(np.arange(0, Compressor.bladeMax + 1, 5), fontsize = 10)
-    axs2[i, j].set_yticks(np.arange(- 5, Compressor.beta2Bmax + 1, - 10))
-    axs2[i, j].set_yticklabels(np.arange(- 5, Compressor.beta2Bmax + 1, - 10), fontsize = 10)
-    axs2[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize = 12)
-    axs2[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize = 12)
-    axs2[i, j].set_title(r'Slip velocity [m/s] ' , fontsize = 12)
-    axs2[i, j].grid()
 
-    # -------------- Outlet flow angle -------------
-    i = 0
-    j = 2
-    Z = beta2FlowMat                  
-    con = axs2[i, j].contourf(X, Y, Z, levels = lvls, cmap = colorTheme)
-    cbar = fig.colorbar(con, ax = axs2[i, j])
-    cbar.ax.tick_params(labelsize = 10)
-
-    contour10s = axs2[i, j].contour(X, Y, Z, [10, 20, 30, 40, 50, 60, 70], colors = ('k',), linestyles = ('-',), linewidths = (1))
-    contourData = contour10s.allsegs[0]
-    x_coords = [segment[:, 0] for segment in contourData]
-    y_coords = [segment[:, 1] for segment in contourData]
-    axs2[i, j].clabel(contour10s, inline = True, fontsize = 8)
-
-    axs2[i, j].invert_yaxis()
-    axs2[i, j].set_xticks(np.arange(0, Compressor.bladeMax + 1, 5))
-    axs2[i, j].set_xticklabels(np.arange(0, Compressor.bladeMax + 1, 5), fontsize = 10)
-    axs2[i, j].set_yticks(np.arange(- 5, Compressor.beta2Bmax + 1, - 10))
-    axs2[i, j].set_yticklabels(np.arange(- 5, Compressor.beta2Bmax+1, - 10), fontsize = 10)
-    axs2[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize = 12)
-    axs2[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize = 12)
-    axs2[i, j].set_title(r'Outlet flow angle $ \beta _{2}$ [m/s] ' , fontsize = 12)
-    axs2[i, j].grid()
+def get_z_value(X, Y, Z, x, y):
+    if X.min() <= x <= X.max() and Y.min() <= y <= Y.max():
+        x_idx = np.abs(X[0] - x).argmin()
+        y_idx = np.abs(Y[:, 0] - y).argmin()
+        return Z[y_idx, x_idx]
+    return np.nan

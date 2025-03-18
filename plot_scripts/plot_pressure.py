@@ -1,8 +1,10 @@
-def pressurePlot4GIF(Zpress, systemVar, text):
-    # Import
-    import numpy as np
-    import matplotlib.pyplot as plt
+import numpy as np
+import matplotlib
+matplotlib.use('tkagg')
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Cursor
 
+def pressurePlot4GIF(Zpress, systemVar, text):
     pressErrorMat = Zpress[0]
     PrestMat = Zpress[1]
     VslipMat = Zpress[2]
@@ -18,8 +20,8 @@ def pressurePlot4GIF(Zpress, systemVar, text):
     betamax = np.rad2deg(np.min(beta2bArr))
     betamin = np.rad2deg(np.max(beta2bArr))
 
-    x = ZBarr                  # SAME FOR ALL COUNTOURS
-    y = np.rad2deg(beta2bArr)     # SAME FOR ALL COUNTOURS
+    x = ZBarr
+    y = np.rad2deg(beta2bArr)
     
     X, Y = np.meshgrid(x, y)  
     lvls = 30
@@ -32,53 +34,45 @@ def pressurePlot4GIF(Zpress, systemVar, text):
     fig.suptitle(r'Flow properties for proposed  $\eta$ = ' + str(etaStage0) +  r' ,  $\lambda _{2}$ = ' + str(lambda2) + ' and Tolerance set to ' +str(iterTol*100) + '% .', y=0.98, x=0.38)
     fig.subplots_adjust(top=0.9, bottom=0.09)
 
-        # ---------------- Pressure estimate error plot ---------------
-    i=0 
-    j=1
-    Z = pressErrorMat
-    con = axs[i, j].contourf(X, Y, Z, levels = lvls, cmap=colorTheme)
-    cbar = fig.colorbar(con, ax=axs[i, j])
-    cbar.ax.tick_params(labelsize=10)
-    axs[i, j].invert_yaxis()
-    axs[i, j].set_xticks(x[1::4])
-    axs[i, j].set_xticklabels(x[1::4], fontsize=10)
-    axs[i, j].set_yticks(np.arange(-5, -66, -5))
-    axs[i, j].set_yticklabels(np.arange(-5, -66, -5), fontsize=10)
-    axs[i, j].set_xlabel(r'Blade number $Z_B$ [deg]' , fontsize=12)
-    axs[i, j].set_ylabel(r'$ \beta _{2B}$', fontsize=12)
-    axs[i, j].set_title(r'Pressure estimate error contour plot [-]', fontsize=12)
-    axs[i, j].grid()
+    def format_coord_factory(X, Y, Z):
+        def format_coord(x, y):
+            return f'x={x:.2f}, y={y:.2f}, z={get_z_value(X, Y, Z, x, y):.2f}'
+        return format_coord
 
+    plot_configs = [
+        (0, 1, pressErrorMat, r'Pressure estimate error contour plot [-]'),
+        (0, 0, PrestMat, r'Estimated PR [-]')
+    ]
 
-    # -------------- PR plot -------------
-    i=0
-    j=0
-    Z = PrestMat                  
-    con = axs[i, j].contourf(X, Y, Z, levels = lvls, cmap=colorTheme)
-    cbar = fig.colorbar(con, ax=axs[i, j])
-    cbar.ax.tick_params(labelsize=10)
-    axs[i, j].invert_yaxis()
-    axs[i, j].set_xticks(x[1::4])
-    axs[i, j].set_xticklabels(x[1::4], fontsize=10)
-    axs[i, j].set_yticks(np.arange(betamax, betamin, 4)) #, fontsize=10)
-    axs[i, j].set_yticklabels(np.arange(betamax, betamin, 4), fontsize=10)
-    axs[i, j].set_xlabel(r'Blade number $Z_B$ ', fontsize=12)
-    axs[i, j].set_ylabel(r'$ \beta _{2B}$ [deg]', fontsize=12)
-    axs[i, j].set_title(r'Estimated PR [-] ' , fontsize=12)
-    axs[i, j].grid()
+    for i, j, Z, title in plot_configs:
+        con = axs[i, j].contourf(X, Y, Z, levels=lvls, cmap=colorTheme)
+        cbar = fig.colorbar(con, ax=axs[i, j])
+        cbar.ax.tick_params(labelsize=10)
+        axs[i, j].invert_yaxis()
+        axs[i, j].set_xticks(x[1::4])
+        axs[i, j].set_xticklabels(x[1::4], fontsize=10)
+        axs[i, j].set_yticks(np.arange(-5, -66, -5))
+        axs[i, j].set_yticklabels(np.arange(-5, -66, -5), fontsize=10)
+        axs[i, j].set_xlabel(r'Blade number $Z_B$ [deg]', fontsize=12)
+        axs[i, j].set_ylabel(r'$ \beta _{2B}$', fontsize=12)
+        axs[i, j].set_title(title, fontsize=12)
+        axs[i, j].grid()
 
-
+        cursor = Cursor(axs[i, j], useblit=True, color='red', linewidth=1)
+        axs[i, j].format_coord = format_coord_factory(X, Y, Z)
 
     # -------------- Textbox -------------
-    i=1
-    j=0
-    axs[i, j].axis('off')  # Turn off the axis
-    axs[i, j].text(0.0, 0.5, text1, ha='left', va='center', fontsize=12, linespacing = 1.8 )
+    axs[1, 0].axis('off')
+    axs[1, 0].text(0.0, 0.5, text1, ha='left', va='center', fontsize=12, linespacing=1.8)
 
     # -------------- Textbox -------------
-    i=1
-    j=1           
-    axs[i, j].axis('off')  # Turn off the axis
-    axs[i, j].text(0.0, 0.5, text2, ha='left', va='center', fontsize=12, linespacing =1.8 )
+    axs[1, 1].axis('off')
+    axs[1, 1].text(0.0, 0.5, text2, ha='left', va='center', fontsize=12, linespacing=1.8)
 
-    
+    plt.show()
+def get_z_value(X, Y, Z, x, y):
+    if X.min() <= x <= X.max() and Y.min() <= y <= Y.max():
+        x_idx = np.abs(X[0] - x).argmin()
+        y_idx = np.abs(Y[:, 0] - y).argmin()
+        return Z[y_idx, x_idx]
+    return np.nan

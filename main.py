@@ -12,10 +12,12 @@ def main():
     """ Main function that finds and plots compressor geometry and compressor off-design performance """
     fluid_name = 'air'                   # Select working fluid, 'h2' or 'air'
     path_to_fluid_properties_toml = './properties/' + fluid_name + '.toml'
-    path_to_inlet_toml = './properties/inlet_conditions_moen.toml'
-    path_to_compressor_toml = './properties/compressor_moen.toml'
-    #path_to_inlet_toml = './properties/inlet_conditions.toml'
-    #path_to_compressor_toml = './properties/compressor.toml'
+    #path_to_inlet_toml = './properties/inlet_conditions_moen.toml'
+    #path_to_compressor_toml = './properties/compressor_moen.toml'
+    path_to_inlet_toml = './properties/inlet_conditions_lut.toml'
+    path_to_compressor_toml = './properties/compressor_lut.toml'
+    #path_to_inlet_toml = './properties/inlet_conditions_nrec_h2.toml'
+    #path_to_compressor_toml = './properties/compressor_nrec_h2.toml'
    
     # Import necessary modules
     import settings
@@ -44,9 +46,15 @@ def main():
         geometry_2.print_and_plot_geometry(Compressor, InletConditions, IterationMatrix)
     #plt.show()
 
+
+
     print('\nCalculating off-design performance...')
-    off_design_performance.off_design_performance(Compressor, Fluid, InletConditions, IterationMatrix)
+    results, constant_eff_line_mdot, constant_eff_line_pr, constant_eff_lines = off_design_performance.off_design_performance(Compressor, Fluid, InletConditions, IterationMatrix)
+    off_design_performance.plot_off_design_performance(results, constant_eff_line_mdot, constant_eff_line_pr, constant_eff_lines, Compressor, InletConditions)
     plt.show()
+
+    #off_design_performance.off_design_performance(Compressor, Fluid, InletConditions, IterationMatrix)
+    
 
 if __name__ == '__main__':
     main()

@@ -42,7 +42,7 @@ curvet1 = 0         # Inducer inlet tip wall curvature [m^-1]
 curveh1 = 0         # Inducer inlet hub wall curvature [m^-1]
 x = 10              # Streamline angle [degrees] from axial direction
 VCR = math.sqrt(2 * geometry.k / (geometry.k + 1) * geometry.R * geometry.T00)      # Critical Velocity [m/s]
-VOVCR = np.linspace(0.1, 0.686, 50)              # Compressor inlet absolute critical velocity ratio [-]
+VOVCR = np.linspace(0.1, 0.6, 300)              # Compressor inlet absolute critical velocity ratio [-]
 Cm1h = VOVCR * VCR  # Absolute meridional velocity of the hub [m/s]
 kBL = 0.6           # Blading loss coefficient [-]
 visc = 1.778e-5     # Air viscosity based on total conditions
@@ -72,13 +72,17 @@ U1rmso = ((U1to ** 2 + U1ho ** 2) / 2) ** 0.5   # Off design rms velocity [m/s]
 W1ho = (Cm1h ** 2 + U1ho ** 2) ** 0.5           # Off design hub relative velocity [m/s]
 W1to = (Cm1t ** 2 + U1to ** 2) ** 0.5           # Off design tip relative velocity [m/s]
 W1rmso = ((W1ho ** 2 + W1to ** 2) / 2) ** 0.5   # rms relative velocity [m/s]
+
+
 beta1t = []
 beta1h = []
 beta1rms = []
 T1 = T00i - (Cm1rms ** 2) / (2 * geometry.Cp)   # Inlet static temperature [K]
 for i in range (0, len(VOVCR)):
     beta1t.append(math.degrees(math.atan(Cm1t[i] / U1to)))              # Hub inlet relative angle [degrees]
+    #beta1t.append(math.degrees(math.atan(U1to / Cm1t[i])))              # MSG: I believe this is the correct version, not the above
     beta1h.append(math.degrees(math.atan(Cm1h[i] / U1ho)))              # Tip inlet relative angle [degrees]
+    #beta1h.append(math.degrees(math.atan(U1ho / Cm1h[i])))              # MSG: I believe this is the correct version, not the above
     beta1rms.append(((beta1t[i] ** 2 + beta1h[i] ** 2) / 2) ** 0.5)     # rms inlet relative angle [degrees]
 
 
@@ -101,6 +105,7 @@ for i in range(0, len(VOVCR)):
     betaopt.append(beta1rms[i] - eps[i])                                # (B42) Optimum relative flow angle [degrees]
     WL.append(W1rmso[i] * math.sin(math.radians(abs(betaopt[i] - beta1rms[i]))))                # (B43) Component of relative velocity lost [m/s]
     dhinc.append((WL[i] ** 2) / (2 * geometry.Cp))                      # (B44) Enthalpy loss due to incidence [J/kg]
+    #dhinc.append((WL[i] ** 2) / 2)                      # MSG: I believe this is the correct version, not the above
     T1orel.append(T1[i] + W1rmso[i] ** 2 / (2 * geometry.Cp))           # Off design inlet relative temperature [K]
     WCR.append((2 * (geometry.k - 1)/(geometry.k + 1) * geometry.R * T1orel[i]) ** 0.5)         # Critical inlet relative velocity [m/s]
     W1rmseff.append(W1rmso[i] * math.cos(betaopt[i] - beta1rms[i]))     # Effective relative velocity [m/s]
@@ -109,7 +114,6 @@ for i in range(0, len(VOVCR)):
     T1rmso.append(T00i[i] - (Cm1rms[i] ** 2 / (2 * geometry.Cp)))       # Off design Root mean square of static temperature at inlet [K]
     P1rmso.append(geometry.P00 * (T1rmso[i] / T00i[i]) ** (geometry.k / (geometry.k - 1)))      # Off design root mean square of static pressure at the inlet [Pa]
     P1arms.append(P1rmso[i] * math.exp(( - 1 * dhinc[i]) / (T1a[i] * geometry.R)))              # (B45) Total pressure just inside the bladed row [Pa]
-
 
 ### Impeller Work and Losses----------------------------------------------------------------------------
 U2o = U1to / (geometry.rt1 / (geometry.D2 / 2))         # Off design exit blade velocity [m/s]
@@ -130,6 +134,7 @@ def Densityiteration(rho2o):
     Vtheta2 = (U2o - Vm2m * math.tan(math.radians( - geometry.beta2b)) - VSL)       # (B50) Tangential component of exit absolute velocity [m/s]
     T1orelrms = T1 + W1rmso ** 2 / (2 * geometry.Cp)                # Relative root mean square temperature [K]
     T2orel = T1orelrms + ((U2o ** 2 - geometry.U1t ** 2) / (2 * geometry.Cp))       # (B52) Exit temperature in the relative reference frame [K]
+    #T2orel = T1orelrms + ((U2o ** 2 - U1rmso ** 2) / (2 * geometry.Cp))   # MSG: I believe this is the correct version, not the above
     #T2orel = T1 + ((U2o ** 2 - U1t ** 2) / (2 * Cp))
     Wtheta2 = U2o - Vtheta2                                         # (B53) Tangential component of relative exit velocity [m/s]
     W2 = ((Vm2m ** 2) + (Wtheta2 ** 2)) ** 0.5                      # (B54) Relative exit velocity [m/s]
@@ -218,6 +223,12 @@ Df = np.array(Density()[11])
 P2o = np.array(Density()[12])
 C2o = []
 
+print('dhaero =', dhaero)
+print('dhBL =', dhBL)
+print('dhDF =', dhDF)
+print('dhSF =', dhSF)
+print('dhid =', dhid)
+
 for i in range(0, len(VOVCR)):
     C2o.append((Vm2m[i] ** 2 + Vtheta2[i] ** 2) ** 0.5)
 
@@ -274,6 +285,25 @@ plt.xlabel("Mass flow rate (kg/s)")
 plt.ylabel("Pressure ratio (-)")
 plt.title("Compressor Map")
 
+plt.figure()
+plt.plot(mdoto, dhinc, linewidth = 2, label = "Incidence loss")
+plt.plot(mdoto, dhBL, linewidth = 2, label = "Blade loading loss")
+plt.plot(mdoto, dhSF, linewidth = 2, label = "Skin friction loss")
+plt.plot(mdoto, dhVLD, linewidth = 2, label = "Vaneless diffuser loss")
+plt.plot(mdoto, dhRC, linewidth = 2, label = "Recirculation loss")
+plt.plot(mdoto, dhDF, linewidth = 2, label = "Disk friction loss")
+plt.xlabel("Mass flow rate (kg/s)")
+plt.ylabel("Enthalpy loss (J/kg)")
+plt.title("Losses")
+plt.legend()
+
+plt.figure()
+plt.plot(mdoto, etao, 'b-', label = "Efficiency", linewidth = 2)
+plt.show()
+
+
+
+
 
 ### Matching-------------------------------------------------------------------------------------------
 comp_power = [100]      # Compressor power [kW]
@@ -289,11 +319,11 @@ eta = 0.6               # Assumed efficiency
 def pressure_ratio1(mdot, eta, comp_power, T1, y, cp):
     return (eta * comp_power / (mdot * cp * T1) + 1) ** (y / (y - 1))
 
-mdot = np.linspace(0.0001, 1.4, 60)
-for i in range(len(comp_power)):
-    Pr = pressure_ratio1(mdot, eta, comp_power[i], T1, y, cp)
-    plt.plot(mdot, Pr, 'g-', label = str(comp_power[i]) + " kW", linewidth = 2)
-plt.xlim(0, 0.6)
-plt.ylim(1, 8)
+#mdot = np.linspace(0.0001, 1.4, 60)
+#for i in range(len(comp_power)):
+#    Pr = pressure_ratio1(mdot, eta, comp_power[i], T1, y, cp)
+#    plt.plot(mdot, Pr, 'g-', label = str(comp_power[i]) + " kW", linewidth = 2)
+#plt.xlim(0, 0.6)
+#plt.ylim(1, 8)
 plt.legend()
 plt.show()
