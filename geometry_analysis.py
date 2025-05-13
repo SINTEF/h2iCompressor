@@ -1,7 +1,7 @@
 import numpy as np
 import toml
 import settings
-import geometry 
+import geometry_new as geometry 
 import off_design_performance
 
 import matplotlib.pyplot as plt
@@ -30,6 +30,10 @@ def run_analysis(path_to_fluid_properties_toml, path_to_inlet_toml, path_to_comp
     print('\nCalculating geometry...') 
     geometry.inducer_and_impeller_calculations(Fluid, InletConditions, Compressor)
     geometry.iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, IterationMatrix)
+
+    iB = int(np.where(IterationMatrix.beta2BArr == Compressor.bladeAngle)[0])                   # Index for blade angle
+    iZ = int(np.where(IterationMatrix.ZBarr == Compressor.bladeNumber)[0])                      # Index for blade number
+    Compressor.eta_geometry = IterationMatrix.etaMat[iB][iZ]                                    # Efficiency at design point calculated in geometry
     #geometry.print_and_plot_geometry(Compressor, InletConditions, IterationMatrix)
     
     # Calculate off-design performance
@@ -41,27 +45,27 @@ def run_analysis(path_to_fluid_properties_toml, path_to_inlet_toml, path_to_comp
 
 
 def main():
-    fluid_name = 'air'                   # Select working fluid, 'h2' or 'air'
+    fluid_name = 'r-134a'                   # Select working fluid, 'h2', 'r-134a' or 'air'
     path_to_fluid_properties_toml = './properties/' + fluid_name + '.toml'
-    path_to_inlet_toml = './properties/inlet_conditions_lut.toml'
-    path_to_compressor_toml = './properties/compressor_lut.toml'
+    path_to_inlet_toml = './properties/inlet_conditions_japikse.toml'
+    path_to_compressor_toml = './properties/compressor_japikse.toml'
     
     import matplotlib       
     matplotlib.use('tkagg')     # Use tkagg to avoid crashing when using X11-forwarding for plotting
     from matplotlib import pyplot as plt  
 
     # Define range of impeller blade numbers to analyze (positive integers)
-    impeller_blade_numbers = np.arange(18, 19, 1)
+    impeller_blade_numbers = np.arange(10, 30, 4)
 
     # Define range of impeller back sweep angles to analyze (negative integers)
     impeller_backsweep_angles = np.arange(- 40, - 39, 1)
 
     # Define range of radius ratios to analyze
-    rh_r1_ratios = np.linspace(0.25, 0.35, 3)
+    rh_r1_ratios = np.linspace(0.25, 0.5, 2)
     r1_r2_ratios = np.linspace(0.45, 0.50, 2)
 
     # Define range of diffuser area ratios to analyze
-    diffuser_area_ratios = np.linspace(1.69, 1.7, 1)
+    diffuser_area_ratios = np.linspace(1.69, 3, 2)
 
     results = []
 
@@ -84,7 +88,7 @@ def main():
                             'impeller_backsweep_angle': impeller_backsweep_angle,
                             'diffuser_area_ratio': diffuser_area_ratio,
                             'Compressor': Compressor,
-                            'results_off_design': results_off_design
+                            'results_off_design': results_off_design,
                         })
     
     # Process and display results
@@ -99,6 +103,7 @@ def process_results(results):
     diffuser_area_ratios = []
     max_efficiencies = []
     max_pressure_ratios = []
+    eta_geometry = []
 
     for result in results:
         rh_r1_ratios.append(result['rh_r1_ratio'])
@@ -106,6 +111,7 @@ def process_results(results):
         impeller_blade_numbers.append(result['impeller_blade_number'])
         impeller_backsweep_angles.append(result['impeller_backsweep_angle'])
         diffuser_area_ratios.append(result['diffuser_area_ratio'])
+        eta_geometry.append(result['Compressor'].eta_geometry)
         
         # Extract maximum efficiency and pressure ratio from the off-design results. MSG: This does not happen at the same mass flow rate...
         max_efficiency = max(max(result['etao']) for result in result['results_off_design'])        
@@ -116,11 +122,11 @@ def process_results(results):
 
     # Print a summary table
     print("\nSummary Table:")
-    print("Nr. | rh/r1 ratio | r1/r2 ratio | Nr. of blades | Backsweep angle | Diffuser area ratio | Max Efficiency | Pressure Ratio")
+    print("Nr. | rh/r1 ratio | r1/r2 ratio | Nr. of blades | Backsweep angle | Diffuser area ratio | Max Efficiency | Pressure Ratio | Eta geometry")
     print("-" * 115)
     design_nrs = np.arange(1, len(results) + 1)
-    for design_nr, rh_r1, r1_r2, impeller_blade_number, impeller_backsweep_angle, diffuser_area_ratio, eff, pr in zip(design_nrs, rh_r1_ratios, r1_r2_ratios, impeller_blade_numbers, impeller_backsweep_angles, diffuser_area_ratios, max_efficiencies, max_pressure_ratios):
-        print(f"{design_nr}   | {rh_r1:.2f}        | {r1_r2:.2f}        | {impeller_blade_number:.2f}         | {impeller_backsweep_angle:.2f}          | {diffuser_area_ratio:.2f}                | {eff:.4f}         | {pr:.4f}")
+    for design_nr, rh_r1, r1_r2, impeller_blade_number, impeller_backsweep_angle, diffuser_area_ratio, eff, pr, eta_geometry in zip(design_nrs, rh_r1_ratios, r1_r2_ratios, impeller_blade_numbers, impeller_backsweep_angles, diffuser_area_ratios, max_efficiencies, max_pressure_ratios, eta_geometry):
+        print(f"{design_nr}   | {rh_r1:.2f}        | {r1_r2:.2f}        | {impeller_blade_number:.2f}         | {impeller_backsweep_angle:.2f}          | {diffuser_area_ratio:.2f}                | {eff:.4f}         | {pr:.4f} | {eta_geometry:.4f}")
 
     plt.figure()
     for result in results:

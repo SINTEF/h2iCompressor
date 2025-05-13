@@ -6,6 +6,7 @@ impellerTensileStrength = 9e8                   # Approximate ultimate tensile s
 # Impeller exit flow parameters
 lambda2 = 2                                     # Exit swirl parameter                                         
 etaStage = 0.6                                  # Isentropic Stage efficiency [-]. Used for iteration     
+eta_rotor = 0.9                                 # Rotor efficiency [-]
 
 
 [diffuser_properties]
@@ -49,3 +50,5 @@ r1Divr2 = 0.65                                  # rt1 divided by rt2 ,making rt2
 [off_design_parameters]
 bladeAngle = - 35                               # Blade angle of interest for off-desing_performance.py [degrees]
 bladeNumber = 30                                # Blade number of interest for off-desing_performance.py
+N_off_design_arr = [40000]                      # Rotational speeds for predicting off-design performance [rpm]
+V0DivVcr_off_design_arr = [0.1, 0.7]            # Critical velocity ranges for predicting off-design performance [-]

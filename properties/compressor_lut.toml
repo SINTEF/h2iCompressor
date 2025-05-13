@@ -8,7 +8,8 @@ impellerTensileStrength = 9e8                   # Approximate ultimate tensile s
 
 # Impeller exit flow parameters
 lambda2 = 2.25                                  # Exit swirl parameter                                         
-etaStage = 0.8                                  # Isentropic Stage efficiency [-]. Used for iteration     
+etaStage = 0.8                                  # Isentropic Stage efficiency [-]. Used for iteration  
+eta_rotor = 0.90                                # Rotor efficiency [-]
 
 
 [diffuser_properties]
@@ -35,23 +36,33 @@ etaUpperLimit = 0.9999                          # Highest efficiency allowed
 bladeVelUpperLimit = 1200                       # Highest blade velocity allowed
 bladeVelLowerLimit = 0                          # Lowest blade velocity allowed 
 beta2Bmax = - 40                                # "Maximum" beta iterated over
-beta2Bmin = - 20                                # "Minimum" beta iterated over  
-bladeMin = 15                                   # Lowest bladenumber allowed
+beta2Bmin = - 1                                 # "Minimum" beta iterated over  
+bladeMin = 2                                    # Lowest bladenumber allowed
 bladeMax = 20                                   # Highest bladenumber allowed
 iterTol = 0.01                                  # Loop tolerance condition for pressure ratio
 
 
 [parameters_to_vary]
 # VARY THESE PARAMETERS
-Pr = 1.3                                      # Pressure ratio [-]
-N0 = 27720                                      # Rotational speed
-rhDivr1 = 0.3002                                # Ratio commonly given
-r1Divr2 = 0.49797                               # rt1 divided by rt2 ,making rt2 increase through array progression
-#rh = 0.02025                                   # In case we use geometry_2
-#r1 = 0.06745                                   # In case we use geometry_2
-#r2 = 0.13545                                   # In case we use geometry_2
+Pr = 2.2                                       # Pressure ratio [-]
+N0 = 27720                                     # Rotational speed
+rhDivr1 = 0.3002                               # Ratio commonly given
+r1Divr2 = 0#0.49797                            # rt1 divided by rt2 ,making rt2 increase through array progression
+#rh = 0.02025                                  # In case we use geometry_2
+#r1 = 0.06745                                  # In case we use geometry_2
+#r2 = 0.13545                                  # In case we use geometry_2
 
 
 [off_design_parameters]
 bladeAngle = - 40                               # Blade angle of interest for off-desing_performance.py [degrees]
 bladeNumber = 18                                # Blade number of interest for off-desing_performance.py
+N_off_design_arr = [28920,                      # Rotational speeds for predicting off-design performance [rpm]
+                    27720,
+                    24960,
+                    21840,
+                    19380]
+V0DivVcr_off_design_arr = [0.02, 0.55,          # Critical velocity ranges for predicting off-design performance [-]
+                           0.02, 0.52,
+                           0.02, 0.46,
+                           0.02, 0.41,
+                           0.02, 0.37]

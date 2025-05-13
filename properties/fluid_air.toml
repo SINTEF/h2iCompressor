@@ -1,0 +1,7 @@
+# Fluid properties of air
+
+[fluid_properties]
+Cp = 1006                               # Specific heat capacity at constant pressure [J/kg/K]
+MolarMass = 0.02897                     # Molar weight [kg/mol]
+k = 1.4                                 # Ratio of specific heats, cp/cv [-]
+viscosity = 1.788e-5                    # Dynamic viscosity [Pa s]

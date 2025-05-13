@@ -41,6 +41,7 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
     beta2B = IterationMatrix.beta2BArr[iB]                                           # 
     ZB = IterationMatrix.ZBarr[iZ]                                                   # 
     b2 = IterationMatrix.b2Mat[iB][iZ]                                               # Compressor  outlet height 
+    print('b2', b2)
     sigma = IterationMatrix.sigmaMat[iB][iZ]                                         # Slip factor        
 
     if np.isnan(b2):
@@ -50,7 +51,6 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
     VelCr = np.sqrt(2 * Fluid.k / (Fluid.k + 1) * Fluid.R * InletConditions.T00)    # Critical Velocity wrt resonance [m/s]  MSG: This has unit m/s sqrt(kg/mol). Also do not understand this equation.
     Cm1h = Compressor.V0DivVcr * VelCr                                              # Absolute meridional velocity of the hub [m/s]
     T00i = np.full(len(Compressor.V0DivVcr), InletConditions.T00)                   # Inlet temperature array [K]
-
 
     # ---------------------------- Calculation of Inlet Velocity Triangles and Compressor Weight Flow (Swirl free) ----------------------------
     curve1rms = np.sqrt((Compressor.curvet1 ** 2 + Compressor.curveh1 ** 2) / 2)    # Root mean square of the inducer inlet hub and tip wall curvature [m^-1]
@@ -75,7 +75,7 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
     rho1t = InletConditions.rho0 * (1 - (Cm1t ** 2 / (2 * Fluid.Cp * InletConditions.T00))) ** (1 / (Fluid.k - 1))                # Inlet density of the fluid at the blade tip [kg/m^3]
 
     mdoto = 2 * np.pi * (((h0 + h1) / 6) * ((2 - (h1 / h0)) * (rho1h * Compressor.rh1 * Cm1hn) + ((h0 + h1) ** 2 / (h0 * h1)) * (rho1rms * r1rms * Cm1rmsn) + (2 - (h0 / h1)) * (rho1t * Compressor.r1 * Cm1tn)))      # (B7) Off Design point mass flow rate [kg/s]
-
+    
     # Blade speeds
     U1to = np.pi * Compressor.No * Nrpm * 2 * Compressor.r1 / 60            # Off design blade tip velocity [m/s]
     U1ho = np.pi * Compressor.No * Nrpm * 2 * Compressor.rh1 / 60           # Off design blade hub velocity [m/s]
@@ -119,6 +119,11 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
     P1rmso = []                                     # Off design root mean square of static pressure at the inlet [Pa]
     P1arms = []                                     # Total pressure just inside the bladed row [Pa]
 
+    T_00_prev = InletConditions.T00
+    T_00_new = InletConditions.T00
+    #V_cr_prev_stage = Compressor.V0DivVcr * np.sqrt(T_00_prev / T_00_new)       # MSG: Divide instead of multiply
+    #P00 = np.zeros(Compressor.V0DivVcr)
+
     # Looping to find every variable of interest
     for i in range(0, len(Compressor.V0DivVcr)):
         eps.append(np.degrees(np.arctan((1 - BBF) * np.tan(np.radians(beta1rms[i])) / (1 + BBF * np.tan(np.radians(beta1rms[i])) ** 2))))     # (B40) Difference between compressor inlet relative flow angle and optimum incidence angle [degrees]
@@ -132,7 +137,7 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
         T1a.append(T1oRel[i] * T0divT1[i])                                                  # Temperature just inside the blade [K]     MSG: Do not understand this equation
         T1rmso.append(T00i[i] - (Cm1rms[i] ** 2 / (2 * Fluid.Cp)))                          # Off design root mean square of static temperature at inlet [K], STAGNATION EQUATION 
         P1rmso.append(InletConditions.P00 * (T1rmso[i] / T00i[i]) ** (Fluid.k / (Fluid.k - 1)))     # Off design root mean square of static pressure at the inlet [Pa], ISENTROPIC PROPERTY
-        P1arms.append(P1rmso[i] * np.exp((- 1 * dhInc[i]) / (T1a[i] * Fluid.R)))            # (B45) Total pressure just inside the bladed row [Pa]
+        P1arms.append(P1rmso[i] * np.exp((- dhInc[i]) / (T1a[i] * Fluid.R)))            # (B45) Total pressure just inside the bladed row [Pa]
 
 
     ### ---------------------- Impeller Work and Losses ----------------------
@@ -149,11 +154,10 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
         temperatures and enthalpies corresponding to this initial guess before re-calculating the
         density.
         """ 
-        #print('N =', Nrpm, '    rho2o =', rho2o)
-        #print('b2 =', b2)
+        
         Vm2m = mdoto / (np.pi * rho2o * (2 * Compressor.r2) * b2)                       # (B49) Meridional component of exit absolute velocity [m/s]  , MASS BALANCE                
         VSL = U2o * (1 - sigma)                                                         # (B51) Slip velocity [m/s]  , SLIP RELATION    MSG: Check that this chooses the correct slip factor      
-        Vtheta2 = (U2o - Vm2m * np.tan(np.radians(- beta2B)) - VSL)                     # (B50) Tangential component of exit absolute velocity [m/s]    , VELOCITY TRIANGLE    MSG: I think the sign before VM2m is correct here, but not sure
+        Vtheta2 = (U2o - Vm2m * np.tan(np.radians(beta2B)) - VSL)                       # (B50) Tangential component of exit absolute velocity [m/s]    , VELOCITY TRIANGLE    MSG: I think the sign before VM2m is correct here, but not sure
         T1orelrms = T1 + W1rmso ** 2 / (2 * Fluid.Cp)                                   # Relative root mean square temperature [K]   , STAGNATION TEMPERATURE
         
         T2orel = T1orelrms + ((U2o ** 2 - U1rmso ** 2) / (2 * Fluid.Cp))                # (B52) Exit temperature in the relative reference frame [K]  , STAGNATION RELATION    MSG: Something wrong here. Here and below we have multiple equations for the same thing. This line I wrote myself, and I think this is correct
@@ -179,16 +183,10 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
         WRelDivWext2 = 0.5 * ((Cm1rms / U2o) ** 2 + (D1rms / Compressor.D2) ** 2 + (W2 / W1to) ** 2 * ((Cm1rms / U2o) ** 2 + (2 * Compressor.r1 / Compressor.D2) ** 2))      # (B67) Ratio of mean relative velocity and impeller exit velocity^2 [-]
         dhSF = ((Compressor.kSF * Compressor.Cf * LenDivDia * WRelDivWext2 * U2o ** 2) / HydDiaDivExitDia)       # (B64) Skin friction loss [J/kg]
         #dhSF = Compressor.kSF * Compressor.Cf * LenDivDia / HydDiaDivExitDia * W1rmso ** 2     # (B64) MSG: Alternative
-        #print('LenDivDia =', LenDivDia)
-        #print('HydDiaDivExitDia =', HydDiaDivExitDia)
-        #print('WRelDivWext =', WRelDivWext2)
-        #print('dhInc', dhInc)
-        #print('dhSF', dhSF)
-        #print('dhDF', dhDF)
-        #print('dhBL', dhBL)
 
         dhid = (dhaero - dhInc - dhSF - dhDF - dhBL)                                                            # (B68) Ideal enthalpy rise [J/kg]
-        etaR = dhid / dhaero                                                                                    # (B69) Impeller efficiency [-]
+        etaR = dhid / dhaero                                                                                    # (B69) Impeller efficiency [-]  
+        
         P2oabs = (P1arms * (etaR * dhaero / (Fluid.Cp * InletConditions.T00) + 1) ** (Fluid.k / (Fluid.k - 1))) # (B70) Iteration of the off design exit absolute pressure [Pa]
         
         """ Checking for invalid temperatures """
@@ -197,7 +195,7 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
                 #plt.show()
                 raise ValueError('Temperature T2o is negative ' + str(T2o[l]) + '. Change range of V0DivVcr in settings.py.' + ' Index: ' + str(l)) 
             
-        """ Finding impeller outlet temp. and density"""
+        """ Finding impeller outlet temperature and density """
         P2o = (P2oabs / ((T2oabs / T2o) ** (Fluid.k / (Fluid.k - 1))))                  # (B71) Iteration of the off design exit pressure [Pa]      
         rho2oit = P2o / (Fluid.R * T2o)                                                 # (B72) Iteration of the off design exit density [kg/m^3]
 
@@ -299,6 +297,7 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
     
     rho2 = np.array(rho2)
     T2o = np.array(T2o)
+    print('T2o', T2o)
 
     # Enthalpy loss and power contributions 
     dhaero = np.array(dhaero)                   # Aerodynamic enthalpy rise
@@ -319,7 +318,7 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
     """ Finding impeller exit velocity """
     for i in range(0, len(Compressor.V0DivVcr)):
         C2o.append((Vm2m[i] ** 2 + Vtheta2[i] ** 2) ** 0.5)
-    M2o = C2o / np.sqrt(Fluid.k * Fluid.R * T2oabs)
+    M2o = C2o / np.sqrt(Fluid.k * Fluid.R * T2oabs)         # MSG: Think this is wrong. Here, speed of sound calculation uses absolute/stagnation temperature, but should use static temperature
 
 
     ### Recirculation loss, work done on fluid going back 
@@ -332,38 +331,41 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
 
     ### Exit losses--------------------------------------------------------------------------------------------
     """ Diffuser calculations """
-    etad = Compressor.etad                          # (...) TODO
-    CpDi = 1 - (Compressor.AR ** (- 2))             # (...) TODO
-    CpD = etad * CpDi                               # (...) TODO
+    etad = Compressor.etad                          # Diffuser efficiency
+    CpDi = 1 - (Compressor.AR ** (- 2))             # Ideal pressure recovery coefficient 
+    CpD = etad * CpDi                               # Pressure recovery coefficient
     M3o = []                                        # Mach number
-    P3oabs = []                                     # Stagnation outlet pressure
-    dhVLD = []                                      # Vane less diffuser loss
-    P3o = []                                        # Outlet static pressure
+    P3oabs = []                                     
+    dhVLD = []                                      # Vaneless diffuser loss
+    P3o = []                                        # Outlet stagnation pressure
     C3o = []                                        # Outlet velocity
-    P03o = []                                       # (...) TODO
+    P03o = []                                       
     for i in range(0, len(Compressor.V0DivVcr)):
-        P3o.append(CpD * 0.5 * rho2[i] * C2o[i] ** 2 + P2o[i])
+        P3o.append(P2o[i] + CpD * 0.5 * rho2[i] * C2o[i] ** 2)
         C3o.append(C2o[i] / Compressor.AR)
-        P03o.append(P3o[i] + 0.5 * rho2[i] * C3o[i] ** 2)
-        M3o.append(C3o[i] / (np.sqrt(Fluid.k * Fluid.R * T2oabs[i])))
+        print('C3o', C3o)
+        #T3o = T3oabs - C3o ** 2 / (2 * Fluid.Cp)
+        
+        M3o.append(C3o[i] / (np.sqrt(Fluid.k * Fluid.R * T2oabs[i])))       # MSG: Think this is wrong. Here, speed of sound calculation uses absolute/stagnation temperature, but should use static temperature. It is also used at the wrong point. Should be T3o. Any way to obtain T3o/T3oabs?
         P3oabs.append(P3o[i] * (1 + (Fluid.k - 1) / 2 * M3o[i] ** 2) ** (Fluid.k / (Fluid.k - 1)))    # (B85) Absolute diffuser throat pressure [Pa]      
         dhVLD.append(Fluid.Cp * T2oabs[i] * ((P3o[i] / P3oabs[i]) ** ((Fluid.k - 1) / Fluid.k) - (P3o[i] / P2oabs[i]) ** ((Fluid.k - 1) / Fluid.k)))  # (B86) Vaneless diffuser loss [kJ/kg]
-    
-
+        
     ### Overall performance-----------------------------------------------------------------------------------
     etao = []
     etaoAlt = []
     Pro = []
+    print('T2oabs', T2oabs)
     for i in range(0, len(Compressor.V0DivVcr)):
         etaAppend = (dhaero[i] - (dhInc[i] + dhBL[i] + dhSF[i] + dhVLD[i])) / (dhaero[i] + dhRC[i] + dhDF[i])    
-        etaAltAppend = ((P03o[i] / InletConditions.P00) ** ((Fluid.k - 1) / Fluid.k) - 1) / ((T2oabs[i] / InletConditions.T00) - 1)  
+        etaAltAppend = ((P3o[i] / InletConditions.P00) ** ((Fluid.k - 1) / Fluid.k) - 1) / ((T2oabs[i] / InletConditions.T00) - 1)  
         etaoAlt.append(etaAltAppend)
         #etaAppend = ((P3o[i]/InletConditions.P00)**((Fluid.k-1)/Fluid.k)-1)/((T2o[i]/InletConditions.T00)-1)       # MSG: Test this
         etao.append(etaAppend)      
-        P3append = P3o[i]           
+        P3append = P3o[i] 
         # P3append = P3oabs[i]      
         Pro.append(P3append / InletConditions.P00)
-
+    print('eta', etaoAlt)
+    print('T2o / T2oabs', np.array(T2o) / np.array(T2oabs))
     # print("\nMass flow rate =", mdoto)
     # print("\nPressure ratio =", Pro)
     # print("\nEfficiency =", etao)
@@ -408,60 +410,28 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
 
     print('Current RPM: ' + str(round(Nrpm, 2)) + '     Inlet blade tip speed: ' + str(round(U1to, 2)) + ' m/s     Outlet blade tip speed: ' + str(round(U2o, 2)) + ' m/s' )
     enthalpy_rise_loss = [dhaero, dhInc, dhBL, dhSF, dhVLD, dhRC, dhDF]
-    return Pro, P03o, T2oabs, mdoto, etao, U2o, M2o, enthalpy_rise_loss, V2, etaoAlt
+    return Pro, P3o, T2oabs, mdoto, etao, U2o, M2o, enthalpy_rise_loss, V2, etaoAlt
 
 
 def off_design_performance(Compressor, Fluid, InletConditions, IterationMatrix):
     """ Iterate through different rotational speeds and calculate the off-design performance of the compressor for each speed by calling off_design_performance_rpm function. """
 
     # Running off-desing_performance.py for different rotational speeds
-    """ GT1548 air compressor (Lowe) """
-    Narr = [120000,          # Move to toml file
-            153000,
-            180000]
-    V0DivVcr = [0.05, 0.46, # Move to toml file, overwrites the values in settings.py at the moment
-                0.05, 0.57,
-                0.05, 0.67]
-    
-    """ LUT air compressor """
-    Narr = [482 * 60,          # Move to toml file
-             462 * 60,
-             416 * 60,
-             364 * 60,
-             323 * 60]
-    V0DivVcr = [0.02, 0.62, # Move to toml file, overwrites the values in settings.py at the moment
-                 0.01, 0.59,
-                 0.01, 0.54,
-                 0.01, 0.49,
-                 0.01, 0.46]
-    """ Optimization of LUT compressor """
-    Narr = [462 * 60]
-    V0DivVcr = [0.05, 0.25]
-
-    
-    """ NREC H2 compressor """
-    """
-    Narr = [60000,          # Move to toml file
-            50000,
-            40000]
-    V0DivVcr = [0.01, 0.25, # Move to toml file, overwrites the values in settings.py at the moment
-                0.01, 0.26,
-                0.01, 0.25]
-    """
+      
     constant_eff_lines = [0.71, 0.73, 0.75, 0.77, 0.78, 0.81]    # Constant efficiency lines
     
     
     N_errors = 0
-    constant_eff_line_mdot = [[[[], []] for i in range(len(constant_eff_lines))] for _ in range(len(Narr))]
-    constant_eff_line_pr = [[[[], []] for i in range(len(constant_eff_lines))] for _ in range(len(Narr))]
+    constant_eff_line_mdot = [[[[], []] for i in range(len(constant_eff_lines))] for _ in range(len(Compressor.N_off_design_arr))]
+    constant_eff_line_pr = [[[[], []] for i in range(len(constant_eff_lines))] for _ in range(len(Compressor.N_off_design_arr))]
     results = []
 
-    for iN in range(0, len(Narr)):
-        print('Rotational velocity =', Narr[iN], 'RPM')
-        Compressor.V0DivVcr = np.linspace(V0DivVcr[2 * iN], V0DivVcr[2 * iN + 1], 400)
-        Pro, P03o, T2oabs, mdoto, etao, U2o, M2o, enthalpy_rise_loss, V2, etaoAlt = off_design_performance_rpm(Narr[iN], Compressor, Fluid, InletConditions, IterationMatrix)
+    for iN in range(0, len(Compressor.N_off_design_arr)):
+        print('Rotational velocity =', Compressor.N_off_design_arr[iN], 'RPM')
+        Compressor.V0DivVcr = np.linspace(Compressor.V0DivVcr_off_design_arr[2 * iN], Compressor.V0DivVcr_off_design_arr[2 * iN + 1], 400)
+        Pro, P3o, T2oabs, mdoto, etao, U2o, M2o, enthalpy_rise_loss, V2, etaoAlt = off_design_performance_rpm(Compressor.N_off_design_arr[iN], Compressor, Fluid, InletConditions, IterationMatrix)
         Pro = np.array(Pro)
-        P03o = np.array(P03o)
+        P3o = np.array(P3o)
         T2oabs = np.array(T2oabs)
         mdoto = np.array(mdoto)
         etao = np.array(etao)
@@ -470,7 +440,7 @@ def off_design_performance(Compressor, Fluid, InletConditions, IterationMatrix):
         P_ref = 1.01300e5 
         #correctedMass = mdoto * (P03o / InletConditions.P00) / np.sqrt(T2oabs / InletConditions.T00)        # MSG: I believe this is wrong, use the below instead.
         correctedMass = mdoto * (InletConditions.P00 / P_ref) / np.sqrt(InletConditions.T00 / T_ref)       
-        correctedSpeed = Narr[iN] / np.sqrt(InletConditions.T00 / T_ref)
+        correctedSpeed = Compressor.N_off_design_arr[iN] / np.sqrt(InletConditions.T00 / T_ref)
 
         # Finding the constant efficiency lines
         for i in range(len(constant_eff_lines)):
@@ -506,13 +476,13 @@ def off_design_performance(Compressor, Fluid, InletConditions, IterationMatrix):
 
         # checking if all efficiencies are greater than 0 and less or equal to 1
         if any(etao < 0) or any(etao > 1):  
-            print(f'\tError: Rotational speed = {Narr[iN]} RPM has efficiency outside range [0, 1]. Efficiencies =', etao)
+            print(f'\tError: Rotational speed = {Compressor.N_off_design_arr[iN]} RPM has efficiency outside range [0, 1]. Efficiencies =', etao)
             N_errors += 1
         
         results.append({
-            'N': Narr[iN],
+            'N': Compressor.N_off_design_arr[iN],
             'Pro': Pro,
-            'P03o': P03o,
+            'P3o': P3o,
             'T2oabs': T2oabs,
             'mdoto': mdoto,
             'etao': etao,
@@ -526,7 +496,7 @@ def off_design_performance(Compressor, Fluid, InletConditions, IterationMatrix):
         })
 
     print('\nOff-design_performance calculated successfully.')
-    print(f'\nNumber of errors in efficiency: {N_errors} out of {len(Narr)} rotational speeds')
+    print(f'\nNumber of errors in efficiency: {N_errors} out of {len(Compressor.N_off_design_arr)} rotational speeds')
 
     return results, constant_eff_line_mdot, constant_eff_line_pr, constant_eff_lines
 
@@ -609,7 +579,7 @@ def plot_off_design_performance(results, constant_eff_line_mdot, constant_eff_li
     for result in results:
         Nplot = f"{result['N'] * 1e-3:.0f} krpm"
         plt.plot(result['mdoto'], result['etao'], label=Nplot)
-        #plt.plot(result['mdoto'], result['etaoAlt'], label=Nplot + ' Alt', linestyle='--')
+        plt.plot(result['mdoto'], result['etaoAlt'], label=Nplot + ' Alt', linestyle='--')
     plt.ylabel(r'$\eta$', rotation=45, fontsize=12)
     plt.xlabel(r'$\dot{m}$' + ' ' + '[kg/s]', fontsize=12)
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
@@ -629,6 +599,9 @@ def plot_off_design_performance(results, constant_eff_line_mdot, constant_eff_li
     # Enthalpy rise/loss
     for result in results:
         total_loss = result['enthalpy_rise_loss'][1] + result['enthalpy_rise_loss'][2] + result['enthalpy_rise_loss'][3] + result['enthalpy_rise_loss'][4] + result['enthalpy_rise_loss'][5] + result['enthalpy_rise_loss'][6]      #MSG: Does not match the definition of efficiency where RC and DF are placed in the denominator
+        
+        print('heieh',  np.array(result['enthalpy_rise_loss'][4]))
+        
         plt.figure(r'Enthalpy rise/loss $N = $' + f"{result['N'] * 1e-3:.0f} krpm")
         #plt.plot(result['mdoto'], result['enthalpy_rise_loss'][0], label = 'Aerodynamic rise')
         plt.plot(result['mdoto'], np.array(result['enthalpy_rise_loss'][1] / total_loss), label = 'Incidence loss')

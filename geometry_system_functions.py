@@ -3,6 +3,7 @@ def impellerOutletVelocities(slipFactor, beta2B, U2, lambda2):
     # Import 
     import math
     workInputCoeff = slipFactor * lambda2 / (lambda2 - math.tan(beta2B))      # Work input coefficient [-]  
+    print('d', workInputCoeff)
     Ctheta2m = workInputCoeff * U2                  # Absolute tangential exit velocity [m/s]     from work coefficient
     Cm2m = Ctheta2m / lambda2                       # Absolute meridional exit velocity [m/s]         
     C2 = (Ctheta2m ** 2 + Cm2m ** 2) ** 0.5 
@@ -25,4 +26,4 @@ def systemTotalPerformance(P03, T02, U2, T1, workInputCoeff, P00, T00, k, Cp, Pr
     PressureRatioEstimate = ((etaIterate * U2 ** 2 * workInputCoeff) / (Cp * T1) + 1) ** (k / (k - 1))          # Estimate of the pressure ratio, equation is validated
     PressureTestOuterLoop = (PressureRatioEstimate - Pr) / Pr
 
-    return etaIterate, PressureRatioEstimate, PressureTestOuterLoop 
+    return etaIterate, PressureRatioEstimate, PressureTestOuterLoop
