@@ -10,18 +10,18 @@ Authors: Petter Resell (summer intern, 2024), Martin Spillum Grønli (SINTEF Ene
 
 def main():
     """ Main function that finds and plots compressor geometry and compressor off-design performance """
-    fluid_name = 'air'                   # Select working fluid, 'h2' or 'air'
-    path_to_fluid_properties_toml = './properties/' + fluid_name + '.toml'
+    fluid_name = 'h2'                   # Select working fluid, 'h2', 'air' or 'r-134a'
+    path_to_fluid_properties_toml = './properties/fluid_' + fluid_name + '.toml'
     #path_to_inlet_toml = './properties/inlet_conditions_moen.toml'
     #path_to_compressor_toml = './properties/compressor_moen.toml'
-    path_to_inlet_toml = './properties/inlet_conditions_lut.toml'
-    path_to_compressor_toml = './properties/compressor_lut.toml'
-    #path_to_inlet_toml = './properties/inlet_conditions_nrec_h2.toml'
-    #path_to_compressor_toml = './properties/compressor_nrec_h2.toml'
+    #path_to_inlet_toml = './properties/inlet_conditions_lut.toml'
+    #path_to_compressor_toml = './properties/compressor_lut.toml'
+    path_to_inlet_toml = './properties/inlet_conditions_nrec_h2.toml'
+    path_to_compressor_toml = './properties/compressor_nrec_h2.toml'
    
     # Import necessary modules
     import settings
-    import geometry
+    import geometry_new as geometry
     import geometry_2
     import off_design_performance
     
@@ -44,15 +44,14 @@ def main():
         geometry_2.inducer_and_impeller_calculations(Fluid, InletConditions, Compressor)
         geometry_2.iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, IterationMatrix)
         geometry_2.print_and_plot_geometry(Compressor, InletConditions, IterationMatrix)
-    #plt.show()
-
-
+    
+    plt.show()
 
     print('\nCalculating off-design performance...')
     results, constant_eff_line_mdot, constant_eff_line_pr, constant_eff_lines = off_design_performance.off_design_performance(Compressor, Fluid, InletConditions, IterationMatrix)
     off_design_performance.plot_off_design_performance(results, constant_eff_line_mdot, constant_eff_line_pr, constant_eff_lines, Compressor, InletConditions)
     plt.show()
-
+    
     #off_design_performance.off_design_performance(Compressor, Fluid, InletConditions, IterationMatrix)
     
 

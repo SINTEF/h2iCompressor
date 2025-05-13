@@ -81,6 +81,7 @@ class Compressor:
         self.lambda2 = self.impeller_properties['lambda2']
         self.etaStage = self.impeller_properties['etaStage']
         self.etaStage0 = self.etaStage
+        self.eta_rotor = self.impeller_properties['eta_rotor']
 
         self.diffuser_properties = toml.load(path_to_compressor_toml)['diffuser_properties']    # Load diffuser properties from toml file
         self.etad = self.diffuser_properties['etad']
@@ -132,6 +133,8 @@ class Compressor:
         self.off_design_parameters = toml.load(path_to_compressor_toml)['off_design_parameters']    # Load off-design parameters from toml file
         self.bladeAngle = np.deg2rad(self.off_design_parameters['bladeAngle'])
         self.bladeNumber = self.off_design_parameters['bladeNumber']
+        self.N_off_design_arr = self.off_design_parameters['N_off_design_arr']
+        self.V0DivVcr_off_design_arr = self.off_design_parameters['V0DivVcr_off_design_arr']
 
 
 class IterationMatrix:
@@ -143,7 +146,7 @@ class IterationMatrix:
 
         """ Making matrices for iteration later. Filling with nans that are only replaced if all conditions are met. """
         self.rhsExpLimitMat = np.exp(- 8.16 * np.cos(self.beta2BArr) / self.ZBarr)                                                              # Matrix for epsilon_limit from wiesner condition           
-        self.etaMat = np.array([[ np.nan for _ in range(np.shape(self.rhsExpLimitMat)[1])] for _ in range(np.shape(self.rhsExpLimitMat)[0])] )  # Matrix for efficiency. Replace by fill matrix with same shape as rhsExpLimitMAt with nans 
+        self.etaMat = np.array([[np.nan for _ in range(np.shape(self.rhsExpLimitMat)[1])] for _ in range(np.shape(self.rhsExpLimitMat)[0])])  # Matrix for efficiency. Replace by fill matrix with same shape as rhsExpLimitMAt with nans 
         self.sigmaWiesnerMat = 1 - (np.sqrt(np.cos(np.radians(self.beta2BArr))) / (self.ZBarr ** 0.7))                                          # Matrix for wiesner slip factor 
         self.sigmaMat = np.copy(self.etaMat)                                                                                                    # Matrix for slip factor found to be valid
         self.b2Mat = np.copy(self.etaMat)                                                                                                       # Matrix for impeller exit cylinder height
@@ -157,3 +160,5 @@ class IterationMatrix:
         self.Ctheta2Mat = np.copy(self.etaMat)                                                                                                  # Matrix for angular component of discharge velocity
         self.dh0SlipCorrMAt = np.copy(self.etaMat)                                                                                              # Matrix for work found by slip corrected euler equation
         self.beta2flowMat= np.copy(self.etaMat)                                                                                                 # Matrix for discharge flow angle found by slip relations
+        self.r2Mat= np.copy(self.etaMat)                                                                                                        # Matrix for impeller tip radius
+        self.U2Mat= np.copy(self.etaMat)                                                                                                        # Matrix for impeller rotational speed

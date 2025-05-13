@@ -1,0 +1,7 @@
+# Fluid properties of R-134a. NB: The assumption of ideal gas with constant properties may not be sufficently correct for R-134a
+
+[fluid_properties]  
+Cp = 821                                # Specific heat capacity at constant pressure [J/kg/K]
+MolarMass = 0.10203                     # Molar weight [kg/mol]
+k = 1.13                                # Ratio of specific heats, cp/cv [-]
+viscosity = 1.08e-5                     # Dynamic viscosity [Pa s]

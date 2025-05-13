@@ -133,7 +133,7 @@ def iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, Ite
                 print(iz)
                 print('Pr_goal:', Pr_goal)
                 print('etaStage:', etaStage)
-                Compressor.dh0s = ((Fluid.k * Fluid.R * InletConditions.T00) / (Fluid.k - 1)) * ((Pr_imp) ** ((Fluid.k - 1) / Fluid.k) - 1)       
+                Compressor.dh0s = ((Fluid.k * Fluid.R * InletConditions.T00) / (Fluid.k - 1)) * ((Pr_isentropic) ** ((Fluid.k - 1) / Fluid.k) - 1)       
                 Wx = Compressor.dh0s / etaStage                         # Specific work [J/kg/K]
                 #workError = np.abs(Wx - dh0SlipCorrected) / Wx          # Comparing the two methods of finding enthalpy change
                 # Wx = dh0SlipCorrected                                   # Work set to be given by slip corrected euler equation                 
@@ -159,9 +159,20 @@ def iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, Ite
                 
                 M2 = Compressor.U2 / np.sqrt(Fluid.k * Fluid.R * T02m)                       # Impeller exit blade mach number                 from definition
 
-                Pr_imp = P2m / InletConditions.P00
-                eta_imp = (Pr_imp ** ((Fluid.k - 1) / Fluid.k) - 1) / ((T02m / InletConditions.T00) - 1)
-                if np.abs((Pr_imp) - Pr_goal) < Compressor.iterTol:
+                # ------------------- Finding diffuser properties -------------------
+                P3, P03, C3 = geometry_system_functions.diffuserFlow(P2 = P2m, P02 = P02m, rho2 = rho2m, C2 = C2, CpD = Compressor.CpD, AR = Compressor.AR)   # Finding diffuser properties
+                Pr = P3 / InletConditions.P00
+                etaCalculated = ((P03 / InletConditions.P00) ** ((Fluid.k - 1) / Fluid.k) - 1) / ((T02m / InletConditions.T00) - 1)        # Iterative stage efficiency [-], isothermal diffuser assumed?
+                Prest = ((etaCalculated * Compressor.U2 ** 2 * mu) / (Fluid.Cp * Compressor.T1) + 1) ** (Fluid.k / (Fluid.k - 1))          # Estimate of the pressure ratio, equation is validated
+                print('Pr:', Pr, 'Prest', Prest, 'etaStage', etaStage, 'etaCalculated', etaCalculated)
+
+                #etaStage = etaCalculated
+                #if etaCalculated > Compressor.etaUpperLimit or etaCalculated < Compressor.etaLowerLimit:  # MSG: Do this after the pressure test? This will probably stop during the first run since etaCalculated will too high
+                #    stopIteration = True
+                #    print('etaCalculated:', etaCalculated)
+                #    break
+                #else:
+                if np.abs((P3 / InletConditions.P00) - Pr_goal) < Compressor.iterTol:
                     print('yes')
                     stopIteration = True
                     IterationMatrix.etaMat[ib, iz] = etaStage#etaCalculated
@@ -178,7 +189,7 @@ def iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, Ite
                     IterationMatrix.sigmaMat[ib, iz] = sigma
                     #IterationMatrix.beta2flowMat[ib, iz] = beta2flow
                     #continue
-                elif ((Pr_imp) - Pr_goal) < 0:
+                elif ((P3 / InletConditions.P00) - Pr_goal) < 0:
                     etaStage += 0.005
                     if etaStage > eta_max:
                         Pr_goal -= 0.1
@@ -186,26 +197,9 @@ def iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, Ite
                         etaStage = Compressor.etaStage0
                         if Pr_goal <= 1:
                             stopIteration = True
-                elif ((Pr_imp) - Pr_goal) > 0:
+                elif ((P3 / InletConditions.P00) - Pr_goal) > 0:
                     etaStage -= 0.005
                 
-
-
-
-                # ------------------- Finding diffuser properties -------------------
-                P3, P03, C3 = geometry_system_functions.diffuserFlow(P2 = P2m, P02 = P02m, rho2 = rho2m, C2 = C2, CpD = Compressor.CpD, AR = Compressor.AR)   # Finding diffuser properties
-                Pr = P3 / InletConditions.P00
-                etaCalculated = ((P03 / InletConditions.P00) ** ((Fluid.k - 1) / Fluid.k) - 1) / ((T02m / InletConditions.T00) - 1)        # Iterative stage efficiency [-], isothermal diffuser assumed?
-                Prest = ((etaCalculated * Compressor.U2 ** 2 * mu) / (Fluid.Cp * Compressor.T1) + 1) ** (Fluid.k / (Fluid.k - 1))          # Estimate of the pressure ratio, equation is validated
-                print('Pr:', Pr, 'Prest', Prest, 'etaStage', etaStage, 'etaCalculated', etaCalculated)
-
-                #etaStage = etaCalculated
-                #if etaCalculated > Compressor.etaUpperLimit or etaCalculated < Compressor.etaLowerLimit:  # MSG: Do this after the pressure test? This will probably stop during the first run since etaCalculated will too high
-                #    stopIteration = True
-                #    print('etaCalculated:', etaCalculated)
-                #    break
-                #else:
-
                 
                     
                     
