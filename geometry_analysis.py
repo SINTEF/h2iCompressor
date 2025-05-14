@@ -1,7 +1,8 @@
+
+# Import
 import numpy as np
-import toml
 import settings
-import geometry_new as geometry 
+import geometry 
 import off_design_performance
 
 import matplotlib.pyplot as plt
@@ -15,7 +16,6 @@ def run_analysis(path_to_fluid_properties_toml, path_to_inlet_toml, path_to_comp
     
     # Update Compressor parameters with new radius ratios, blade numbers impeller backsweep angles and diffuser area ratios before initializing the iteration matrices
     Compressor.rhDivr1 = rh_r1_ratio
-    Compressor.r1Divr2 = r1_r2_ratio
     Compressor.AR = diffuser_area_ratio
     Compressor.bladeNumber = impeller_blade_number
     Compressor.bladeAngle = np.deg2rad(impeller_backsweep_angle)       # Degrees must be converted to radians since this conversion of bladeAngle is done in the initialization of the compressor class, which is already initialized
@@ -28,13 +28,13 @@ def run_analysis(path_to_fluid_properties_toml, path_to_inlet_toml, path_to_comp
     
     # Run geometry calculations
     print('\nCalculating geometry...') 
-    geometry.inducer_and_impeller_calculations(Fluid, InletConditions, Compressor)
-    geometry.iterate_blade_number_and_blade_angle(Compressor, InletConditions, Fluid, IterationMatrix)
+    geometry.inducer_optimization(Compressor.Ndes, Fluid, InletConditions, Compressor)
+    geometry.impeller_optimization(Compressor, InletConditions, Fluid, IterationMatrix)
 
-    iB = int(np.where(IterationMatrix.beta2BArr == Compressor.bladeAngle)[0])                   # Index for blade angle
-    iZ = int(np.where(IterationMatrix.ZBarr == Compressor.bladeNumber)[0])                      # Index for blade number
-    Compressor.eta_geometry = IterationMatrix.etaMat[iB][iZ]                                    # Efficiency at design point calculated in geometry
-    #geometry.print_and_plot_geometry(Compressor, InletConditions, IterationMatrix)
+    iB = int(np.where(IterationMatrix.beta2B == Compressor.bladeAngle)[0])                   # Index for blade angle
+    iZ = int(np.where(IterationMatrix.ZB == Compressor.bladeNumber)[0])                      # Index for blade number
+    Compressor.eta_geometry = IterationMatrix.eta[iB][iZ]                                    # Efficiency at design point calculated in geometry
+    #geometry.plot_geometry(Compressor, InletConditions, IterationMatrix)
     
     # Calculate off-design performance
     print('\nCalculating off-design performance...')
@@ -46,7 +46,7 @@ def run_analysis(path_to_fluid_properties_toml, path_to_inlet_toml, path_to_comp
 
 def main():
     fluid_name = 'r-134a'                   # Select working fluid, 'h2', 'r-134a' or 'air'
-    path_to_fluid_properties_toml = './properties/' + fluid_name + '.toml'
+    path_to_fluid_properties_toml = './properties/fluid_' + fluid_name + '.toml'
     path_to_inlet_toml = './properties/inlet_conditions_japikse.toml'
     path_to_compressor_toml = './properties/compressor_japikse.toml'
     

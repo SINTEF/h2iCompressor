@@ -35,14 +35,14 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
     bladeNumber = Compressor.bladeNumber                                 # Blade number of interest MSG: This must be updated after geometry calculations. Need to pick one
 
     print('Blade angle:', bladeAngle)
-    print(IterationMatrix.beta2BArr)
-    iB = int(np.where(IterationMatrix.beta2BArr == bladeAngle)[0])                   # Index for blade angle
-    iZ = int(np.where(IterationMatrix.ZBarr == bladeNumber)[0])                      # Index for blade number
-    beta2B = IterationMatrix.beta2BArr[iB]                                           # 
-    ZB = IterationMatrix.ZBarr[iZ]                                                   # 
-    b2 = IterationMatrix.b2Mat[iB][iZ]                                               # Compressor  outlet height 
+    print(IterationMatrix.beta2B)
+    iB = int(np.where(IterationMatrix.beta2B == bladeAngle)[0])                   # Index for blade angle
+    iZ = int(np.where(IterationMatrix.ZB == bladeNumber)[0])                      # Index for blade number
+    beta2B = IterationMatrix.beta2B[iB]                                           # 
+    ZB = IterationMatrix.ZB[iZ]                                                   # 
+    b2 = IterationMatrix.b2[iB][iZ]                                               # Compressor  outlet height 
     print('b2', b2)
-    sigma = IterationMatrix.sigmaMat[iB][iZ]                                         # Slip factor        
+    sigma = IterationMatrix.sigma[iB][iZ]                                         # Slip factor        
 
     if np.isnan(b2):
         raise Exception(f"Blade number and blade angle is not found to be among valid cases! \n Chose another point or adjust parameters!")
@@ -54,10 +54,10 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
 
     # ---------------------------- Calculation of Inlet Velocity Triangles and Compressor Weight Flow (Swirl free) ----------------------------
     curve1rms = np.sqrt((Compressor.curvet1 ** 2 + Compressor.curveh1 ** 2) / 2)    # Root mean square of the inducer inlet hub and tip wall curvature [m^-1]
-    r1rms = np.sqrt((Compressor.r1 ** 2 + Compressor.rh1 ** 2) / 2)                 # Root mean square of the hub and tip inlet radius [m]  MSG: Why is RMS used here?
+    r1rms = np.sqrt((Compressor.r1 ** 2 + Compressor.rh ** 2) / 2)                 # Root mean square of the hub and tip inlet radius [m]  MSG: Why is RMS used here?
 
     # Geometrical inlet properties
-    h0 = r1rms - Compressor.rh1                 # (B4) Spacing for numerical integration [-]
+    h0 = r1rms - Compressor.rh                 # (B4) Spacing for numerical integration [-]
     h1 = Compressor.r1 - r1rms                  # (B5) Spacing for numerical integration [-]
 
     # Absolute meridonal velocities
@@ -74,11 +74,11 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
     rho1rms = InletConditions.rho0 * (1 - (Cm1rms ** 2 / (2 * Fluid.Cp * InletConditions.T00))) ** (1 / (Fluid.k - 1))            # Root mean square density of the fluid [kg/m^2], 
     rho1t = InletConditions.rho0 * (1 - (Cm1t ** 2 / (2 * Fluid.Cp * InletConditions.T00))) ** (1 / (Fluid.k - 1))                # Inlet density of the fluid at the blade tip [kg/m^3]
 
-    mdoto = 2 * np.pi * (((h0 + h1) / 6) * ((2 - (h1 / h0)) * (rho1h * Compressor.rh1 * Cm1hn) + ((h0 + h1) ** 2 / (h0 * h1)) * (rho1rms * r1rms * Cm1rmsn) + (2 - (h0 / h1)) * (rho1t * Compressor.r1 * Cm1tn)))      # (B7) Off Design point mass flow rate [kg/s]
+    mdoto = 2 * np.pi * (((h0 + h1) / 6) * ((2 - (h1 / h0)) * (rho1h * Compressor.rh * Cm1hn) + ((h0 + h1) ** 2 / (h0 * h1)) * (rho1rms * r1rms * Cm1rmsn) + (2 - (h0 / h1)) * (rho1t * Compressor.r1 * Cm1tn)))      # (B7) Off Design point mass flow rate [kg/s]
     
     # Blade speeds
     U1to = np.pi * Compressor.No * Nrpm * 2 * Compressor.r1 / 60            # Off design blade tip velocity [m/s]
-    U1ho = np.pi * Compressor.No * Nrpm * 2 * Compressor.rh1 / 60           # Off design blade hub velocity [m/s]
+    U1ho = np.pi * Compressor.No * Nrpm * 2 * Compressor.rh / 60           # Off design blade hub velocity [m/s]
     U1rmso = ((U1to ** 2 + U1ho ** 2) / 2) ** 0.5                           # Off design root mean square velocity [m/s]
 
     # Relative velocities at inlet
@@ -176,10 +176,10 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
         dhBL = (0.05 * Df ** 2 * U2o ** 2)                                                      # (B58) Work loss due to blade loading [J/kg]   , ----
         Re = U2o * Compressor.D2 * rho1rms / Fluid.viscosity                                    # (B63) Reynolds number of the exit flow [-]   ,  ----
         dhDF = (0.01356 * rho2o * U2o ** 3 * Compressor.D2 ** 2 / (mdoto * Re ** 0.2))          # (B62) Impeller disk friction loss [J/kg]   , ----
-        D1rms = np.sqrt((((2 * Compressor.r1) ** 2) + ((2 * Compressor.rh1) ** 2)) / 2)         # Rootmean square of the diameter [m]  , RMS
+        D1rms = np.sqrt((((2 * Compressor.r1) ** 2) + ((2 * Compressor.rh) ** 2)) / 2)         # Rootmean square of the diameter [m]  , RMS
         LenDivDia = 0.5 * (1 - (D1rms / 0.3048)) / (np.cos(np.radians(beta2B)))                 # (B65) Blade length to diameter ratio [-]   ,  ----
         #HydDiaDivExitDia = 1 / (ZB / (np.pi * np.cos(np.radians(beta2B)) + Compressor.D2 / b2)) + (2  * Compressor.r1 / Compressor.D2) / (2 / (1 - Fluid.k) + 2 * ZB / (np.pi * (1 + Fluid.k)) * np.sqrt(1 + (np.tan(np.radians(Compressor.beta1) ** 2) * (1 + Fluid.k ** 2 / 2))))     # (B66) Ratio of hydraulic diameter and exit diameter [-] MSG: One paranthesis wrong and use inducer hub-tip diameter ratio instead of specific heat ratio according to (B66)
-        HydDiaDivExitDia = 1 / (ZB / (np.pi * np.cos(np.radians(beta2B))) + Compressor.D2 / b2) + (2  * Compressor.r1 / Compressor.D2) / (2 / (1 - Compressor.rh1 / Compressor.r1) + 2 * ZB / (np.pi * (1 + Compressor.rh1 / Compressor.r1)) * np.sqrt(1 + (np.tan(np.radians(Compressor.beta1) ** 2) * (1 + (Compressor.rh1 / Compressor.r1) ** 2 / 2))))     # (B66) Ratio of hydraulic diameter and exit diameter [-] MSG: This may be wrong, see additional_comments.tex
+        HydDiaDivExitDia = 1 / (ZB / (np.pi * np.cos(np.radians(beta2B))) + Compressor.D2 / b2) + (2  * Compressor.r1 / Compressor.D2) / (2 / (1 - Compressor.rh / Compressor.r1) + 2 * ZB / (np.pi * (1 + Compressor.rh / Compressor.r1)) * np.sqrt(1 + (np.tan(np.radians(Compressor.beta1) ** 2) * (1 + (Compressor.rh / Compressor.r1) ** 2 / 2))))     # (B66) Ratio of hydraulic diameter and exit diameter [-] MSG: This may be wrong, see additional_comments.tex
         WRelDivWext2 = 0.5 * ((Cm1rms / U2o) ** 2 + (D1rms / Compressor.D2) ** 2 + (W2 / W1to) ** 2 * ((Cm1rms / U2o) ** 2 + (2 * Compressor.r1 / Compressor.D2) ** 2))      # (B67) Ratio of mean relative velocity and impeller exit velocity^2 [-]
         dhSF = ((Compressor.kSF * Compressor.Cf * LenDivDia * WRelDivWext2 * U2o ** 2) / HydDiaDivExitDia)       # (B64) Skin friction loss [J/kg]
         #dhSF = Compressor.kSF * Compressor.Cf * LenDivDia / HydDiaDivExitDia * W1rmso ** 2     # (B64) MSG: Alternative
@@ -387,13 +387,13 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
 
     ### Matching-------------------------------------------------------------------------------------------
     # comp_power = [100]      # Compressor power [kW]
-    # comp_power = [round(IterationMatrix.WxMat[iB][iZ], 2) ]      # Compressor power [kW]
+    # comp_power = [round(IterationMatrix.Wx[iB][iZ], 2) ]      # Compressor power [kW]
     # # speed = [120]           # Shaft Speed [krpm]    MSG: Not in use
     # T1 = InletConditions.T00                # Inlet stagnation temperature [K]
     # cp = Fluid.Cp              # Specific heat at constant pressure [kJ]
     # y = Fluid.k                 # Ratio of specific heats
     # # P = 0.1013              # Inlet pressure [MPa]
-    # eta = IterationMatrix.etaMat[iB][iZ]              # Assumed efficiency
+    # eta = IterationMatrix.eta[iB][iZ]              # Assumed efficiency
 
     ### Line of constant power------------------------------------------------------------------------------
     # def pressure_ratio1(mdot, eta, comp_power, T1, y, cp):
