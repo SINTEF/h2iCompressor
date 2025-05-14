@@ -1,21 +1,18 @@
 import numpy as np
-import toml
-import settings
-import geometry_new as geometry 
-import off_design_performance
-
 import matplotlib.pyplot as plt
 
 
 def plot_multistage_pressure_rise(stage_compressor, stage_results):
+    """ Plot pressure as a function of mass flow for each stage """
+    
     plt.figure()
-    P_inlet = 25.1e5
+    P_inlet = 25.1e5        # Inlet stagnation pressure of first stage [Pa]
     for i in range(len(stage_results)):
         for result in stage_results[i]:
             if i == 0:
                 plt.plot(result['mdoto'], np.ones(len(result['mdoto'])) * P_inlet / 1e5, label = 'Inlet')
             plt.plot(result['mdoto'], result['P3o'] / 1e5, label = 'Stage ' + str(i + 1))
-            break
+            break           # Plot pressure ratio only for first rotational speed
     
     plt.xlabel(r'$\dot{m}$' + ' ' + '[kg/s]', fontsize = 12)
     plt.ylabel(r'$P_\mathrm{outlet}$ [bar]', fontsize = 12)
@@ -24,23 +21,18 @@ def plot_multistage_pressure_rise(stage_compressor, stage_results):
 
 def main():
     """ Main function that finds and plots compressor geometry and compressor off-design performance """
+    
     fluid_name = 'h2'                   # Select working fluid, 'h2', 'air' or 'r-134a'
+    
     path_to_fluid_properties_toml = './properties/fluid_' + fluid_name + '.toml'
-    #path_to_inlet_toml = './properties/inlet_conditions_moen.toml'
-    #path_to_compressor_toml = './properties/compressor_moen.toml'
     path_to_inlet_toml = './properties/inlet_conditions_nrec_h2.toml'
     path_to_compressor_toml = './properties/compressor_nrec_h2.toml'
-    #path_to_inlet_toml = './properties/inlet_conditions_nrec_h2.toml'
-    #path_to_compressor_toml = './properties/compressor_nrec_h2.toml'
-   
-    # Import necessary modules
+    
+    # Import modules
     import settings
-    import geometry_new as geometry
-    import geometry_2
+    import geometry
     import off_design_performance
     
-    import matplotlib       
-    matplotlib.use('tkagg')     # Use tkagg to avoid crashing when using X11-forwarding for plotting
     from matplotlib import pyplot as plt    
 
     # Initialize fluid
@@ -62,9 +54,9 @@ def main():
 
         # Run geometry calculations
         print('\nCalculating geometry...') 
-        geometry.inducer_and_impeller_calculations(Fluid, stage_inlet_conditions[i], stage_compressor[i])
-        geometry.iterate_blade_number_and_blade_angle(stage_compressor[i], stage_inlet_conditions[i], Fluid, stage_iteration_matrices[i])
-        geometry.print_and_plot_geometry(stage_compressor[i], stage_inlet_conditions[i], stage_iteration_matrices[i])
+        geometry.inducer_optimization(stage_compressor[i].Ndes, Fluid, stage_inlet_conditions[i], stage_compressor[i])
+        geometry.impeller_optimization(stage_compressor[i], stage_inlet_conditions[i], Fluid, stage_iteration_matrices[i])
+        geometry.plot_geometry(stage_compressor[i], stage_inlet_conditions[i], stage_iteration_matrices[i])
         
         P_outlet = stage_inlet_conditions[i].P00 * stage_compressor[i].Pr       # MSG: Change the last factor to the actual pressure ratio predicted by off-design script? Also this is dependent on mass flow
         T_outlet = stage_inlet_conditions[i].T00                                # MSG: Assume perfect intercooling
@@ -83,9 +75,6 @@ def main():
     
     plt.show()
     
-
-
-
 
 if __name__ == '__main__':
     main()
