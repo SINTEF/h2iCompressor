@@ -43,8 +43,8 @@ def main():
     plt.show()
 
     print('\nCalculating off-design performance...')
-    results, constant_eff_line_mdot, constant_eff_line_pr, constant_eff_lines = off_design_performance.off_design_performance(Compressor, Fluid, InletConditions, IterationMatrix)
-    plot_off_design_performance.plot_off_design(results, constant_eff_line_mdot, constant_eff_line_pr, constant_eff_lines, Compressor, InletConditions)
+    results_off_design = off_design_performance.off_design_performance(Compressor, Fluid, InletConditions, IterationMatrix)
+    plot_off_design_performance.plot_off_design(results_off_design, Compressor, InletConditions)
     plt.show()
        
 

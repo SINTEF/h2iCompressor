@@ -11,8 +11,51 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-def plot_off_design(results, constant_eff_line_mdot, constant_eff_line_pr, constant_eff_lines, Compressor, InletConditions):
-    """ Plot the results of the off-design performance calculations """
+def plot_off_design(results_off_design, Compressor, InletConditions):
+    """ Plot the results_off_design of the off-design performance calculations """
+    
+    # Obtain the lines of constant efficiency for plotting the compressor performance map
+    constant_eff_lines = Compressor.constant_eff_lines
+    constant_eff_line_mdot = [[[[], []] for i in range(len(constant_eff_lines))] for _ in range(len(Compressor.N_off_design_arr))]
+    constant_eff_line_pr = [[[[], []] for i in range(len(constant_eff_lines))] for _ in range(len(Compressor.N_off_design_arr))]
+    
+    
+    for iN in range(0, len(Compressor.N_off_design_arr)):
+        mdoto = results_off_design[iN]['mdoto']
+        Pro = results_off_design[iN]['Pro']
+        etao = results_off_design[iN]['etao']
+        
+        # Finding the constant efficiency lines
+        for i in range(len(constant_eff_lines)):
+            if any(etao >= constant_eff_lines[i]):
+                if etao[0] <= constant_eff_lines[i]:
+                    index_0 = np.argmax(etao >= constant_eff_lines[i])
+                    constant_eff_line_mdot[iN][i][0] = mdoto[index_0]
+                    constant_eff_line_pr[iN][i][0] = Pro[index_0]
+                    if etao[- 1] <= constant_eff_lines[i]:
+                        index_1 = np.argmax(etao[index_0:] < constant_eff_lines[i])
+                        constant_eff_line_mdot[iN][i][1] = mdoto[index_0 + index_1]
+                        constant_eff_line_pr[iN][i][1] = Pro[index_0 + index_1]
+                    else:
+                        constant_eff_line_mdot[iN][i][1] = np.nan
+                        constant_eff_line_pr[iN][i][1] = np.nan
+                else:
+                    if etao[- 1] <= constant_eff_lines[i]:
+                        index_1 = np.argmax(etao < constant_eff_lines[i])
+                        constant_eff_line_mdot[iN][i][1] = mdoto[index_1]
+                        constant_eff_line_pr[iN][i][1] = Pro[index_1]
+                        constant_eff_line_mdot[iN][i][0] = np.nan
+                        constant_eff_line_pr[iN][i][0] = np.nan
+                    else:
+                        constant_eff_line_mdot[iN][i][0] = np.nan
+                        constant_eff_line_pr[iN][i][0] = np.nan
+                        constant_eff_line_mdot[iN][i][1] = np.nan
+                        constant_eff_line_pr[iN][i][1] = np.nan
+            else:
+                constant_eff_line_mdot[iN][i][0] = np.nan
+                constant_eff_line_pr[iN][i][0] = np.nan
+                constant_eff_line_mdot[iN][i][1] = np.nan
+                constant_eff_line_pr[iN][i][1] = np.nan    
     
     colors = ['r', 'g', 'b', 'c', 'm', 'y']  # Colors for the constant efficiency lines
 
@@ -32,7 +75,7 @@ def plot_off_design(results, constant_eff_line_mdot, constant_eff_line_pr, const
     y_values_curve_5 = df.iloc[:, 9]
 
 
-    for result in results:
+    for result in results_off_design:
         Nplot = f"{result['N'] * 1e-3:.0f} krpm"
         plt.plot(result['mdoto'], result['Pro'], label=Nplot)
     plt.ylabel(r'$\frac{P_{03}}{P_{00}}$', rotation=45, fontsize=12)
@@ -53,7 +96,7 @@ def plot_off_design(results, constant_eff_line_mdot, constant_eff_line_pr, const
     """
     # Pressure ratio 2 
     fig99 = plt.figure('Pressure ratio 2')
-    for i, result in enumerate(results):
+    for i, result in enumerate(results_off_design):
         Nplot = f"{result['N'] * 1e-3:.0f} krpm"
         plt.plot(result['mdoto_corrected'], result['Pro'], label=Nplot)
         if i == 5:
@@ -70,7 +113,7 @@ def plot_off_design(results, constant_eff_line_mdot, constant_eff_line_pr, const
 
     # Mach number
     fig19 = plt.figure('Impeller exit Mach number')
-    for result in results:
+    for result in results_off_design:
         Nplot = f"{result['N'] * 1e-3:.0f} krpm"
         plt.plot(result['mdoto'], result['M2o'], label=Nplot)
     plt.ylabel(r'${Ma}_2$', fontsize=12)
@@ -82,7 +125,7 @@ def plot_off_design(results, constant_eff_line_mdot, constant_eff_line_pr, const
 
     # Efficiency curve
     fig2 = plt.figure('Efficiency')
-    for result in results:
+    for result in results_off_design:
         Nplot = f"{result['N'] * 1e-3:.0f} krpm"
         plt.plot(result['mdoto'], result['etao'], label=Nplot)
         plt.plot(result['mdoto'], result['etaoAlt'], label=Nplot + ' Alt', linestyle='--')
@@ -95,7 +138,7 @@ def plot_off_design(results, constant_eff_line_mdot, constant_eff_line_pr, const
 
     # Exit Tip velocity
     fig4 = plt.figure('Exit Tip velocity')
-    for result in results:
+    for result in results_off_design:
         plt.plot(result['N'], result['U2o'], 'ko')
     plt.xlabel(r'$N $  [rpm]', fontsize=12)
     plt.ylabel(r'$U_2 $ [m/s]', fontsize=12)
@@ -103,7 +146,7 @@ def plot_off_design(results, constant_eff_line_mdot, constant_eff_line_pr, const
     plt.grid(True)
 
     # Enthalpy rise/loss
-    for result in results:
+    for result in results_off_design:
         total_loss = result['enthalpy_rise_loss'][1] + result['enthalpy_rise_loss'][2] + result['enthalpy_rise_loss'][3] + result['enthalpy_rise_loss'][4] + result['enthalpy_rise_loss'][5] + result['enthalpy_rise_loss'][6]      #MSG: Does not match the definition of efficiency where RC and DF are placed in the denominator
         
         plt.figure(r'Enthalpy rise/loss $N = $' + f"{result['N'] * 1e-3:.0f} krpm")
@@ -125,7 +168,7 @@ def plot_off_design(results, constant_eff_line_mdot, constant_eff_line_pr, const
 
     # Performance map
     fig100 = plt.figure('Performance map')
-    for result in results:
+    for result in results_off_design:
         Nplot = f"RPM = {result['N']}"
         plt.plot(result['mdoto'], result['Pro'], label=Nplot)
     
@@ -145,7 +188,7 @@ def plot_off_design(results, constant_eff_line_mdot, constant_eff_line_pr, const
     plt.grid(True)
 
     fig101 = plt.figure('Exit velocity V2')
-    for result in results:
+    for result in results_off_design:
         plt.plot(result['mdoto'], result['V2'], label=f"{result['N'] * 1e-3:.0f} krpm")
     plt.xlabel(r'$\dot{m}$' + ' ' + '[kg/s]', fontsize=12)
     plt.ylabel(r'$V_2$' + ' ' + '[m/s]', fontsize=12)

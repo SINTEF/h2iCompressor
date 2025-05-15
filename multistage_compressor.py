@@ -70,9 +70,9 @@ def main():
     # Compute off-design performance of each stage
     stage_results = []
     for i in range(n_stages):
-        results, constant_eff_line_mdot, constant_eff_line_pr, constant_eff_lines = off_design_performance.off_design_performance(stage_compressor[i], Fluid, stage_inlet_conditions[i], stage_iteration_matrices[i])
-        stage_results.append(results)
-        plot_off_design_performance.plot_off_design(results, constant_eff_line_mdot, constant_eff_line_pr, constant_eff_lines, stage_compressor[i], stage_inlet_conditions[i])
+        results_off_design = off_design_performance.off_design_performance(stage_compressor[i], Fluid, stage_inlet_conditions[i], stage_iteration_matrices[i])
+        stage_results.append(results_off_design)
+        plot_off_design_performance.plot_off_design(results_off_design, stage_compressor[i], stage_inlet_conditions[i])
     plot_multistage_pressure_rise(stage_compressor, stage_results)
     
     plt.show()

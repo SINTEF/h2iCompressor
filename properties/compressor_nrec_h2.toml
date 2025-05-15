@@ -29,12 +29,8 @@ Cf = 0.006                                      # Friction coefficient [-]
 
 [iteration_parameters]
 # Iteration control
-etaLowerLimit = 0                               # Lowest efficiency allowed
-etaUpperLimit = 0.9999                          # Highest efficiency allowed
-bladeVelUpperLimit = 1200                       # Highest blade velocity allowed
-bladeVelLowerLimit = 0                          # Lowest blade velocity allowed 
-beta2Bmax = - 5                                 # "Maximum" beta iterated over
-beta2Bmin = - 0                                 # "Minimum" beta iterated over  
+beta2Bmax = - 5                                 # Maximum blade angle
+beta2Bmin = - 0                                 # Minimum blade angle
 bladeMin = 30                                   # Lowest bladenumber allowed
 bladeMax = 35                                   # Highest bladenumber allowed
 
@@ -56,3 +52,4 @@ N_off_design_arr = [59241,                      # Rotational speeds for predicti
 V0DivVcr_off_design_arr = [0.01, 0.25,          # Critical velocity ranges for predicting off-design performance [-]
                            0.01, 0.26,
                            0.01, 0.25]
+constant_eff_lines = [0.78, 0.80, 0.82, 0.84, 0.86]    # Lines of constant efficiency in compressor performance map

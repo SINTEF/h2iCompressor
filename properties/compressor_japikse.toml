@@ -31,18 +31,14 @@ Cf = 0.0055                                     # Friction coefficient [-]
 
 [iteration_parameters]
 # Iteration control
-etaLowerLimit = 0                               # Lowest efficiency allowed
-etaUpperLimit = 0.9999                          # Highest efficiency allowed
-bladeVelUpperLimit = 1200                       # Highest blade velocity allowed
-bladeVelLowerLimit = 0                          # Lowest blade velocity allowed 
-beta2Bmax = - 60                                # "Maximum" beta iterated over
-beta2Bmin = - 40                                # "Minimum" beta iterated over  
+beta2Bmax = - 60                                # Maximum blade angle
+beta2Bmin = - 40                                # Minimum blade angle
 bladeMin = 2                                    # Lowest bladenumber allowed
 bladeMax = 30                                   # Highest bladenumber allowed
 
 
 [parameters_to_vary]
-# VARY THESE PARAMETERS
+# Parameters to vary
 Pr = 3                                          # Pressure ratio [-]
 Ndes = 18200                                    # Rotational speed
 rhDivr1 = 0.35                                  # Radius ratio [-], r1/r2 = 0.5753
@@ -54,3 +50,4 @@ bladeAngle = - 45                               # Blade angle of interest for of
 bladeNumber = 16                                # Blade number of interest for off-desing_performance.py
 N_off_design_arr = [18200]                      # Rotational speeds for predicting off-design performance [rpm]
 V0DivVcr_off_design_arr = [0.1, 0.7]            # Critical velocity ranges for predicting off-design performance [-]
+constant_eff_lines = [0.71, 0.73, 0.75, 0.77, 0.78, 0.81]    # Lines of constant efficiency in compressor performance map
