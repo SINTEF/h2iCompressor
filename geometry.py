@@ -62,8 +62,8 @@ def impeller_optimization(Compressor, InletConditions, Fluid, IterationMatrix):
             blade_number = IterationMatrix.ZB[iz]
             blade_angle = np.rad2deg(IterationMatrix.beta2B[ib])
             print('\nBlade number =', blade_number, 'Blade angle =', blade_angle)
-            sigma = IterationMatrix.sigmaWiesner[ib, iz]                         # Slip factor for given blade number and blade angle
             
+            sigma = IterationMatrix.sigmaWiesner[ib, iz]                         # Slip factor for current blade number and blade angle
             etaStage = 0.9      # Initial guess for stage efficiency 
             Pr_stage = 0        # Initial value of stage pressure ratio
             eps = 0.0001        
@@ -74,7 +74,7 @@ def impeller_optimization(Compressor, InletConditions, Fluid, IterationMatrix):
                 T02m = InletConditions.T00 + Wx * (Fluid.k - 1) / (Fluid.k * Fluid.R)        # Exit static temperature [K]     , from dh=cp*Dt   
                 mu = sigma * Compressor.lambda2 / (Compressor.lambda2 - np.tan((IterationMatrix.beta2B[ib])))
                 U2 = ((Compressor.U1t * Compressor.Ctheta1 + Wx) / mu) ** (1 / 2)   # Impeller tip velocity [m/s]    , from work input coefficient MSG: Should be divided by mdot?
-                D2 = 60 * U2 / (np.pi * Compressor.N0)
+                D2 = 60 * U2 / (np.pi * Compressor.Ndes)
                 r2 = D2 / 2
                 Ctheta2m = mu * U2
                 Cm2m = Ctheta2m / Compressor.lambda2
@@ -95,6 +95,7 @@ def impeller_optimization(Compressor, InletConditions, Fluid, IterationMatrix):
                 etaStage = ((p5 / InletConditions.P00) ** ((Fluid.k - 1) / Fluid.k) - 1) / (T02m / InletConditions.T00 - 1)
                 Pr_stage = p5 / InletConditions.P00
 
+            # Save conditions for current blade number and blade angle
             IterationMatrix.eta[ib, iz] = etaStage
             IterationMatrix.Pr[ib, iz] = Pr_stage
             IterationMatrix.r2[ib, iz] = r2  
@@ -127,7 +128,7 @@ def impeller_optimization(Compressor, InletConditions, Fluid, IterationMatrix):
         
     print('\nDesign point:')
     print('\tRotational speed = ' + str(round(Compressor.Ndes, 2)) + ' rpm' )
-    print('\trh = ' + str(round(Compressor.rh, 3) * 1000) + ' mm' )
+    print('\trh = ' + str(round(Compressor.rh, 10) * 1000) + ' mm' )
     print('\tr1 = ' + str(round(Compressor.r1, 10) * 1000) + ' mm')
     print('\tr2 = ' + str(round(Compressor.r2 , 10) * 1000) + ' mm' )
     print('\tb2 = ' + str(round(Compressor.b2 , 10) * 1000) + ' mm' )  

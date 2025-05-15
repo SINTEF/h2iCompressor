@@ -36,15 +36,13 @@ beta2Bmax = - 50                                # "Maximum" beta iterated over
 beta2Bmin = 0                                   # "Minimum" beta iterated over  
 bladeMin = 2                                    # Lowest bladenumber allowed
 bladeMax = 30                                   # Highest bladenumber allowed
-iterTol = 0.01                                  # Loop tolerance condition for pressure ratio
 
 
 [parameters_to_vary]
 # VARY THESE PARAMETERS
 Pr = 1.24                                       # Pressure ratio [-]
-N0 = 40000                                      # Rotational speed
+Ndes = 40000                                    # Rotational speed
 rhDivr1 = 0.35                                  # Ratio commonly given
-r1Divr2 = 0.65                                  # rt1 divided by rt2 ,making rt2 increase through array progression
 
 
 [off_design_parameters]

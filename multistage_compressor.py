@@ -31,7 +31,9 @@ def main():
     # Import modules
     import settings
     import geometry
+    import plot_optimized_geometry
     import off_design_performance
+    import plot_off_design_performance
     
     from matplotlib import pyplot as plt    
 
@@ -56,7 +58,7 @@ def main():
         print('\nCalculating geometry...') 
         geometry.inducer_optimization(stage_compressor[i].Ndes, Fluid, stage_inlet_conditions[i], stage_compressor[i])
         geometry.impeller_optimization(stage_compressor[i], stage_inlet_conditions[i], Fluid, stage_iteration_matrices[i])
-        geometry.plot_geometry(stage_compressor[i], stage_inlet_conditions[i], stage_iteration_matrices[i])
+        plot_optimized_geometry.plot_geometry(stage_compressor[i], stage_inlet_conditions[i], stage_iteration_matrices[i])
         
         P_outlet = stage_inlet_conditions[i].P00 * stage_compressor[i].Pr       # MSG: Change the last factor to the actual pressure ratio predicted by off-design script? Also this is dependent on mass flow
         T_outlet = stage_inlet_conditions[i].T00                                # MSG: Assume perfect intercooling
@@ -70,7 +72,7 @@ def main():
     for i in range(n_stages):
         results, constant_eff_line_mdot, constant_eff_line_pr, constant_eff_lines = off_design_performance.off_design_performance(stage_compressor[i], Fluid, stage_inlet_conditions[i], stage_iteration_matrices[i])
         stage_results.append(results)
-        off_design_performance.plot_off_design_performance(results, constant_eff_line_mdot, constant_eff_line_pr, constant_eff_lines, stage_compressor[i], stage_inlet_conditions[i])
+        plot_off_design_performance.plot_off_design(results, constant_eff_line_mdot, constant_eff_line_pr, constant_eff_lines, stage_compressor[i], stage_inlet_conditions[i])
     plot_multistage_pressure_rise(stage_compressor, stage_results)
     
     plt.show()

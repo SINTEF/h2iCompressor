@@ -22,6 +22,7 @@ def main():
     import geometry
     import plot_optimized_geometry
     import off_design_performance
+    import plot_off_design_performance
     
     from matplotlib import pyplot as plt    
     
@@ -43,7 +44,7 @@ def main():
 
     print('\nCalculating off-design performance...')
     results, constant_eff_line_mdot, constant_eff_line_pr, constant_eff_lines = off_design_performance.off_design_performance(Compressor, Fluid, InletConditions, IterationMatrix)
-    off_design_performance.plot_off_design_performance(results, constant_eff_line_mdot, constant_eff_line_pr, constant_eff_lines, Compressor, InletConditions)
+    plot_off_design_performance.plot_off_design(results, constant_eff_line_mdot, constant_eff_line_pr, constant_eff_lines, Compressor, InletConditions)
     plt.show()
        
 

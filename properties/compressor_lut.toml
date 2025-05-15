@@ -39,18 +39,14 @@ beta2Bmax = - 40                                # "Maximum" beta iterated over
 beta2Bmin = - 1                                 # "Minimum" beta iterated over  
 bladeMin = 2                                    # Lowest bladenumber allowed
 bladeMax = 20                                   # Highest bladenumber allowed
-iterTol = 0.01                                  # Loop tolerance condition for pressure ratio
 
 
 [parameters_to_vary]
 # VARY THESE PARAMETERS
 Pr = 2.2                                       # Pressure ratio [-]
-N0 = 27720                                     # Rotational speed
-rhDivr1 = 0.3002                               # Ratio commonly given
-r1Divr2 = 0#0.49797                            # rt1 divided by rt2 ,making rt2 increase through array progression
-#rh = 0.02025                                  # In case we use geometry_2
-#r1 = 0.06745                                  # In case we use geometry_2
-#r2 = 0.13545                                  # In case we use geometry_2
+Ndes = 27720                                   # Rotational speed
+rhDivr1 = 0.3002                               # Radius ratio
+#rh = 0.02025                                  # Hub radius [m], r1 = 0.06745, r2 = 0.13545
 
 
 [off_design_parameters]

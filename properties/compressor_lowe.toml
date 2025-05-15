@@ -36,19 +36,14 @@ beta2Bmax = - 50                                # "Maximum" beta iterated over
 beta2Bmin = 0                                   # "Minimum" beta iterated over  
 bladeMin = 2                                    # Lowest bladenumber allowed
 bladeMax = 30                                   # Highest bladenumber allowed
-iterTol = 0.01                                  # Loop tolerance condition for pressure ratio
 
 
 [parameters_to_vary]
 # VARY THESE PARAMETERS
 Pr = 1.625                                      # Pressure ratio [-]
-N0 = 120000                                     # Rotational speed
-rh = 0.00575                                    # In case we use geometry_2
-r1 = 0.0186                                     # In case we use geometry_2
-r2 = 0.024                                      # In case we use geometry_2
-
-#rhDivr1 = 0.5313                               # Inducer hub radius over inducer tip radius
-#r1Divr2 = 0.5614                               # Inducer tip radius over impeller exit diameter. rt1 divided by rt2 ,making rt2 increase through array progression
+Ndes = 120000                                   # Rotational speed
+rh = 0.00575                                    # Hub radius [m], r1 = 0.0186, r2 = 0.024
+#rhDivr1 = 0.5313                               # Inducer hub radius over inducer tip radius [-], r1/r2 = 0.5614
 
 
 [off_design_parameters]

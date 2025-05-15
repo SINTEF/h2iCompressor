@@ -110,8 +110,7 @@ class Compressor:
 
         self.parameters_to_vary = toml.load(path_to_compressor_toml)['parameters_to_vary']          # Load parameters to vary from toml file
         self.Pr = self.parameters_to_vary['Pr']
-        self.N0 = self.parameters_to_vary['N0']
-        self.Ndes = self.N0
+        self.Ndes = self.parameters_to_vary['Ndes']
 
         # If optimizing inducer geometry by varying r1, rh and r2
         if 'rh' in self.parameters_to_vary:
