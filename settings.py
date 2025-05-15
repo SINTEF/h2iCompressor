@@ -99,10 +99,6 @@ class Compressor:
         self.Cf = self.off_design_parameters_unknown['Cf']                  # Friction coefficient [-]
         
         self.iteration_parameters = toml.load(path_to_compressor_toml)['iteration_parameters']      # Load iteration parameters from toml file
-        self.etaLowerLimit = self.iteration_parameters['etaLowerLimit']
-        self.etaUpperLimit = self.iteration_parameters['etaUpperLimit']
-        self.bladeVelUpperLimit = self.iteration_parameters['bladeVelUpperLimit']
-        self.bladeVelLowerLimit = self.iteration_parameters['bladeVelLowerLimit']
         self.beta2Bmax = self.iteration_parameters['beta2Bmax']
         self.beta2Bmin = self.iteration_parameters['beta2Bmin']
         self.bladeMin = self.iteration_parameters['bladeMin']
@@ -126,6 +122,7 @@ class Compressor:
         self.bladeNumber = self.off_design_parameters['bladeNumber']
         self.N_off_design_arr = self.off_design_parameters['N_off_design_arr']
         self.V0DivVcr_off_design_arr = self.off_design_parameters['V0DivVcr_off_design_arr']
+        self.constant_eff_lines = self.off_design_parameters['constant_eff_lines']
 
 
 class IterationMatrix:
