@@ -55,6 +55,7 @@ def plot_off_design(results_off_design, Compressor, InletConditions):
     for result in results_off_design:
         Nplot = f"{result['N'] * 1e-3:.0f} krpm"
         plt.plot(result['mdoto'], result['M2o'], label = Nplot)
+    plt.axvline(x = InletConditions.mdot, color = 'r', linewidth = 0.75, label = r'$\dot{m}_\mathrm{des}$')
     plt.ylabel(r'${Ma}_2$', fontsize = 12)
     plt.xlabel(r'$\dot{m}$' + ' ' + '[kg/s]', fontsize = 12)
     plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
@@ -67,6 +68,7 @@ def plot_off_design(results_off_design, Compressor, InletConditions):
     for result in results_off_design:
         Nplot = f"{result['N'] * 1e-3:.0f} krpm"
         plt.plot(result['mdoto'], result['etao'], label = Nplot)
+    plt.axvline(x = InletConditions.mdot, color = 'r', linewidth = 0.75, label = r'$\dot{m}_\mathrm{des}$')
     plt.ylabel(r'$\eta$', rotation = 45, fontsize = 12)
     plt.xlabel(r'$\dot{m}$' + ' ' + '[kg/s]', fontsize = 12)
     plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
@@ -97,6 +99,7 @@ def plot_off_design(results_off_design, Compressor, InletConditions):
         plt.plot(result['mdoto'], np.array(result['enthalpy_rise_loss'][6] / total_loss), label = 'Impeller disk friction loss')
         #plt.plot(result['mdoto'], np.array(result['enthalpy_rise_loss'][0] ), label = 'Enthalpy rise')
         plt.plot(result['mdoto'], total_loss / total_loss, label = 'Total loss')
+        plt.axvline(x = InletConditions.mdot, color = 'r', linewidth = 0.75, label = r'$\dot{m}_\mathrm{des}$')
         plt.xlabel(r'$\dot{m}$' + ' ' + '[kg/s]', fontsize = 12)
         plt.ylabel(r'Share of total loss [%]', fontsize = 12)
         plt.title(r'Enthalpy rise/loss N = ' + f"{result['N'] * 1e-3:.0f} krpm")
@@ -175,6 +178,7 @@ def plot_off_design(results_off_design, Compressor, InletConditions):
     plt.figure('Exit velocity V2')
     for result in results_off_design:
         plt.plot(result['mdoto'], result['V2'], label = f"{result['N'] * 1e-3:.0f} krpm")
+    plt.axvline(x = InletConditions.mdot, color = 'r', linewidth = 0.75, label = r'$\dot{m}_\mathrm{des}$')
     plt.xlabel(r'$\dot{m}$' + ' [kg/s]', fontsize = 12)
     plt.ylabel(r'$V_2$' + ' [m/s]', fontsize = 12)
     plt.title('Exit velocity V2')   

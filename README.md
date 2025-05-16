@@ -1,8 +1,8 @@
 # Centrifugal compressor code
 
 Python code divided into two steps:
-	1. Prediction of centrifugal compressor geometry at design point using method proposed by Japikse (1996)
-	2. Prediction of off-design performance using method proposed by Galvas (1973) and adapted by Lowe (2016)
+	_1. Prediction of centrifugal compressor geometry at design point using method proposed by Japikse (1996)
+	_2. Prediction of off-design performance using method proposed by Galvas (1973) and adapted by Lowe (2016)
 
 The code is fully implemented for a single stage centrifugal compressor, for which it has been partly validated. 
 Scripts for multistage compressors have been implemented, but needs further improvement.
