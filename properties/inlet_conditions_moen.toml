@@ -1,6 +1,0 @@
-[inlet_conditions]
-mdot = 0.030                                # Mass flow rate [kg/s]
-P00 = 9.1e4                                 # Inlet stagnation pressure [Pa]
-T00 = 403                                   # Inlet stagnation temperature [K]
-alpha1 = 0                                  # Absolute inlet velocity angle [deg]
-B1 = 0.04                                   # Boundary layer blockage [-],        substance viscocity dependant

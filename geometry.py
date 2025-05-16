@@ -1,10 +1,18 @@
 """
 The following Python code takes a set of variables as inputs and calculates the geometry of an inducer, 
-impeller and diffuser for a centrifugal compressor.
+impeller and diffuser for a centrifugal compressor. This is done for a range of blade numbers and blade angles.
 
-Reference: Lowe, Mitchell (2016-08-21). Design of a load dissipation device for a 100 kW supercritical CO2 turbine, https://doi.org/10.14264/uql.2017.244
-Author(s): Petter Resell (summer intern, 2024), Martin Spillum Grønli (SINTEF Energy Research, 2024)
+The method follows that in Japikse (1996).
 
+References: Japikse, David (1996), Centrifugal Compressor Design and Performance, page. 6-4
+            Galvas, Michael R. (1973). Fortran program for predicting off-design performance of centrifugal compressors, https://ntrs.nasa.gov/citations/19740001912 
+            Lowe, Mitchell (2016-08-21). Design of a load dissipation device for a 100 kW supercritical CO2 turbine, https://doi.org/10.14264/uql.2017.244
+
+TO-DO:
+        - Make it possible to set a maximum efficiency and then compute the maximal pressure rise for that efficiency and rotational speed
+        - Rotor efficiency is now set constant. Is there a more precise way to calculate it?
+
+Author(s): Petter Resell (summer intern, 2024), Martin Spillum Grønli (SINTEF Energy Research, 2025)
 """
 
 
@@ -24,21 +32,21 @@ def inducer_optimization(N, Fluid, InletConditions, Compressor):
     P1i = InletConditions.P00 * (T1i / InletConditions.T00) ** (Fluid.k / (Fluid.k - 1))        # Inducer pressure [Pa]                                 Isentropic relation                        
     rho1i = P1i / (Fluid.R * T1i)                                                               # Inducer density  [kg/m^3]                             Assuming ideal gas                          
     A1i = InletConditions.mdot / (rho1i * InletConditions.Cm1i * (1 - InletConditions.B1))      # Inducer flow area [m^2]                               Continuity                                                        
-    if Compressor.optimize_inducer_geometry:        # If rh/r1 is given
+    if Compressor.optimize_rh_and_r1:        # If rh/r1 is given
         rt1i = (A1i / (np.pi * (1 - Compressor.rhDivr1 ** 2))) ** 0.5                           # Inducer tip radius [m]                                Geometry
     else:   # If rh is given and not rh/r1
         rt1i = (A1i / np.pi + Compressor.rh ** 2) ** 0.5
     U1ti = 2 * np.pi * rt1i * N / 60                                                            # Inducer blade tip speed [m/s]
     W1ti = (InletConditions.Cm1i ** 2 + (U1ti - Ctheta1i) ** 2) ** 0.5                          # Inducer relative velocity [m/s]
     
-    InletConditions.W1ti = W1ti                                                                 # Store relative velocities for plotting
+    Compressor.W1ti = W1ti                                                                      # Store relative velocities for plotting
 
     # Get the index of the minimum relative velocity
     w1ti_index_min = np.argmin(W1ti)                                                            # Index of smallest relative velocity [m/s]
     
     # Set inducer properties to the values that minimize the relative velocity
     Compressor.r1 = rt1i[w1ti_index_min]                                                        # Inducer tip radius [m]
-    if Compressor.optimize_inducer_geometry:
+    if Compressor.optimize_rh_and_r1:
         Compressor.rh = Compressor.rhDivr1 * Compressor.r1
     Compressor.Ctheta1 = Ctheta1i[w1ti_index_min]                                               # Inducer angular velocity [m/s]
     Compressor.C1 = C1i[w1ti_index_min]                                                         # Inducer velocity [m/s]
@@ -71,21 +79,21 @@ def impeller_optimization(Compressor, InletConditions, Fluid, IterationMatrix):
                 dh0s = ((Fluid.k * Fluid.R * InletConditions.T00) / (Fluid.k - 1)) * (Compressor.Pr ** ((Fluid.k - 1) / Fluid.k) - 1)       
                 Wx = dh0s / etaStage                                                # Specific work [J/kg/K]
                 
-                T02m = InletConditions.T00 + Wx * (Fluid.k - 1) / (Fluid.k * Fluid.R)        # Exit static temperature [K]     , from dh=cp*Dt   
+                T02m = InletConditions.T00 + Wx * (Fluid.k - 1) / (Fluid.k * Fluid.R)        # Exit stagnation temperature [K]          from dh=cp*Dt   
                 mu = sigma * Compressor.lambda2 / (Compressor.lambda2 - np.tan((IterationMatrix.beta2B[ib])))
-                U2 = ((Compressor.U1t * Compressor.Ctheta1 + Wx) / mu) ** (1 / 2)   # Impeller tip velocity [m/s]    , from work input coefficient MSG: Should be divided by mdot?
+                U2 = ((Compressor.U1t * Compressor.Ctheta1 + Wx) / mu) ** (1 / 2)   # Impeller tip velocity [m/s]                       from work input coefficient
                 D2 = 60 * U2 / (np.pi * Compressor.Ndes)
                 r2 = D2 / 2
                 Ctheta2m = mu * U2
                 Cm2m = Ctheta2m / Compressor.lambda2
                 C2 = (Ctheta2m ** 2 + Cm2m ** 2) ** 0.5 
-                T2m = T02m - (Fluid.k - 1) / (2 * Fluid.k * Fluid.R) * C2 ** 2      # Exit stagnation temperature [K]                            from stagnation temperature            
-                M2 = U2 / np.sqrt(Fluid.k * Fluid.R * T2m)                          # Impeller exit blade mach number                 from definition
+                T2m = T02m - (Fluid.k - 1) / (2 * Fluid.k * Fluid.R) * C2 ** 2      # Exit static temperature [K]              
+                M2 = U2 / np.sqrt(Fluid.k * Fluid.R * T2m)                          # Impeller exit blade mach number              
                 P02m = InletConditions.P00 * ((Wx * Compressor.eta_rotor * (Fluid.k - 1)  / (Fluid.k * Fluid.R * InletConditions.T00)) + 1) ** (Fluid.k / (Fluid.k - 1))     # Exit Stagnation Pressure, isentropic [Pa]                   
-                P2m = P02m / ((T02m / T2m) ** (Fluid.k / (Fluid.k - 1)))            # Exit pressure [Pa]                              from stagnation pressure, isentropic relation
-                rho2m = P2m / (T2m * Fluid.R)                                       # Exit density [kg/m^3]                           from ideal gas law
-                A2m = InletConditions.mdot / (rho2m * Cm2m)                         # Exit area [m^2]                                 from continuity
-                b2 = A2m / (np.pi * D2)                                             # Impeller exit cylinder height [m]               from geometry
+                P2m = P02m / ((T02m / T2m) ** (Fluid.k / (Fluid.k - 1)))            # Exit pressure [Pa]                                from stagnation pressure, isentropic relation
+                rho2m = P2m / (T2m * Fluid.R)                                       # Exit density [kg/m^3]                             from ideal gas law
+                A2m = InletConditions.mdot / (rho2m * Cm2m)                         # Exit area [m^2]                                   from continuity
+                b2 = A2m / (np.pi * D2)                                             # Impeller exit cylinder height [m]                 from geometry
                 
                 CpDi = 1 - 1 / Compressor.AR ** 2   
                 CpD = Compressor.etad * CpDi
@@ -94,6 +102,10 @@ def impeller_optimization(Compressor, InletConditions, Fluid, IterationMatrix):
 
                 etaStage = ((p5 / InletConditions.P00) ** ((Fluid.k - 1) / Fluid.k) - 1) / (T02m / InletConditions.T00 - 1)
                 Pr_stage = p5 / InletConditions.P00
+
+            r_inlet_rms = np.sqrt(1 / 2 * (Compressor.rh ** 2 + Compressor.r1 ** 2))
+            if r_inlet_rms / r2 > np.exp(- 8.16 * np.cos(IterationMatrix.beta2B[ib]) / IterationMatrix.ZB[iz]):     # Add correction factor if this becomes and issue. Some authors use r1/r2 for LHS of condition
+                raise ValueError("Wiesner slip factor correlation is not valid for the radius ratio r_inlet_rms / r2 = " + str(r_inlet_rms / r2) + ' > ' + str(np.exp(- 8.16 * np.cos(IterationMatrix.beta2B[ib]) / IterationMatrix.ZB[iz])))
 
             # Save conditions for current blade number and blade angle
             IterationMatrix.eta[ib, iz] = etaStage
@@ -112,7 +124,6 @@ def impeller_optimization(Compressor, InletConditions, Fluid, IterationMatrix):
             IterationMatrix.cm2m[ib, iz] = Cm2m
             IterationMatrix.Ctheta2[ib, iz] = Ctheta2m
             IterationMatrix.sigma[ib, iz] = sigma
-            
 
         # Set design point dimensions         
         design_point_blade_angle_index = np.where(IterationMatrix.beta2B == Compressor.bladeAngle)[0][0]   
@@ -125,7 +136,7 @@ def impeller_optimization(Compressor, InletConditions, Fluid, IterationMatrix):
         Compressor.dh0s = dh0s
 
     print('\nGeometry successfully calculated')  
-        
+
     print('\nDesign point:')
     print('\tRotational speed = ' + str(round(Compressor.Ndes, 2)) + ' rpm' )
     print('\trh = ' + str(round(Compressor.rh, 10) * 1000) + ' mm' )

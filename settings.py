@@ -2,11 +2,9 @@
 The following Python code defines classes which load variables for the working fluid, inlet conditions and compressor from toml files. 
 
 
-TO-DO:
-    - When defining functions in other scripts, let functions take classes as arguments instead of individual variables
-    - Make sure that all variables are defined in the classes (search for ex. Compressor in other scripts)
-
-Reference: Lowe, Mitchell (2016-08-21). Design of a load dissipation device for a 100 kW supercritical CO2 turbine, https://doi.org/10.14264/uql.2017.244
+References: Japikse, David (1996), Centrifugal Compressor Design and Performance, page. 6-4
+            
+            Lowe, Mitchell (2016-08-21). Design of a load dissipation device for a 100 kW supercritical CO2 turbine, https://doi.org/10.14264/uql.2017.244
 Author(s): Petter Resell (summer intern, 2024), Martin Spillum Grønli (SINTEF Energy Research, 2024)
 """
 
@@ -42,9 +40,8 @@ class InletConditions:
 
         # If optimizing inducer geometry by varying r1, rh and r2
         if 'Cm1i_min' in self.inlet_conditions and 'Cm1i_max' in self.inlet_conditions and 'Cm1i_step' in self.inlet_conditions:
-            self.Cm1i = np.arange(self.inlet_conditions['Cm1i_min'], self.inlet_conditions['Cm1i_max'], self.inlet_conditions['Cm1i_step']) # MSG: Move this to be part of Compressor under inducer? C1i is part of Compressor
+            self.Cm1i = np.arange(self.inlet_conditions['Cm1i_min'], self.inlet_conditions['Cm1i_max'], self.inlet_conditions['Cm1i_step']) 
             self.T00i = np.full(len(self.Cm1i), self.T00)
-            self.W1ti = None      # Inducer relative velocities [m/s] found for each Cm1
         
 
 class Compressor:
@@ -55,11 +52,12 @@ class Compressor:
         self.impellerDensity = self.impeller_properties['impellerDensity']
         self.impellerTensileStrength = self.impeller_properties['impellerTensileStrength']
         
-        # Calculating critical property of a rotating disk to use as constraint for RPM/rotational velocity/radiusettings. Disk will break at outermost point, therefore r2 and U2.
+        # Calculating critical property of a rotating disk to use as constraint for RPM, rotational velocity or radius. Disk will break at outermost point, therefore r2 and U2.
         self.U2Crit = np.sqrt(2 * self.impellerTensileStrength / self.impellerDensity)          # Applying tensile strength of disk. Titanium used.        
         
         # Inducer parameters
-        self.r1 = None      # Inducer tip radius [m]        # MSG: Change this to r1t?
+        self.W1ti = None    # Inducer relative velocities [m/s] found for each Cm1
+        self.r1 = None      # Inducer tip radius [m]      
         self.Ctheta1 = None # Inducer angular velocity [m/s]
         self.C1 = None      # Inducer velocity [m/s]
         self.T1 = None      # Inducer temperature [K]
@@ -71,7 +69,7 @@ class Compressor:
         self.Cm1 = None     # Inducer meridional velocity [m/s]
         self.beta1 = None   # Inducer relative velocity angle [deg]
         self.W1t = None     # Inducer relative velocity [m/s]
-        self.omega = None   # Angular velocity [rad/s]          =(2*np.pi*N/60). MSG: Inducer property?
+        self.omega = None   # Angular velocity [rad/s]         
         self.rh1 = None     # Hub radius [m]
 
         # Impeller
@@ -111,10 +109,10 @@ class Compressor:
         # If optimizing inducer geometry by varying r1, rh and r2
         if 'rh' in self.parameters_to_vary:
             self.rh = self.parameters_to_vary['rh']
-            self.optimize_inducer_geometry = False
+            self.optimize_rh_and_r1 = False
         else:
             self.rhDivr1 = self.parameters_to_vary['rhDivr1']
-            self.optimize_inducer_geometry = True
+            self.optimize_rh_and_r1 = True
 
     
         self.off_design_parameters = toml.load(path_to_compressor_toml)['off_design_parameters']    # Load off-design parameters from toml file
@@ -133,11 +131,11 @@ class IterationMatrix:
         self.beta2B = np.radians(np.arange(compressor_instance.beta2Bmax, compressor_instance.beta2Bmin + 1, 1))        # Array with decreasing (absolute) blade angle [rad]
         beta2B_flipped = self.beta2B[:, np.newaxis]                                                                     # Flipping from row to column vector to make matrix on next lines
 
-        # Making matrices for iteration later. Filling with nans that are only replaced if all conditions are met
-        self.rhsExpLimit = np.exp(- 8.16 * np.cos(beta2B_flipped) / self.ZB)                                                               # Matrix for epsilon_limit from wiesner condition           
-        self.sigmaWiesner = 1 - (np.sqrt(np.cos(np.radians(beta2B_flipped))) / (self.ZB ** 0.7))                                           # Matrix for wiesner slip factor 
+        # Making matrices for iteration
+        self.rhsExpLimit = np.exp(- 8.16 * np.cos(beta2B_flipped) / self.ZB)                                                            # Matrix for epsilon_limit from Eiesner condition           
+        self.sigmaWiesner = 1 - (np.sqrt(np.cos(np.radians(beta2B_flipped))) / (self.ZB ** 0.7))                                        # Matrix for Wiesner slip factor 
 
-        self.eta = np.array([[np.nan for _ in range(np.shape(self.rhsExpLimit)[1])] for _ in range(np.shape(self.rhsExpLimit)[0])])     # Matrix for efficiency. Replace by fill matrix with same shape as rhsExpLimit with nans 
+        self.eta = np.array([[np.nan for _ in range(np.shape(self.rhsExpLimit)[1])] for _ in range(np.shape(self.rhsExpLimit)[0])])     # Matrix for efficiency
         self.Pr = np.copy(self.eta)                                                                                                     # Matrix for pressure estimate
         self.r2 = np.copy(self.eta)                                                                                                     # Matrix for impeller tip radius
         self.b2 = np.copy(self.eta)                                                                                                     # Matrix for impeller exit cylinder height
@@ -148,8 +146,8 @@ class IterationMatrix:
         self.p5 = np.copy(self.eta)  
         self.T02m = np.copy(self.eta)  
         self.T2m = np.copy(self.eta)    
-        self.M2 = np.copy(self.eta)                                                                                               # Matrix for impeller mach number
+        self.M2 = np.copy(self.eta)                                                                                                     # Matrix for impeller mach number
         self.c2 = np.copy(self.eta)                                                                                                     # Matrix for impeller absolute discharge velocity
-        self.cm2m = np.copy(self.eta)                                                                                                    # Matrix for meridional component of impeller discharge velocity
+        self.cm2m = np.copy(self.eta)                                                                                                   # Matrix for meridional component of impeller discharge velocity
         self.Ctheta2 = np.copy(self.eta)                                                            
         self.sigma = np.copy(self.eta)                                                                                                  # Matrix for slip factor found to be valid

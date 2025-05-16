@@ -1,4 +1,4 @@
-# Compressor described in Japikse book
+# Compressor described in Japikse (1996)
 
 
 [impeller_properties]
@@ -8,7 +8,6 @@ impellerTensileStrength = 9e8                   # Approximate ultimate tensile s
 
 # Impeller exit flow parameters
 lambda2 = 3.503                                 # Exit swirl parameter                                         
-etaStage = 0.8                                  # Isentropic Stage efficiency [-]. Used for iteration MSG: Can be removed  
 eta_rotor = 0.9                                 # Rotor efficiency [-]
 
 

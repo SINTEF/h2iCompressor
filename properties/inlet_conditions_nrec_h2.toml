@@ -1,11 +1,11 @@
 # Concepts NREC H2 compressor (https://doi.org/10.1115/GT2024-125811)
 
 [inlet_conditions]
-mdot = 2.77                                   # Mass flow rate [kg/s] at design point ((300 * 10 ** 3 ) / (60 ** 2)) / 6  
-P00 = 25.1e5                                   # Inlet stagnation pressure [Pa]. Not the same as inlet pressure?
-T00 = 310.95                                # Inlet stagnation temperature [K]. Not the same as inlet temperature?
-Cm1i_min = 1                               # Minimum inlet absolute meridional velocity [m/s]      NOT IN USE, must be set in settings.py
-Cm1i_max = 600.5                            # Maximal inlet absolute meridional velocity [m/s]     NOT IN USE, must be set in settings.py
-Cm1i_step = 1                               # Step length for inlet absolute meridional velocity [m/s]  NOT IN USE, must be set in settings.py
+mdot = 2.77                                 # Mass flow rate at design point [kg/s]
+P00 = 25.1e5                                # Inlet stagnation pressure [Pa]
+T00 = 310.95                                # Inlet stagnation temperature [K]
+Cm1i_min = 1                                # Minimum inlet absolute meridional velocity [m/s]
+Cm1i_max = 600.5                            # Maximal inlet absolute meridional velocity [m/s]
+Cm1i_step = 1                               # Step length for inlet absolute meridional velocity [m/s]
 alpha1 = 0                                  # Absolute inlet velocity angle [deg]
-B1 = 0.04                                   # Boundary layer blockage [-],        substance viscocity dependant
+B1 = 0.04                                   # Boundary layer blockage [-] (substance viscocity dependant)
