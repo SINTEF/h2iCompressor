@@ -1,3 +1,15 @@
+"""
+This Python script computes the dimensions and performance of a multistage centrifugal compressor.
+
+TO-DO:
+        - Inlet velocity, pressure and temperature are all dependent on mass flow. This variation must be accounted 
+            for when feeding into the next compressor stage. This is not done now.
+
+Author(s): Martin Spillum Grønli (SINTEF Energy Research, 2025)
+"""
+
+
+# Import
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -61,7 +73,7 @@ def main():
         plot_optimized_geometry.plot_geometry(stage_compressor[i], stage_inlet_conditions[i], stage_iteration_matrices[i])
         
         P_outlet = stage_inlet_conditions[i].P00 * stage_compressor[i].Pr       # MSG: Change the last factor to the actual pressure ratio predicted by off-design script? Also this is dependent on mass flow
-        T_outlet = stage_inlet_conditions[i].T00                                # MSG: Assume perfect intercooling
+        T_outlet = stage_inlet_conditions[i].T00                                # MSG: Assumes perfect intercooling
 
 
         #plt.show()

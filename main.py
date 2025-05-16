@@ -1,21 +1,25 @@
 """
-The following Python code iterates through a range of rotational speeds to deteremine compressor off-design performance.
-A geometrical basis is found in geometry.py which is further built on in off-design_performance.py. Plotting of several variables of interest 
-is done by utilizing plot_compessor.py, plot_system.py, plot_text.py, plot_velocities.py and pressure_test.py.
-The script called settings.py is used for all parametrization of for instance fluid properties, inlet flow conditions, diffuser propertis etc. 
+This Python script is divided into two main steps for determination of the characteristics of a single stage compressor:
+    1. Optimize the compressor stage dimensions at the design point for a range of blade numbers and blade angles
+    2. Obtain the off-design performance for a single blade number and blade angle
 
-Authors: Petter Resell (summer intern, 2024), Martin Spillum Grønli (SINTEF Energy Research, 2024)
+Multiple fluids can be selected. However, all calculations assume ideal gas behaviour.
+The necessary input properties are set in three toml files.
+
+Author(s): Petter Resell (summer intern, 2024), Martin Spillum Grønli (SINTEF Energy Research, 2025)
 """
 
 
 def main():
-    """ Main function that finds and plots compressor geometry and compressor off-design performance """
+    """ Main function that finds and plots compressor stage geometry and compressor stage off-design performance """
     
-    fluid_name = 'h2'                   # Select working fluid, 'h2', 'air' or 'r-134a'
+    # Select working fluid, 'h2', 'air' or 'r-134a'
+    fluid_name = 'air'              
     
+    # Toml files with necessary input properties
     path_to_fluid_properties_toml = './properties/fluid_' + fluid_name + '.toml'
-    path_to_inlet_toml = './properties/inlet_conditions_nrec_h2.toml'
-    path_to_compressor_toml = './properties/compressor_nrec_h2.toml'
+    path_to_inlet_toml = './properties/inlet_conditions_lut.toml'
+    path_to_compressor_toml = './properties/compressor_lut.toml'
    
     # Import 
     import settings

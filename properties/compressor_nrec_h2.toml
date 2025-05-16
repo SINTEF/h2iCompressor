@@ -7,13 +7,12 @@ impellerTensileStrength = 9e8                   # Approximate ultimate tensile s
 
 # Impeller exit flow parameters
 lambda2 = 2.25                                  # Exit swirl parameter                                         
-etaStage = 0.8                                  # Isentropic Stage efficiency [-]. Used for iteration     
 eta_rotor = 0.9                                 # Rotor efficiency [-]      
 
 [diffuser_properties]
 # Diffuser parameters
 etad = 0.85                                     # Diffuser efficiency. MSG: Not defined by Galvas 
-AR = 1.9                                        # Inlet/outlet area ratio of the diffuser [-] MSG: AR in Galvas is the vaned diffuser area ratio. However, we assume a vaneless diffuser? So wrong?     
+AR = 1.9                                        # Inlet/outlet area ratio of the diffuser [-]
 
 
 [off_design_parameters_unknown]
@@ -49,7 +48,7 @@ bladeNumber = 32                                # Blade number of interest for o
 N_off_design_arr = [59241,                      # Rotational speeds for predicting off-design performance [rpm]
                     50000, 
                     40000]
-V0DivVcr_off_design_arr = [0.01, 0.25,          # Critical velocity ranges for predicting off-design performance [-]
-                           0.01, 0.26,
-                           0.01, 0.25]
+V0DivVcr_off_design_arr = [0.01, 0.33,          # Critical velocity ranges for predicting off-design performance [-]
+                           0.01, 0.31,
+                           0.01, 0.29]
 constant_eff_lines = [0.78, 0.80, 0.82, 0.84, 0.86]    # Lines of constant efficiency in compressor performance map

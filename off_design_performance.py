@@ -2,6 +2,8 @@
 The following Python code uses the inducer and impeller geometry obtainted from the geometry.py
 and predicts the off-design stage performance for a given blade number and blade angle.
 
+The method follows the one in Galvas (1973) with a few simplifications as described in Lowe (2016).
+
 Note that the letter B and number inside the brackets in some of the lines of code correspond
 to the equations in NASA’s Fortran model (B46, B47…B60 for example). The B denotes
 Appendix B in the original paper and the number corresponds to the equation number in
@@ -15,9 +17,11 @@ Fortran model.
 References: Lowe, Mitchell (2016-08-21). Design of a load dissipation device for a 100 kW supercritical CO2 turbine, https://doi.org/10.14264/uql.2017.244
             Galvas, Michael R. (1973). Fortran program for predicting off-design performance of centrifugal compressors, https://ntrs.nasa.gov/citations/19740001912 
 
-Author(s): Petter Resell (summer intern, 2024), Martin Spillum Grønli (SINTEF Energy Research, 2024)
+TO-DO: 
+        - Comments marked with "MSG" must be checked out 
+        - Check that simplifications of Galvas (1973) made in Lowe (2016) make sense
 
-TO-DO: Entalpy losses for vaneless diffuser dhVLD and recirculation loss dhRC is in kJ/kg while the rest are in J/kg. Must be corrected
+Author(s): Petter Resell (summer intern, 2024), Martin Spillum Grønli (SINTEF Energy Research, 2025)
 """
 
 
@@ -29,8 +33,8 @@ import matplotlib.pyplot as plt
 def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, IterationMatrix):
     """ Calculate stage off-design performance for a given rotational speed. To obtain the impeller outlet density, two functions are defined inside this function """
     
-    print('Blade number =',Compressor.bladeNumber)      # Blade number for which off-design performance is calculated 
-    print('Blade angle =', Compressor.bladeAngle)       # Blade angle for which off-design performance is calculated
+    print('Blade number =',Compressor.bladeNumber)                                  # Blade number for which off-design performance is calculated 
+    print('Blade angle =', np.rad2deg(Compressor.bladeAngle))                       # Blade angle for which off-design performance is calculated
 
     iB = int(np.where(IterationMatrix.beta2B == Compressor.bladeAngle)[0])          # Index for blade angle
     iZ = int(np.where(IterationMatrix.ZB == Compressor.bladeNumber)[0])             # Index for blade number
@@ -43,26 +47,26 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
         raise Exception(f"Blade number and blade angle is not found to be among valid cases! \n Chose another point or adjust parameters!")
 
     # Inlet conditions
-    VelCr = np.sqrt(2 * Fluid.k / (Fluid.k + 1) * Fluid.R * InletConditions.T00)    # Critical velocity wrt resonance [m/s]  MSG: This has unit m/s sqrt(kg/mol). Also do not understand this equation.
+    VelCr = np.sqrt(2 * Fluid.k / (Fluid.k + 1) * Fluid.R * InletConditions.T00)    # Critical velocity [m/s]
     Cm1h = Compressor.V0DivVcr * VelCr                                              # Absolute meridional velocity of the hub [m/s]
     T00i = np.full(len(Compressor.V0DivVcr), InletConditions.T00)                   # Inlet stagnation temperature array [K]
 
     # Calculation of inlet velocity triangles and compressor weight flow (swirl free)
     curve1rms = np.sqrt((Compressor.curvet1 ** 2 + Compressor.curveh1 ** 2) / 2)    # Root mean square of the inducer inlet hub and tip wall curvature [m^-1]
-    r1rms = np.sqrt((Compressor.r1 ** 2 + Compressor.rh ** 2) / 2)                  # Root mean square of the hub and tip inlet radius [m]  MSG: Why is RMS used here?
+    r1rms = np.sqrt((Compressor.r1 ** 2 + Compressor.rh ** 2) / 2)                  # Root mean square of the hub and tip inlet radius [m] 
 
     # Spacing for numerical integration
-    h0 = r1rms - Compressor.rh                                              # (B4) Spacing for numerical integration [-]
-    h1 = Compressor.r1 - r1rms                                              # (B5) Spacing for numerical integration [-]
+    h0 = r1rms - Compressor.rh                                                      # (B4) Spacing for numerical integration [-]
+    h1 = Compressor.r1 - r1rms                                                      # (B5) Spacing for numerical integration [-]
 
     # Absolute meridonal velocities
-    Cm1rms = Cm1h * np.exp((h0 / 2) * (Compressor.curveh1 + curve1rms))     # (B2) Absolute meridional root mean square velocity [m/s]
+    Cm1rms = Cm1h * np.exp((h0 / 2) * (Compressor.curveh1 + curve1rms))             # (B2) Absolute meridional root mean square velocity [m/s]
     Cm1t = Cm1h * np.exp(((h0 + h1) / 6) * ((2 - (h1 / h0)) * Compressor.curveh1 + (((h0 + h1) ** 2) / (h1 * h0)) * curve1rms + (2 - (h0 / h1)) * Compressor.curvet1))      # (B3) Absolute meridional velocity of the tip [m/s]
 
     # Velocities through the normal flow area at inlet
-    Cm1hn = Cm1h * np.cos(np.radians(Compressor.x))                         # (B6) Normal component of the absolute hub velocity through flow area [m/s] 
-    Cm1tn = Cm1t * np.cos(np.radians(Compressor.x))                         # (B6) Normal component of the absolute tip velocity through flow area [m/s]
-    Cm1rmsn = Cm1rms * np.cos(np.radians(Compressor.x))                     # (B6) Normal component of the root mean square velocity through flow area [m/s]
+    Cm1hn = Cm1h * np.cos(np.radians(Compressor.x))                                 # (B6) Normal component of the absolute hub velocity through flow area [m/s] 
+    Cm1tn = Cm1t * np.cos(np.radians(Compressor.x))                                 # (B6) Normal component of the absolute tip velocity through flow area [m/s]
+    Cm1rmsn = Cm1rms * np.cos(np.radians(Compressor.x))                             # (B6) Normal component of the root mean square velocity through flow area [m/s]
 
     # Densities from stagnation temperature and different velocites
     rho1h = InletConditions.rho0 * (1 - (Cm1h ** 2 / (2 * Fluid.Cp * InletConditions.T00))) ** (1 / (Fluid.k - 1))                # Inlet density of the fluid at the hub [kg/m^3]
@@ -72,45 +76,45 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
     mdoto = 2 * np.pi * (((h0 + h1) / 6) * ((2 - (h1 / h0)) * (rho1h * Compressor.rh * Cm1hn) + ((h0 + h1) ** 2 / (h0 * h1)) * (rho1rms * r1rms * Cm1rmsn) + (2 - (h0 / h1)) * (rho1t * Compressor.r1 * Cm1tn)))      # (B7) Off Design point mass flow rate [kg/s]
     
     # Blade speeds
-    U1to = np.pi * Compressor.No * Nrpm * 2 * Compressor.r1 / 60            # Off design blade tip velocity [m/s]
-    U1ho = np.pi * Compressor.No * Nrpm * 2 * Compressor.rh / 60            # Off design blade hub velocity [m/s]
-    U1rmso = ((U1to ** 2 + U1ho ** 2) / 2) ** 0.5                           # Off design root mean square velocity [m/s]
+    U1to = np.pi * Compressor.No * Nrpm * 2 * Compressor.r1 / 60                    # Off design blade tip velocity [m/s]
+    U1ho = np.pi * Compressor.No * Nrpm * 2 * Compressor.rh / 60                    # Off design blade hub velocity [m/s]
+    U1rmso = ((U1to ** 2 + U1ho ** 2) / 2) ** 0.5                                   # Off design root mean square velocity [m/s]
 
     # Relative velocities at inlet
-    W1ho = (Cm1h ** 2 + U1ho ** 2) ** 0.5                                   # Off design hub relative velocity [m/s]  
-    W1to = (Cm1t ** 2 + U1to ** 2) ** 0.5                                   # Off design tip relative velocity [m/s]  
-    W1rmso = ((W1ho ** 2 + W1to ** 2) / 2) ** 0.5                           # Root mean square relative velocity [m/s]
+    W1ho = (Cm1h ** 2 + U1ho ** 2) ** 0.5                                           # Off design hub relative velocity [m/s]  
+    W1to = (Cm1t ** 2 + U1to ** 2) ** 0.5                                           # Off design tip relative velocity [m/s]  
+    W1rmso = ((W1ho ** 2 + W1to ** 2) / 2) ** 0.5                                   # Root mean square relative velocity [m/s]
 
     # Relative flow inlet angles (not blade angle, but flow angle)
-    beta1t = []                                                             # Hub inlet relative angle [deg]
-    beta1h = []                                                             # Tip inlet relative angle [deg]
-    beta1rms = []                                                           # Root mean square inlet relative angle [deg]
+    beta1t = []                                                                     # Hub inlet relative angle [deg]
+    beta1h = []                                                                     # Tip inlet relative angle [deg]
+    beta1rms = []                                                                   # Root mean square inlet relative angle [deg]
 
-    T1 = T00i - (Cm1rms ** 2) / (2 * Fluid.Cp)                              # Inlet static temperature [K]
+    T1 = T00i - (Cm1rms ** 2) / (2 * Fluid.Cp)                                      # Inlet static temperature [K]
     for i in range (0, len(Compressor.V0DivVcr)):
-        #beta1t.append(np.degrees(np.arctan(Cm1t[i] / U1to)))               # Tip inlet relative angle [deg]    MSG: Should this be U1to/Cm1t instead? Seems to be different angle than what is used when finding eps. See https://ntrs.nasa.gov/api/citations/19930083715/downloads/19930083715.pdf. Also, is the tangential velocity of the fluid at the impeller tip inlet upstream of the blade assumed to be zero? Ref. eq. B26 and B25
+        #beta1t.append(np.degrees(np.arctan(Cm1t[i] / U1to)))                       # Tip inlet relative angle [deg]    MSG: Should this be U1to/Cm1t instead? Seems to be different angle than what is used when finding eps. See https://ntrs.nasa.gov/api/citations/19930083715/downloads/19930083715.pdf. Also, is the tangential velocity of the fluid at the impeller tip inlet upstream of the blade assumed to be zero? Ref. eq. B26 and B25
         beta1t.append(np.degrees(np.arctan(U1to / Cm1t[i])))
-        #beta1h.append(np.degrees(np.arctan(Cm1h[i] / U1ho)))               # Hub inlet relative angle [deg]    MSG: Should this be U1to/Cm1t instead? Seems to be different angle than what is used when finding eps. See https://ntrs.nasa.gov/api/citations/19930083715/downloads/19930083715.pdf. Also, is the tangential velocity of the fluid at the impeller tip inlet upstream of the blade assumed to be zero? Ref. eq. B26 and B25
+        #beta1h.append(np.degrees(np.arctan(Cm1h[i] / U1ho)))                       # Hub inlet relative angle [deg]    MSG: Should this be U1to/Cm1t instead? Seems to be different angle than what is used when finding eps. See https://ntrs.nasa.gov/api/citations/19930083715/downloads/19930083715.pdf. Also, is the tangential velocity of the fluid at the impeller tip inlet upstream of the blade assumed to be zero? Ref. eq. B26 and B25
         beta1h.append(np.degrees(np.arctan(U1ho / Cm1h[i])))
 
-        beta1rms.append(((beta1t[i] ** 2 + beta1h[i] ** 2) / 2) ** 0.5)     # Root mean square inlet relative angle [deg]
+        beta1rms.append(((beta1t[i] ** 2 + beta1h[i] ** 2) / 2) ** 0.5)             # Root mean square inlet relative angle [deg]
 
     # Inducer incidence loss
-    BBF = 1 - (ZB * Compressor.tu) / (2 * np.pi * r1rms)     # (41) Blade Blockage Factor [-]  
+    BBF = 1 - (ZB * Compressor.tu) / (2 * np.pi * r1rms)                            # (41) Blade Blockage Factor [-]  
     print('Blade blockage factor (should be around 0.9 to align with Galvas, 1973):', BBF)       
     # Declaring variables before use
-    eps = []                                        # Difference between compressor inlet relative flow angle and optimum incidence angle [deg]
-    betaOpt = []                                    # Optimum relative flow angle [deg]
-    WL = []                                         # Relative velocity loss [m/s]
-    dhInc = []                                      # Enthalpy loss due to incidence [J/kg]
-    T1oRel = []                                     # Off design inlet relative temperature [K]
-    W1cr = []                                       # Critical inlet relative velocity [m/s]
-    W1rmsEff = []                                   # Effective relative velocity [m/s]
-    T0divT1 = []                                    # Ratio of inlet static temperatures [-]
-    T1a = []                                        # Temperature just inside the blade [K]
-    T1rmso = []                                     # Off design Root mean square of static temperature at inlet [K]
-    P1rmso = []                                     # Off design root mean square of static pressure at the inlet [Pa]
-    P1arms = []                                     # Total pressure just inside the bladed row [Pa]
+    eps = []                                                                        # Difference between compressor inlet relative flow angle and optimum incidence angle [deg]
+    betaOpt = []                                                                    # Optimum relative flow angle [deg]
+    WL = []                                                                         # Relative velocity loss [m/s]
+    dhInc = []                                                                      # Enthalpy loss due to incidence [J/kg]
+    T1oRel = []                                                                     # Off design inlet relative temperature [K]
+    W1cr = []                                                                       # Critical inlet relative velocity [m/s]
+    W1rmsEff = []                                                                   # Effective relative velocity [m/s]
+    T0divT1 = []                                                                    # Ratio of inlet static temperatures [-]
+    T1a = []                                                                        # Temperature just inside the blade [K]
+    T1rmso = []                                                                     # Off design Root mean square of static temperature at inlet [K]
+    P1rmso = []                                                                     # Off design root mean square of static pressure at the inlet [Pa]
+    P1arms = []                                                                     # Total pressure just inside the bladed row [Pa]
 
     # Looping to find every variable of interest
     for i in range(0, len(Compressor.V0DivVcr)):
@@ -135,19 +139,19 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
         """ Calculate a series of velocities, temperatures and enthalpies corresponding to the impeller outlet density rho2o. 
             Finally, update density based on these properties. Function used for iteration """ 
         
-        Vm2m = mdoto / (np.pi * rho2o * (2 * Compressor.r2) * b2)                           # (B49) Meridional component of exit absolute velocity [m/s]  , MASS BALANCE                
-        VSL = U2o * (1 - sigma)                                                             # (B51) Slip velocity [m/s]  , SLIP RELATION    MSG: Check that this chooses the correct slip factor      
-        Vtheta2 = (U2o - Vm2m * np.tan(np.radians(beta2B)) - VSL)                           # (B50) Tangential component of exit absolute velocity [m/s]    , VELOCITY TRIANGLE    MSG: I think the sign before VM2m is correct here, but not sure
-        T1orelrms = T1 + W1rmso ** 2 / (2 * Fluid.Cp)                                       # Relative root mean square temperature [K]   , STAGNATION TEMPERATURE
+        Vm2m = mdoto / (np.pi * rho2o * (2 * Compressor.r2) * b2)                               # (B49) Meridional component of exit absolute velocity [m/s]  , MASS BALANCE                
+        VSL = U2o * (1 - sigma)                                                                 # (B51) Slip velocity [m/s]  , SLIP RELATION    MSG: Check that this chooses the correct slip factor      
+        Vtheta2 = (U2o - Vm2m * np.tan(np.radians(beta2B)) - VSL)                               # (B50) Tangential component of exit absolute velocity [m/s]    , VELOCITY TRIANGLE    MSG: I think the sign before VM2m is correct here, but not sure
+        T1orelrms = T1 + W1rmso ** 2 / (2 * Fluid.Cp)                                           # Relative root mean square temperature [K]   , STAGNATION TEMPERATURE
         
-        T2orel = T1orelrms + ((U2o ** 2 - U1rmso ** 2) / (2 * Fluid.Cp))                    # (B52) Exit temperature in the relative reference frame [K]  , STAGNATION RELATION 
-        Wtheta2 = U2o - Vtheta2                                                             # (B53) Tangential component of relative exit velocity [m/s], VELOCITY TRIANGLE
-        W2 = ((Vm2m ** 2) + (Wtheta2 ** 2)) ** 0.5                                          # (B54) Relative exit velocity [m/s]   ,  VELOCITY TRIANGLE
-        T2o = (T2orel - ((W2 ** 2) / (2 * Fluid.Cp)))                                       # (B55) Off design point exit temperature [K]  , STAGNATION RELATION
-        V2 = ((Vm2m ** 2) + (Vtheta2 ** 2)) ** 0.5                                          # (B56) Off design point absolute exit velocity [m/s]  ,  VELOCITY TRIANGLE  
-        T2oabs = (T2o + (V2 ** 2) / (2 * Fluid.Cp))                                         # (B57) Off design point exit temperature in the absolute reference frame [K]   , STAGNATION RELATION
-        dhaero = (Fluid.Cp * InletConditions.T00 * (T2oabs / InletConditions.T00 - 1))      # (B61) Aerodynamic enthalpy rise [J/kg]  , Cp*dT
-        qaero = dhaero / (U2o ** 2)                                                         # (B60) Dimensionless actual head [-]   , WORK COEFFICIENT
+        T2orel = T1orelrms + ((U2o ** 2 - U1rmso ** 2) / (2 * Fluid.Cp))                        # (B52) Exit temperature in the relative reference frame [K]  , STAGNATION RELATION 
+        Wtheta2 = U2o - Vtheta2                                                                 # (B53) Tangential component of relative exit velocity [m/s], VELOCITY TRIANGLE
+        W2 = ((Vm2m ** 2) + (Wtheta2 ** 2)) ** 0.5                                              # (B54) Relative exit velocity [m/s]   ,  VELOCITY TRIANGLE
+        T2o = (T2orel - ((W2 ** 2) / (2 * Fluid.Cp)))                                           # (B55) Off design point exit temperature [K]  , STAGNATION RELATION
+        V2 = ((Vm2m ** 2) + (Vtheta2 ** 2)) ** 0.5                                              # (B56) Off design point absolute exit velocity [m/s]  ,  VELOCITY TRIANGLE  
+        T2oabs = (T2o + (V2 ** 2) / (2 * Fluid.Cp))                                             # (B57) Off design point exit temperature in the absolute reference frame [K]   , STAGNATION RELATION
+        dhaero = (Fluid.Cp * InletConditions.T00 * (T2oabs / InletConditions.T00 - 1))          # (B61) Aerodynamic enthalpy rise [J/kg]  , Cp*dT
+        qaero = dhaero / (U2o ** 2)                                                             # (B60) Dimensionless actual head [-]   , WORK COEFFICIENT
         Df = (1 - W2 / W1to + (Compressor.kBL * qaero) / ((W1to / Compressor.U2) * ((ZB / np.pi) * (1 - 2 * Compressor.r1 / Compressor.D2) + 2 * 2 * Compressor.r1 / Compressor.D2)))   # (B59) Diffusion factor [-]  , EMPIRICAL
         dhBL = (0.05 * Df ** 2 * U2o ** 2)                                                      # (B58) Work loss due to blade loading [J/kg]   , ----
         Re = U2o * Compressor.D2 * rho1rms / Fluid.viscosity                                    # (B63) Reynolds number of the exit flow [-]   ,  ----
@@ -160,20 +164,19 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
         dhSF = ((Compressor.kSF * Compressor.Cf * LenDivDia * WRelDivWext2 * U2o ** 2) / HydDiaDivExitDia)       # (B64) Skin friction loss [J/kg]
         #dhSF = Compressor.kSF * Compressor.Cf * LenDivDia / HydDiaDivExitDia * W1rmso ** 2     # (B64) MSG: Alternative
 
-        dhid = (dhaero - dhInc - dhSF - dhDF - dhBL)                                                            # (B68) Ideal enthalpy rise [J/kg]
-        etaR = dhid / dhaero                                                                                    # (B69) Impeller efficiency [-]  
+        dhid = (dhaero - dhInc - dhSF - dhDF - dhBL)                                            # (B68) Ideal enthalpy rise [J/kg]
+        etaR = dhid / dhaero                                                                    # (B69) Impeller efficiency [-]  
         
         P2oabs = (P1arms * (etaR * dhaero / (Fluid.Cp * InletConditions.T00) + 1) ** (Fluid.k / (Fluid.k - 1))) # (B70) Iteration of the off design exit absolute pressure [Pa]
         
         # Check for invalid temperatures 
         for l in range(len(T2o)):
-            if T2o[l] < 0:             # MSG: Added this to raise error if negative temperatures
-                #plt.show()
-                raise ValueError('Temperature T2o is negative ' + str(T2o[l]) + '. Change range of V0DivVcr in settings.py.' + ' Index: ' + str(l)) 
+            if T2o[l] < 0:         
+                raise ValueError('Temperature T2o is negative ' + str(T2o[l]) + '. Change range of V0/Vcr')
             
         # Find impeller outlet pressure and density
-        P2o = (P2oabs / ((T2oabs / T2o) ** (Fluid.k / (Fluid.k - 1))))                  # (B71) Iteration of the off design exit pressure [Pa]      
-        rho2oit = P2o / (Fluid.R * T2o)                                                 # (B72) Iteration of the off design exit density [kg/m^3]
+        P2o = (P2oabs / ((T2oabs / T2o) ** (Fluid.k / (Fluid.k - 1))))                          # (B71) Iteration of the off design exit pressure [Pa]      
+        rho2oit = P2o / (Fluid.R * T2o)                                                         # (B72) Iteration of the off design exit density [kg/m^3]
 
         return [rho2oit, T2o, dhaero, dhBL, dhDF, dhSF, dhid, T2oabs, P2oabs, Vtheta2, Vm2m, Df, P2o, V2]
 
@@ -204,14 +207,16 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
         for i in range(0, len(Compressor.V0DivVcr)):
             print('V0/Vcr =', Compressor.V0DivVcr[i])
             rhoafter = density_impeller_outlet(rho2o)[0][i]                
+            if np.isnan(rhoafter):
+                raise ValueError('Density calculation failed. Change range of V0/Vcr')
             rho_iterated = [rhoinit, rhoafter]                              
-            
+
             # Iterate impeller outlet density until it converges
             while abs(((rho_iterated[- 1]) - (rho_iterated[- 2])) / rho_iterated[- 2]) > 0.0001:   
                 rho2oiti, T2oi, dhaeroi, dhBLi, dhDFi, dhSFi, dhidi, T2oabsi, P2oabsi, Vtheta2i, Vm2mi, Dfi, P2oi, V2i = density_impeller_outlet(rho_iterated[- 1])
                 rho_iterated.append(rho2oiti[i])                    
             
-            rho_iterated.append(rho2oiti[i])
+            rho_iterated.append(rho2oiti[i])    # MSG: If this fails, then V/Vcr is too small
             rho.append(rho2oiti[i])
             T2o.append(T2oi[i])
             dhaero.append(dhaeroi[i])
@@ -235,19 +240,19 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
     T2o = np.array(T2o)
 
     # Enthalpy loss and power contributions 
-    dhaero = np.array(dhaero)                   # Aerodynamic enthalpy rise
-    dhBL = np.array(dhBL)                       # Blade loading
-    dhDF = np.array(dhDF)                       # Disk friction
-    dhSF = np.array(dhSF)                       # Skin friciton
-    dhid = np.array(dhid)                       # Ideal enthaply rise
-    T2oabs = np.array(T2oabs)                   # Stagnation temperature at exit
-    P2oabs = np.array(P2oabs)                   # Stagnation pressure at exit
-    Vtheta2 = np.array(Vtheta2)                 # Tangential velocity component at exit
-    Vm2m = np.array(Vm2m)                       # Meridonal velocity component at exit
-    V2 = np.array(V2)                           # Absolute exit velocity
-    Df = np.array(Df)                           # Diffusion factor
-    P2o = np.array(P2o)                         # Stagnation pressure at exit after iteration
-    C2o = []                                    # Absolute flow velocity at oulet
+    dhaero = np.array(dhaero)                       # Aerodynamic enthalpy rise
+    dhBL = np.array(dhBL)                           # Blade loading
+    dhDF = np.array(dhDF)                           # Disk friction
+    dhSF = np.array(dhSF)                           # Skin friciton
+    dhid = np.array(dhid)                           # Ideal enthaply rise
+    T2oabs = np.array(T2oabs)                       # Stagnation temperature at exit
+    P2oabs = np.array(P2oabs)                       # Stagnation pressure at exit
+    Vtheta2 = np.array(Vtheta2)                     # Tangential velocity component at exit
+    Vm2m = np.array(Vm2m)                           # Meridonal velocity component at exit
+    V2 = np.array(V2)                               # Absolute exit velocity
+    Df = np.array(Df)                               # Diffusion factor
+    P2o = np.array(P2o)                             # Stagnation pressure at exit after iteration
+    C2o = []                                        # Absolute flow velocity at oulet
 
     # Finding impeller exit velocity
     for i in range(0, len(Compressor.V0DivVcr)):
@@ -259,7 +264,7 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
     alpha2 = []
     for i in range(0, len(Compressor.V0DivVcr)):
         alpha2.append(np.degrees(np.arctan(Vtheta2[i] / Vm2m[i])) )                         # Exit velocity flow angle [deg]
-        dhRC.append(0.02 * np.sqrt(np.tan(np.radians(alpha2[i]))) * Df[i] ** 2 * U2o ** 2)  # (B73) Enthalpy loss from recirculation [kJ/kg]
+        dhRC.append(0.02 * np.sqrt(np.tan(np.radians(alpha2[i]))) * Df[i] ** 2 * U2o ** 2)  # (B73) Enthalpy loss from recirculation [J/kg]
 
     # Diffuser calculations and exit losses
     etad = Compressor.etad                          # Diffuser efficiency
@@ -278,7 +283,7 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
         
         M3o.append(C3o[i] / (np.sqrt(Fluid.k * Fluid.R * T2oabs[i])))       # MSG: Think this is wrong. Here, speed of sound calculation uses absolute/stagnation temperature, but should use static temperature. It is also used at the wrong point. Should be T3o. Any way to obtain T3o/T3oabs?
         P3oabs.append(P3o[i] * (1 + (Fluid.k - 1) / 2 * M3o[i] ** 2) ** (Fluid.k / (Fluid.k - 1)))    # (B85) Absolute diffuser throat pressure [Pa]      
-        dhVLD.append(Fluid.Cp * T2oabs[i] * ((P3o[i] / P3oabs[i]) ** ((Fluid.k - 1) / Fluid.k) - (P3o[i] / P2oabs[i]) ** ((Fluid.k - 1) / Fluid.k)))  # (B86) Vaneless diffuser loss [kJ/kg]
+        dhVLD.append(Fluid.Cp * T2oabs[i] * ((P3o[i] / P3oabs[i]) ** ((Fluid.k - 1) / Fluid.k) - (P3o[i] / P2oabs[i]) ** ((Fluid.k - 1) / Fluid.k)))  # (B86) Vaneless diffuser loss [J/kg]
         
     # Overall performance
     etao = []
@@ -286,10 +291,7 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
     Pro = []
     
     for i in range(0, len(Compressor.V0DivVcr)):
-        etaAppend = (dhaero[i] - (dhInc[i] + dhBL[i] + dhSF[i] + dhVLD[i])) / (dhaero[i] + dhRC[i] + dhDF[i])    
-        etaAltAppend = ((P3o[i] / InletConditions.P00) ** ((Fluid.k - 1) / Fluid.k) - 1) / ((T2oabs[i] / InletConditions.T00) - 1)  
-        etaoAlt.append(etaAltAppend)
-        #etaAppend = ((P3o[i]/InletConditions.P00)**((Fluid.k-1)/Fluid.k)-1)/((T2o[i]/InletConditions.T00)-1)       # MSG: Test this
+        etaAppend = (dhaero[i] - (dhInc[i] + dhBL[i] + dhSF[i] + dhVLD[i])) / (dhaero[i] + dhRC[i] + dhDF[i])       # MSG: Why put dhRC and dhDF in the denominator and not in nominator?
         etao.append(etaAppend)      
         P3append = P3o[i] 
         # P3append = P3oabs[i]      
@@ -305,7 +307,7 @@ def off_design_performance(Compressor, Fluid, InletConditions, IterationMatrix):
     results_off_design = []
     N_errors = 0
     for iN in range(0, len(Compressor.N_off_design_arr)):
-        print('Rotational velocity =', Compressor.N_off_design_arr[iN], 'RPM')
+        print('\nRotational velocity =', Compressor.N_off_design_arr[iN], 'RPM')
         Compressor.V0DivVcr = np.linspace(Compressor.V0DivVcr_off_design_arr[2 * iN], Compressor.V0DivVcr_off_design_arr[2 * iN + 1], 400)
         Pro, P3o, T2oabs, mdoto, etao, U2o, M2o, enthalpy_rise_loss, V2, etaoAlt = off_design_performance_rpm(Compressor.N_off_design_arr[iN], Compressor, Fluid, InletConditions, IterationMatrix)
 
@@ -341,3 +343,7 @@ def off_design_performance(Compressor, Fluid, InletConditions, IterationMatrix):
     print(f'Number of errors in efficiency: {N_errors} out of {len(Compressor.N_off_design_arr)} rotational speeds')
         
     return results_off_design
+
+
+if __name__ == '__main__':
+    pass

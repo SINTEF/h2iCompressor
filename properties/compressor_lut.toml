@@ -8,7 +8,6 @@ impellerTensileStrength = 9e8                   # Approximate ultimate tensile s
 
 # Impeller exit flow parameters
 lambda2 = 2.25                                  # Exit swirl parameter                                         
-etaStage = 0.8                                  # Isentropic Stage efficiency [-]. Used for iteration  
 eta_rotor = 0.90                                # Rotor efficiency [-]
 
 
@@ -33,13 +32,13 @@ Cf = 0.006                                      # Friction coefficient [-]
 # Iteration control
 beta2Bmax = - 40                                # Maximum blade angle
 beta2Bmin = - 1                                 # Minimum blade angle
-bladeMin = 2                                    # Lowest bladenumber allowed
+bladeMin = 10                                   # Lowest bladenumber allowed
 bladeMax = 20                                   # Highest bladenumber allowed
 
 
 [parameters_to_vary]
 # VARY THESE PARAMETERS
-Pr = 2.2                                       # Pressure ratio [-]
+Pr = 2.36                                      # Pressure ratio [-], reduce to 2.2 to find agreement with experimental values
 Ndes = 27720                                   # Rotational speed
 rhDivr1 = 0.3002                               # Radius ratio
 #rh = 0.02025                                  # Hub radius [m], r1 = 0.06745, r2 = 0.13545

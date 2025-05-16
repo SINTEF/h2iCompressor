@@ -4,8 +4,7 @@ impellerDensity = 1540                          # Impeller density [kg/m3]
 impellerTensileStrength = 9e8                   # Approximate ultimate tensile strength UTS [Pa]
 
 # Impeller exit flow parameters
-lambda2 = 2                                     # Exit swirl parameter                                         
-etaStage = 0.72                                 # Isentropic Stage efficiency [-]. Used for iteration     
+lambda2 = 2                                     # Exit swirl parameter                                             
 eta_rotor = 0.9                                 # Rotor efficiency [-]
 
 

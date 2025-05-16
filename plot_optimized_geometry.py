@@ -22,13 +22,13 @@ def plot_dimensions(Compressor, InletConditions, IterationMatrix):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize = (12, 6))
 
     # Plot 1
-    im1 = ax1.imshow(r1Divr2, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.min(), beta2B.max()])
+    im1 = ax1.imshow(r1Divr2, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.max(), beta2B.min()])
     ax1.set_xlabel(r'$Z_\mathrm{B}$ [-]')
     ax1.set_ylabel(r'$\beta_\mathrm{2B}$ [deg]')
     fig.colorbar(im1, ax = ax1, label = r'$r_1/r_2$ [-]')
 
     # Plot 2
-    im2 = ax2.imshow(b2 * 1e3, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.min(), beta2B.max()])
+    im2 = ax2.imshow(b2 * 1e3, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.max(), beta2B.min()])
     ax2.set_xlabel(r'$Z_\mathrm{B}$ [-]')
     ax2.set_ylabel(r'$\beta_\mathrm{2B}$ [deg]')
     fig.colorbar(im2, ax = ax2, label = r'$b_2$ [mm]')
@@ -53,13 +53,13 @@ def plot_temperatures(Compressor, InletConditions, IterationMatrix):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize = (12, 6))
 
     # Plot 1
-    im1 = ax1.imshow(T02m, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.min(), beta2B.max()])
+    im1 = ax1.imshow(T02m, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.max(), beta2B.min()])
     ax1.set_xlabel(r'$Z_\mathrm{B}$ [-]')
     ax1.set_ylabel(r'$\beta_\mathrm{2B}$ [deg]')
     fig.colorbar(im1, ax = ax1, label = r'$T_\mathrm{02m}\,\, [^\circ\mathrm{C}]$')
 
     # Plot 2
-    im2 = ax2.imshow(T2m, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.min(), beta2B.max()])
+    im2 = ax2.imshow(T2m, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.max(), beta2B.min()])
     ax2.set_xlabel(r'$Z_\mathrm{B}$ [-]')
     ax2.set_ylabel(r'$\beta_\mathrm{2B}$ [deg]')
     fig.colorbar(im2, ax = ax2, label = r'$T_\mathrm{2m}\,\, [^\circ\mathrm{C}]$')
@@ -84,13 +84,13 @@ def plot_efficiency_shaft_work(Compressor, InletConditions, IterationMatrix):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize = (12, 6))
 
     # Plot 1
-    im1 = ax1.imshow(etaStage, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.min(), beta2B.max()])
+    im1 = ax1.imshow(etaStage, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.max(), beta2B.min()])
     ax1.set_xlabel(r'$Z_\mathrm{B}$ [-]')
     ax1.set_ylabel(r'$\beta_\mathrm{2B}$ [deg]')
-    fig.colorbar(im1, ax = ax1, label = r'$\eta_\mathrm{stage}$ [-]')
+    fig.colorbar(im1, ax = ax1, label = r'Required $\eta_\mathrm{stage}$ [-]')
 
     # Plot 2
-    im2 = ax2.imshow(Wx / 1e3, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.min(), beta2B.max()])
+    im2 = ax2.imshow(Wx / 1e3, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.max(), beta2B.min()])
     ax2.set_xlabel(r'$Z_\mathrm{B}$ [-]')
     ax2.set_ylabel(r'$\beta_\mathrm{2B}$ [deg]')
     fig.colorbar(im2, ax = ax2, label = r'$W_\mathrm{x}$ [kJ/kg]')
@@ -117,25 +117,25 @@ def plot_pressure(Compressor, InletConditions, IterationMatrix):
     fig, axs = plt.subplots(2, 2, figsize = (10, 10))
 
     # Plot 1
-    im1 = axs[0, 0].imshow(Pr, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.min(), beta2B.max()], vmin = 1)
+    im1 = axs[0, 0].imshow(Pr, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.max(), beta2B.min()], vmin = 1)
     axs[0, 0].set_xlabel(r'$Z_\mathrm{B}$ [-]')
     axs[0, 0].set_ylabel(r'$\beta_\mathrm{2B}$ [deg]')
     fig.colorbar(im1, ax = axs[0, 0], label = r'Pr [-]')
 
     # Plot 2
-    im2 = axs[0, 1].imshow(p5 / 1e5, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.min(), beta2B.max()])
+    im2 = axs[0, 1].imshow(p5 / 1e5, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.max(), beta2B.min()])
     axs[0, 1].set_xlabel(r'$Z_\mathrm{B}$ [-]')
     axs[0, 1].set_ylabel(r'$\beta_\mathrm{2B}$ [deg]')
     fig.colorbar(im2, ax = axs[0, 1], label = r'$p_5$ [bar]')
 
     # Plot 3
-    im3 = axs[1, 0].imshow(P02m / 1e5, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.min(), beta2B.max()])
+    im3 = axs[1, 0].imshow(P02m / 1e5, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.max(), beta2B.min()])
     axs[1, 0].set_xlabel(r'$Z_\mathrm{B}$ [-]')
     axs[1, 0].set_ylabel(r'$\beta_\mathrm{2B}$ [deg]')
     fig.colorbar(im3, ax = axs[1, 0], label = r'$p_\mathrm{02m}$ [bar]')
 
     # Plot 4
-    im4 = axs[1, 1].imshow(P2m / 1e5, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.min(), beta2B.max()])
+    im4 = axs[1, 1].imshow(P2m / 1e5, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.max(), beta2B.min()])
     axs[1, 1].set_xlabel(r'$Z_\mathrm{B}$ [-]')
     axs[1, 1].set_ylabel(r'$\beta_\mathrm{2B}$ [deg]')
     fig.colorbar(im4, ax = axs[1, 1], label = r'$p_\mathrm{2m}$ [bar]')
@@ -162,31 +162,31 @@ def plot_velocity(Compressor, InletConditions, IterationMatrix):
     fig, axs = plt.subplots(2, 2, figsize = (10, 10))
 
     # Plot 1
-    im1 = axs[0, 0].imshow(U2, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.min(), beta2B.max()])
+    im1 = axs[0, 0].imshow(U2, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.max(), beta2B.min()])
     axs[0, 0].set_xlabel(r'$Z_\mathrm{B}$ [-]')
     axs[0, 0].set_ylabel(r'$\beta_\mathrm{2B}$ [deg]')
     fig.colorbar(im1, ax = axs[0, 0], label = r'$U_2$ [m/s]')
 
     # Plot 2
-    im2 = axs[0, 1].imshow(M2, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.min(), beta2B.max()])
+    im2 = axs[0, 1].imshow(M2, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.max(), beta2B.min()])
     axs[0, 1].set_xlabel(r'$Z_\mathrm{B}$ [-]')
     axs[0, 1].set_ylabel(r'$\beta_\mathrm{2B}$ [deg]')
     fig.colorbar(im2, ax = axs[0, 1], label = r'$M_2$ [-]')
 
     # Plot 3
-    im3 = axs[1, 0].imshow(Cm2m, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.min(), beta2B.max()])
+    im3 = axs[1, 0].imshow(Cm2m, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.max(), beta2B.min()])
     axs[1, 0].set_xlabel(r'$Z_\mathrm{B}$ [-]')
     axs[1, 0].set_ylabel(r'$\beta_\mathrm{2B}$ [deg]')
     fig.colorbar(im3, ax = axs[1, 0], label = r'$C_\mathrm{m2m}$ [m/s]')
 
     # Plot 4
-    im4 = axs[1, 1].imshow(C2, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.min(), beta2B.max()])
+    im4 = axs[1, 1].imshow(C2, aspect = 'auto', extent = [ZB.min(), ZB.max(), beta2B.max(), beta2B.min()])
     axs[1, 1].set_xlabel(r'$Z_\mathrm{B}$ [-]')
     axs[1, 1].set_ylabel(r'$\beta_\mathrm{2B}$ [deg]')
     fig.colorbar(im4, ax = axs[1, 1], label = r'$C_2$ [m/s]')
 
     # Set a common title for the figure
-    fig.suptitle('Compressor stage pressures \n' + r'$C_\mathrm{m1} = $' + str(round(Compressor.Cm1, 3)) + ' m/s \n' + r'$U_\mathrm{1t} = $' + str(round(Compressor.U1t, 3)) + ' m/s')
+    fig.suptitle('Compressor stage velocities \n' + r'$C_\mathrm{m1} = $' + str(round(Compressor.Cm1, 3)) + ' m/s \n' + r'$U_\mathrm{1t} = $' + str(round(Compressor.U1t, 3)) + ' m/s')
 
     # Adjust the spacing between subplots
     fig.subplots_adjust(top = 0.9, wspace = 0.4)
@@ -250,7 +250,7 @@ def plot_min_relative_velocity(Compressor, InletConditions):
     """ Plot relative velocity as a function of inlet meridional velocity """
 
     fig, ax11 = plt.subplots()
-    plt.plot(InletConditions.Cm1i, InletConditions.W1ti)
+    plt.plot(InletConditions.Cm1i, Compressor.W1ti)
     plt.plot(Compressor.Cm1, Compressor.W1t, 'ro')
     ax11.tick_params(axis = 'both', which = 'major', labelsize = 10)
     plt.xlabel(r'$C_{\mathrm{m1}}$ [m/s]', fontsize = 12)
@@ -269,3 +269,7 @@ def plot_geometry(Compressor, InletConditions, IterationMatrix):
     plot_pressure(Compressor, InletConditions, IterationMatrix)
     plot_velocity(Compressor, InletConditions, IterationMatrix)
     #plt.show()
+
+
+if __name__ == '__main__':
+    pass
