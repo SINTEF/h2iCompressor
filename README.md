@@ -17,4 +17,4 @@ Lowe, Mitchell (2016). _Design of a load dissipation device for a 100 kW supercr
 
 
 
-Authors: Petter Resell (summer intern), Martin Spillum Grønli (SINTEF Energy Research, 2024)
+Authors: Petter Resell (summer intern), Martin Spillum Grønli (SINTEF Energy Research, 2025)
