@@ -1,7 +1,7 @@
 [project]
-name = "hydrogeni-compressor-code"
-version = "0.1.0"
-description = "Add your description here"
+name = "h2iCompressor"
+version = "1.0.0"
+description = "A python code for predicting centrifugal compressor performance"
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [

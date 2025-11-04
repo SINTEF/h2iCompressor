@@ -22,11 +22,11 @@ def main():
     path_to_compressor_toml = './properties/compressor_lut.toml'
    
     # Import 
-    import settings
-    import geometry
-    import plot_optimized_geometry
-    import off_design_performance
-    import plot_off_design_performance
+    from h2iCompressor import settings
+    from h2iCompressor import geometry
+    from h2iCompressor import plot_optimized_geometry
+    from h2iCompressor import off_design_performance
+    from h2iCompressor import plot_off_design_performance
     
     from matplotlib import pyplot as plt    
     
