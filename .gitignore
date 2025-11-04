@@ -1,2 +1,6 @@
 # Ignore files
 *.pyc
+__pycache__
+.python-version
+.tags
+old
