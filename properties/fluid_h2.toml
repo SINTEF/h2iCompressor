@@ -1,7 +1,0 @@
-# Fluid properties of hydrogen (H2)
-
-[fluid_properties]
-Cp = 14403                              # Specific heat at constant pressure [J/kg/K]                                       
-MolarMass = 0.00201568                  # Molar weight [kg/mol] 
-k = 1.41                                # Ratio of specific heats, cp/cv [-]
-viscosity = 0.88e-5                     # Dynamic viscosity [Pa s]

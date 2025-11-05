@@ -8,17 +8,15 @@ References: Japikse, David (1996), Centrifugal Compressor Design and Performance
 Author(s): Petter Resell (summer intern, 2024), Martin Spillum Grønli (SINTEF Energy Research, 2024)
 """
 
-
 # Import
 import numpy as np
 import toml
 
-
 class Fluid:
     """ Class with fluid properties """
     
-    def __init__(self, path_to_fluid_properties_toml):
-        self.fluid_properties = toml.load(path_to_fluid_properties_toml)['fluid_properties']    # Load properties from toml file
+    def __init__(self, fluid_name):
+        self.fluid_properties = toml.load("fluids.toml")[fluid_name]    # Load properties from toml file
         self.Cp = self.fluid_properties['Cp']
         self.MolarMass = self.fluid_properties['MolarMass']
         self.k = self.fluid_properties['k']
@@ -29,8 +27,8 @@ class Fluid:
 class InletConditions:
     """ Class with inlet conditions """
     
-    def __init__(self, fluid_instance, path_to_inlet_toml):
-        self.inlet_conditions = toml.load(path_to_inlet_toml)['inlet_conditions']               # Load inlet conditions from toml file
+    def __init__(self, fluid_instance, compressor_name):
+        self.inlet_conditions = toml.load("compressors.toml")[compressor_name]['inlet_conditions']               # Load inlet conditions from toml file
         self.mdot = self.inlet_conditions['mdot']
         self.P00 = self.inlet_conditions['P00']
         self.T00 = self.inlet_conditions['T00']
@@ -42,13 +40,13 @@ class InletConditions:
         if 'Cm1i_min' in self.inlet_conditions and 'Cm1i_max' in self.inlet_conditions and 'Cm1i_step' in self.inlet_conditions:
             self.Cm1i = np.arange(self.inlet_conditions['Cm1i_min'], self.inlet_conditions['Cm1i_max'], self.inlet_conditions['Cm1i_step']) 
             self.T00i = np.full(len(self.Cm1i), self.T00)
-        
 
 class Compressor:
     """ Class with compressor properties """
     
-    def __init__(self, fluid_instance, inlet_conditions_instance, path_to_compressor_toml):
-        self.impeller_properties = toml.load(path_to_compressor_toml)['impeller_properties']    # Load impeller properties from toml file
+    def __init__(self, fluid_instance, inlet_conditions_instance, compressor_name):
+        self.compressor = toml.load("compressors.toml")[compressor_name]    # Load compressor properties from toml file
+        self.impeller_properties = self.compressor['impeller_properties']
         self.impellerDensity = self.impeller_properties['impellerDensity']
         self.impellerTensileStrength = self.impeller_properties['impellerTensileStrength']
         
@@ -82,11 +80,11 @@ class Compressor:
         self.lambda2 = self.impeller_properties['lambda2']
         self.eta_rotor = self.impeller_properties['eta_rotor']
 
-        self.diffuser_properties = toml.load(path_to_compressor_toml)['diffuser_properties']    # Load diffuser properties from toml file
+        self.diffuser_properties = self.compressor['diffuser_properties']
         self.etad = self.diffuser_properties['etad']
         self.AR = self.diffuser_properties['AR']
         
-        self.off_design_parameters_unknown = toml.load(path_to_compressor_toml)['off_design_parameters_unknown']    # Load off-design parameters from toml file
+        self.off_design_parameters_unknown = self.compressor['off_design_parameters_unknown']
         self.No = self.off_design_parameters_unknown['No']                  # Off design speed percentage that requires performance prediction [rpm]
         self.tu = self.off_design_parameters_unknown['tu']                  # Blade thickness [m]
         self.curvet1 = self.off_design_parameters_unknown['curvet1']        # Inducer inlet tip wall curvature [m^-1]
@@ -96,13 +94,13 @@ class Compressor:
         self.kSF = self.off_design_parameters_unknown['kSF']                # Skin friction coefficient [-]
         self.Cf = self.off_design_parameters_unknown['Cf']                  # Friction coefficient [-]
         
-        self.iteration_parameters = toml.load(path_to_compressor_toml)['iteration_parameters']      # Load iteration parameters from toml file
+        self.iteration_parameters = self.compressor['iteration_parameters']
         self.beta2Bmax = self.iteration_parameters['beta2Bmax']
         self.beta2Bmin = self.iteration_parameters['beta2Bmin']
         self.bladeMin = self.iteration_parameters['bladeMin']
         self.bladeMax = self.iteration_parameters['bladeMax']
 
-        self.parameters_to_vary = toml.load(path_to_compressor_toml)['parameters_to_vary']          # Load parameters to vary from toml file
+        self.parameters_to_vary = self.compressor['parameters_to_vary']
         self.Pr = self.parameters_to_vary['Pr']
         self.Ndes = self.parameters_to_vary['Ndes']
 
@@ -115,7 +113,7 @@ class Compressor:
             self.optimize_rh_and_r1 = True
 
     
-        self.off_design_parameters = toml.load(path_to_compressor_toml)['off_design_parameters']    # Load off-design parameters from toml file
+        self.off_design_parameters = self.compressor['off_design_parameters']
         self.bladeAngle = np.deg2rad(self.off_design_parameters['bladeAngle'])
         self.bladeNumber = self.off_design_parameters['bladeNumber']
         self.N_off_design_arr = self.off_design_parameters['N_off_design_arr']

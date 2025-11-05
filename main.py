@@ -14,12 +14,9 @@ def main():
     """ Main function that finds and plots compressor stage geometry and compressor stage off-design performance """
     
     # Select working fluid, 'h2', 'air' or 'r-134a'
-    fluid_name = 'air'              
-    
-    # Toml files with necessary input properties
-    path_to_fluid_properties_toml = './properties/fluid_' + fluid_name + '.toml'
-    path_to_inlet_toml = './properties/inlet_conditions_lut.toml'
-    path_to_compressor_toml = './properties/compressor_lut.toml'
+    fluid_name = 'air'
+    # Select the compressor under study, "japikse", "lowe", "LUT", "NASA", NREC", "default"
+    compressor_name = "LUT"
    
     # Import 
     from h2iCompressor import settings
@@ -28,16 +25,15 @@ def main():
     from h2iCompressor import off_design_performance
     from h2iCompressor import plot_off_design_performance
     
-    from matplotlib import pyplot as plt    
-    
+    from matplotlib import pyplot as plt
     # Set plot parameters
     plt.rcParams.update(plt.rcParamsDefault)
     plt.rcParams.update({'font.size': 12})
 
     # Load and make instances of classes for fluid, inlet conditions, compressor and iteration matrices
-    Fluid = settings.Fluid(path_to_fluid_properties_toml = path_to_fluid_properties_toml)
-    InletConditions = settings.InletConditions(fluid_instance = Fluid, path_to_inlet_toml = path_to_inlet_toml)
-    Compressor = settings.Compressor(fluid_instance = Fluid, inlet_conditions_instance = InletConditions, path_to_compressor_toml = path_to_compressor_toml)
+    Fluid = settings.Fluid(fluid_name = fluid_name)
+    InletConditions = settings.InletConditions(fluid_instance = Fluid, compressor_name = compressor_name)
+    Compressor = settings.Compressor(fluid_instance = Fluid, inlet_conditions_instance = InletConditions, compressor_name = compressor_name)
     IterationMatrix = settings.IterationMatrix(compressor_instance = Compressor)
     
     print('\nCalculating geometry...') 

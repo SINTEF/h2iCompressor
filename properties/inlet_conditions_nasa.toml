@@ -1,9 +1,0 @@
-[inlet_conditions]
-mdot = 0.7                                  # Mass flow rate [kg/s]
-P00 = 1.01325e5                             # Inlet stagnation pressure [Pa]
-T00 = 288.15                                # Inlet stagnation temperature [K]
-Cm1i_min = 1                                # Minimum inlet absolute meridional velocity [m/s]
-Cm1i_max = 600.5                            # Maximal inlet absolute meridional velocity [m/s]
-Cm1i_step = 1                               # Step length for inlet absolute meridional velocity [m/s]
-alpha1 = 0                                  # Absolute inlet velocity angle [deg]
-B1 = 0.04                                   # Boundary layer blockage [-] (substance viscocity dependant)

@@ -36,9 +36,8 @@ def main():
     
     fluid_name = 'h2'                   # Select working fluid, 'h2', 'air' or 'r-134a'
     
-    path_to_fluid_properties_toml = './properties/fluid_' + fluid_name + '.toml'
-    path_to_inlet_toml = './properties/inlet_conditions_nrec_h2.toml'
-    path_to_compressor_toml = './properties/compressor_nrec_h2.toml'
+    # Select the compressor under study, "japikse", "lowe", "LUT", "NASA", NREC", "default"
+    compressor_name = "NREC"
     
     # Import modules
     from h2iCompressor import settings
@@ -50,7 +49,7 @@ def main():
     from matplotlib import pyplot as plt    
 
     # Initialize fluid
-    Fluid = settings.Fluid(path_to_fluid_properties_toml = path_to_fluid_properties_toml)
+    Fluid = settings.Fluid(fluid_name = fluid_name)
     
     n_stages = 3
     stage_compressor = []
@@ -58,8 +57,8 @@ def main():
     stage_iteration_matrices = []
 
     for i in range(n_stages):
-        stage_inlet_conditions.append(settings.InletConditions(fluid_instance = Fluid, path_to_inlet_toml = path_to_inlet_toml))
-        stage_compressor.append(settings.Compressor(fluid_instance = Fluid, inlet_conditions_instance = stage_inlet_conditions[i], path_to_compressor_toml = path_to_compressor_toml))
+        stage_inlet_conditions.append(settings.InletConditions(fluid_instance = Fluid, compressor_name = compressor_name))
+        stage_compressor.append(settings.Compressor(fluid_instance = Fluid, inlet_conditions_instance = stage_inlet_conditions[i], compressor_name = compressor_name))
         stage_iteration_matrices.append(settings.IterationMatrix(compressor_instance = stage_compressor[i]))
 
         if i != 0:
