@@ -1,6 +1,6 @@
 #!/bin/bash
 
-file="notebook_template.py"
+file="notebook.py"
 pkgdir="h2iCompressor"
 
 if [[ -z "$file" || ! -f "$file" ]]; then
@@ -18,7 +18,7 @@ declare -a inserts
 
 while IFS= read -r line; do
   ((linenum ++))
-  if [[ "$line" == "#inline "* ]]; then
+  if [[ "$line" == *"#inline "* ]]; then
     linenums+=($linenum)
     linearr=($line)
     inserts+=(${linearr[1]})
@@ -43,7 +43,7 @@ if [[ "$response" =~ ^(yes|y)$ ]]; then
         echo "Error: could not find $pkgdir/$ins, skipping..."
       else
         sed -i -e "/#inline $ins/r $pkgdir/$ins" $file
-        sed -i "/#inline $ins/#Have inlined $ins" $file
+        sed -i "/#inline $ins/#Have inlined $ins/" $file
       fi
     done
 
