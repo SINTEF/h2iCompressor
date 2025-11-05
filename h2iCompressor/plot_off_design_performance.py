@@ -4,7 +4,6 @@ Python script for plotting the off-design performance computed in off_design_per
 Author(s): Petter Resell (summer intern, 2024), Martin Spillum Grønli (SINTEF Energy Research, 2025)
 """
 
-
 # Import
 import numpy as np
 import matplotlib.pyplot as plt
@@ -17,9 +16,8 @@ def plot_off_design(results_off_design, Compressor, InletConditions):
     # Plot pressure ratio
     fig1 = plt.figure('Total-to-static pressure ratio')
     
-    plot_experimental_values = True
-    if plot_experimental_values:        
-        df = pd.read_csv('properties/lut_compressor_pressure_ratios.csv')
+    if Compressor.name == "LUT":
+        df = pd.read_csv('public/lut_compressor_pressure_ratios.csv')
         x_values_1 = df.iloc[:, 0]
         y_values_curve_1 = df.iloc[:, 1]
         x_values_2 = df.iloc[:, 2]
@@ -37,7 +35,7 @@ def plot_off_design(results_off_design, Compressor, InletConditions):
     plt.ylabel(r'$\frac{P_{3}}{P_{00}}$', rotation = 45, fontsize = 12)
     plt.xlabel(r'$\dot{m}$' + ' ' + '[kg/s]', fontsize = 12)      
     plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
-    if plot_experimental_values:
+    if Compressor.name == "LUT":
         plt.plot(np.array(x_values_1), np.array(y_values_curve_1), 'k-', label = 'Design curve 1')
         plt.plot(np.array(x_values_2), np.array(y_values_curve_2), 'k--', label = 'Design curve 2')
         plt.plot(np.array(x_values_3), np.array(y_values_curve_3), 'k-.', label = 'Design curve 3')
