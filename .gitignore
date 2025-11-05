@@ -4,3 +4,4 @@ __pycache__
 .python-version
 .tags
 old
+output_notebook_template.py
