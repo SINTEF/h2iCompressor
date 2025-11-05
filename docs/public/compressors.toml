@@ -1,0 +1,332 @@
+# Compressor described in Japikse (1996)
+[japikse]
+  [japikse.inlet_conditions]
+  mdot = 9.435                                # Mass flow rate at design point [kg/s]
+  P00 = 304748.27                             # Inlet stagnation pressure [Pa]
+  T00 = 277.594                               # Inlet stagnation temperature [K]
+  Cm1i_min = 1                                # Minimum inlet absolute meridional velocity [m/s] 
+  Cm1i_max = 600.5                            # Maximal inlet absolute meridional velocity [m/s] 
+  Cm1i_step = 0.5                             # Step length for inlet absolute meridional velocity [m/s]  
+  alpha1 = 0                                  # Absolute inlet velocity angle [deg]
+  B1 = 0.02                                   # Boundary layer blockage [-] (substance viscocity dependant)
+
+  [japikse.impeller_properties]
+  # Ti-6Al-2Sn-4Zr-2Mo titanium  properties https://www.azom.com/article.aspx?ArticleID=9298
+  impellerDensity = 1540                          # Impeller density [kg/m3]
+  impellerTensileStrength = 9e8                   # Approximate ultimate tensile strength UTS [Pa]
+  # Impeller exit flow parameters
+  lambda2 = 3.503                                 # Exit swirl parameter                                         
+  eta_rotor = 0.9                                 # Rotor efficiency [-]
+  
+  [japikse.diffuser_properties]
+  # Diffuser parameters
+  etad = 0.9                                      # Diffuser efficiency. MSG: Not defined by Galvas 
+  AR = 2.5                                        # Inlet/outlet area ratio of the (vaneless) diffuser [-]  
+  
+  [japikse.off_design_parameters_unknown]
+  No = 1.0                                        # Off design speed percentage that requires performance prediction [rpm]
+  tu = 0.003                                      # Blade thickness [m]
+  curvet1 = 0                                     # Inducer inlet tip wall curvature [m^-1]
+  curveh1 = 7                                     # Inducer inlet hub wall curvature [m^-1]
+  x = 0                                           # Streamline angle [degrees] from axial direction
+  kBL = 0.6                                       # Blading loss coefficient [-]
+  kSF = 7.0                                       # Skin friction coefficient [-]
+  Cf = 0.0055                                     # Friction coefficient [-]
+      
+  [japikse.iteration_parameters]
+  # Iteration control
+  beta2Bmax = - 60                                # Maximum blade angle
+  beta2Bmin = - 40                                # Minimum blade angle
+  bladeMin = 2                                    # Lowest bladenumber allowed
+  bladeMax = 30                                   # Highest bladenumber allowed
+  
+  [japikse.parameters_to_vary]
+  # Parameters to vary
+  Pr = 3                                          # Pressure ratio [-]
+  Ndes = 18200                                    # Rotational speed
+  rhDivr1 = 0.35                                  # Radius ratio [-], r1/r2 = 0.5753
+  #rh = 0.02025                                   # Hub radius [m], r1 = 0.06745, r2 = 0.13545
+  
+  [japikse.off_design_parameters]
+  bladeAngle = - 45                               # Blade angle of interest for off-desing_performance.py [degrees]
+  bladeNumber = 16                                # Blade number of interest for off-desing_performance.py
+  N_off_design_arr = [18200]                      # Rotational speeds for predicting off-design performance [rpm]
+  V0DivVcr_off_design_arr = [0.1, 0.7]            # Critical velocity ranges for predicting off-design performance [-]
+  constant_eff_lines = [0.71, 0.73, 0.75, 0.77, 0.78, 0.81]    # Lines of constant efficiency in compressor performance map
+  
+# Compressor described by Lowe (2016)
+[lowe]
+  [lowe.inlet_conditions]
+  mdot = 0.087                                # Mass flow rate at design point [kg/s]
+  P00 = 1.01300e5                             # Inlet stagnation pressure [Pa]
+  T00 = 293                                   # Inlet stagnation temperature [K]
+  Cm1i_min = 10                               # Minimum inlet absolute meridional velocity [m/s]
+  Cm1i_max = 600.5                            # Maximal inlet absolute meridional velocity [m/s]
+  Cm1i_step = 1                               # Step length for inlet absolute meridional velocity [m/s]
+  alpha1 = 0                                  # Absolute inlet velocity angle [deg]
+  B1 = 0.04                                   # Boundary layer blockage [-] (substance viscocity dependant)
+
+  [lowe.impeller_properties]
+  # Ti-6Al-2Sn-4Zr-2Mo titanium  properties https://www.azom.com/article.aspx?ArticleID=9298
+  impellerDensity = 1540                          # Impeller density [kg/m3]
+  impellerTensileStrength = 9e8                   # Approximate ultimate tensile strength UTS [Pa]
+  # Impeller exit flow parameters
+  lambda2 = 2                                     # Exit swirl parameter                                             
+  eta_rotor = 0.9                                 # Rotor efficiency [-]
+  
+  [lowe.diffuser_properties]
+  # Diffuser parameters
+  etad = 0.85                                     # Diffuser efficiency
+  AR = 2.5                                        # Inlet/outlet area ratio of the diffuser [-]         
+  
+  [lowe.off_design_parameters_unknown]
+  No = 1.0                                        # Off design speed percentage that requires performance prediction [rpm]
+  tu = 0.002                                      # Blade thickness [m]
+  curvet1 = 0                                     # Inducer inlet tip wall curvature [m^-1]
+  curveh1 = 0                                     # Inducer inlet hub wall curvature [m^-1]
+  x = 10                                          # Streamline angle [degrees] from axial direction
+  kBL = 0.6                                       # Blading loss coefficient [-]
+  kSF = 7.0                                       # Skin friction coefficient [-]
+  Cf = 0.01                                       # Friction coefficient [-]
+  
+  [lowe.iteration_parameters]
+  # Iteration control
+  beta2Bmax = - 50                                # Maximum blade angle
+  beta2Bmin = 0                                   # Minimum blade angle
+  bladeMin = 2                                    # Lowest bladenumber allowed
+  bladeMax = 30                                   # Highest bladenumber allowed
+  
+  [lowe.parameters_to_vary]
+  # VARY THESE PARAMETERS
+  Pr = 1.625                                      # Pressure ratio [-]
+  Ndes = 120000                                   # Rotational speed
+  rh = 0.00575                                    # Hub radius [m], r1 = 0.0186, r2 = 0.024
+  #rhDivr1 = 0.5313                               # Inducer hub radius over inducer tip radius [-], r1/r2 = 0.5614
+  
+  [lowe.off_design_parameters]
+  bladeAngle = - 40                               # Blade angle of interest for off-desing_performance.py [degrees]
+  bladeNumber = 12                                # Blade number of interest for off-desing_performance.py
+  N_off_design_arr = [120000]                     # Rotational speeds for predicting off-design performance [rpm]
+  V0DivVcr_off_design_arr = [0.1, 0.7]            # Critical velocity ranges for predicting off-design performance [-]
+  constant_eff_lines = [0.71, 0.73, 0.75, 0.77, 0.78, 0.81]    # Lines of constant efficiency in compressor performance map
+
+# Compressor at LUT, Finland described in https://doi.org/10.1155/2019/7415263 (in that paper the diameter is wrongly interchanged with radius)
+[LUT]
+  [LUT.inlet_conditions]
+  mdot = 1.8                                  # Mass flow rate at design point [kg/s]
+  P00 = 96000                                 # Inlet stagnation pressure [Pa]
+  T00 = 300                                   # Inlet stagnation temperature [K]
+  Cm1i_min = 1                                # Minimum inlet absolute meridional velocity [m/s]   
+  Cm1i_max = 600.5                            # Maximal inlet absolute meridional velocity [m/s]   
+  Cm1i_step = 1                               # Step length for inlet absolute meridional velocity [m/s]
+  alpha1 = 0                                  # Absolute inlet velocity angle [deg]
+  B1 = 0.04                                   # Boundary layer blockage [-] (substance viscocity dependant)
+
+  [LUT.impeller_properties]
+  # Ti-6Al-2Sn-4Zr-2Mo titanium  properties https://www.azom.com/article.aspx?ArticleID=9298
+  impellerDensity = 1540                          # Impeller density [kg/m3]
+  impellerTensileStrength = 9e8                   # Approximate ultimate tensile strength UTS [Pa]
+  # Impeller exit flow parameters
+  lambda2 = 2.25                                  # Exit swirl parameter                                         
+  eta_rotor = 0.90                                # Rotor efficiency [-]
+  
+  [LUT.diffuser_properties]
+  # Diffuser parameters
+  etad = 0.85                                     # Diffuser efficiency. MSG: Not defined by Galvas 
+  AR = 1.69                                       # Inlet/outlet area ratio of the (vaneless) diffuser [-]  
+  
+  [LUT.off_design_parameters_unknown]
+  No = 1.0                                        # Off design speed percentage that requires performance prediction [rpm]
+  tu = 0.003                                      # Blade thickness [m]
+  curvet1 = 0                                     # Inducer inlet tip wall curvature [m^-1]
+  curveh1 = 7                                     # Inducer inlet hub wall curvature [m^-1]
+  x = 0                                           # Streamline angle [degrees] from axial direction
+  kBL = 0.6                                       # Blading loss coefficient [-]
+  kSF = 7.0                                       # Skin friction coefficient [-]
+  Cf = 0.006                                      # Friction coefficient [-]
+  
+  [LUT.iteration_parameters]
+  # Iteration control
+  beta2Bmax = - 40                                # Maximum blade angle
+  beta2Bmin = - 1                                 # Minimum blade angle
+  bladeMin = 10                                   # Lowest bladenumber allowed
+  bladeMax = 20                                   # Highest bladenumber allowed
+  
+  [LUT.parameters_to_vary]
+  # VARY THESE PARAMETERS
+  Pr = 2.36                                      # Pressure ratio [-], reduce to 2.2 to find agreement with experimental values
+  Ndes = 27720                                   # Rotational speed
+  rhDivr1 = 0.3002                               # Radius ratio
+  #rh = 0.02025                                  # Hub radius [m], r1 = 0.06745, r2 = 0.13545
+  
+  [LUT.off_design_parameters]
+  bladeAngle = - 40                               # Blade angle of interest for off-desing_performance.py [degrees]
+  bladeNumber = 18                                # Blade number of interest for off-desing_performance.py
+  N_off_design_arr = [28920,27720,24960,21840,19380] # Rotational speeds for predicting off-design performance [rpm]
+  V0DivVcr_off_design_arr = [0.02,0.55,0.02,0.52,0.02,0.46,0.02,0.41,0.02,0.37] # Critical velocity ranges for predicting off-design performance [-]
+  constant_eff_lines = [0.71, 0.73, 0.75, 0.77, 0.78, 0.81] # Lines of constant efficiency in compressor performance map
+
+# Compressor definition from NASA, see Galvas (1973)
+[NASA]
+  [NASA.inlet_conditions]
+  mdot = 0.7                                  # Mass flow rate [kg/s]
+  P00 = 1.01325e5                             # Inlet stagnation pressure [Pa]
+  T00 = 288.15                                # Inlet stagnation temperature [K]
+  Cm1i_min = 1                                # Minimum inlet absolute meridional velocity [m/s]
+  Cm1i_max = 600.5                            # Maximal inlet absolute meridional velocity [m/s]
+  Cm1i_step = 1                               # Step length for inlet absolute meridional velocity [m/s]
+  alpha1 = 0                                  # Absolute inlet velocity angle [deg]
+  B1 = 0.04                                   # Boundary layer blockage [-] (substance viscocity dependant)
+
+  [NASA.impeller_properties]
+  # Ti-6Al-2Sn-4Zr-2Mo titanium  properties https://www.azom.com/article.aspx?ArticleID=9298
+  impellerDensity = 1540                          # Impeller density [kg/m3]
+  impellerTensileStrength = 12e8#9e8              # Approximate ultimate tensile strength UTS [Pa]
+  # Impeller exit flow parameters
+  lambda2 = 2                                     # Exit swirl parameter                                         
+  eta_rotor = 0.9                                 # Rotor efficiency [-]
+  
+  [NASA.diffuser_properties]
+  # Diffuser parameters
+  etad = 0.85                                     # Diffuser efficiency. MSG: Not defined by Galvas 
+  AR = 2.75                                       # Inlet/outlet area ratio of the diffuser [-] MSG: AR in Galvas is the vaned diffuser area ratio. However, we assume a vaneless diffuser? So wrong?     
+  
+  [NASA.off_design_parameters_unknown]
+  No = 1.0                                        # Off design speed percentage that requires performance prediction [rpm]
+  tu = 0.002                                      # Blade thickness [m]
+  curvet1 = 0                                     # Inducer inlet tip wall curvature [m^-1]
+  curveh1 = 7                                     # Inducer inlet hub wall curvature [m^-1]
+  x = 0                                           # Streamline angle [degrees] from axial direction
+  kBL = 0.6                                       # Blading loss coefficient [-]
+  kSF = 7.0                                       # Skin friction coefficient [-]
+  Cf = 0.004                                      # Friction coefficient [-]
+  
+  [NASA.iteration_parameters]
+  # Iteration control
+  beta2Bmax = - 25                                # Maximum blade angle
+  beta2Bmin = -20                                 # Minimum blade angle
+  bladeMin = 30                                   # Lowest bladenumber allowed
+  bladeMax = 35                                   # Highest bladenumber allowed
+  
+  [NASA.parameters_to_vary]
+  # VARY THESE PARAMETERS
+  Pr = 6.5                                        # Pressure ratio [-]
+  Ndes = 72000                                    # Rotational speed
+  rhDivr1 = 0.5313                                # Radius ratio [-], r1Divr2 = 0.5614
+  
+  [NASA.off_design_parameters]
+  bladeAngle = - 25                               # Blade angle of interest for off-desing_performance.py [degrees]
+  bladeNumber = 32                                # Blade number of interest for off-desing_performance.py
+  N_off_design_arr = [72000]                      # Rotational speeds for predicting off-design performance [rpm]
+  V0DivVcr_off_design_arr = [0.1, 0.51]            # Critical velocity ranges for predicting off-design performance [-]
+  constant_eff_lines = [0.71, 0.73, 0.75, 0.77, 0.78, 0.81]    # Lines of constant efficiency in compressor performance map
+
+# Concepts NREC H2 compressor (https://doi.org/10.1115/GT2024-125811)
+[NREC]
+  [NREC.inlet_conditions]
+  mdot = 2.77                                 # Mass flow rate at design point [kg/s]
+  P00 = 25.1e5                                # Inlet stagnation pressure [Pa]
+  T00 = 310.95                                # Inlet stagnation temperature [K]
+  Cm1i_min = 1                                # Minimum inlet absolute meridional velocity [m/s]
+  Cm1i_max = 600.5                            # Maximal inlet absolute meridional velocity [m/s]
+  Cm1i_step = 1                               # Step length for inlet absolute meridional velocity [m/s]
+  alpha1 = 0                                  # Absolute inlet velocity angle [deg]
+  B1 = 0.04                                   # Boundary layer blockage [-] (substance viscocity dependant)
+
+  [NREC.impeller_properties]
+  # Ti-6Al-2Sn-4Zr-2Mo titanium  properties https://www.azom.com/article.aspx?ArticleID=9298
+  impellerDensity = 1540                          # Impeller density [kg/m3]
+  impellerTensileStrength = 9e8                   # Approximate ultimate tensile strength UTS [Pa]
+  # Impeller exit flow parameters
+  lambda2 = 2.25                                  # Exit swirl parameter                                         
+  eta_rotor = 0.9                                 # Rotor efficiency [-]      
+  
+  [NREC.diffuser_properties]
+  # Diffuser parameters
+  etad = 0.85                                     # Diffuser efficiency. MSG: Not defined by Galvas 
+  AR = 1.9                                        # Inlet/outlet area ratio of the diffuser [-]
+  
+  [NREC.off_design_parameters_unknown]
+  No = 1.0                                        # Off design speed percentage that requires performance prediction [rpm]
+  tu = 0.003                                      # Blade thickness [m]
+  curvet1 = 0                                     # Inducer inlet tip wall curvature [m^-1]
+  curveh1 = 7                                     # Inducer inlet hub wall curvature [m^-1]
+  x = 0                                           # Streamline angle [degrees] from axial direction
+  kBL = 0.75                                      # Blading loss coefficient [-]
+  kSF = 5.6                                       # Skin friction coefficient [-]
+  Cf = 0.006                                      # Friction coefficient [-]
+      
+  [NREC.iteration_parameters]
+  # Iteration control
+  beta2Bmax = - 5                                 # Maximum blade angle
+  beta2Bmin = - 0                                 # Minimum blade angle
+  bladeMin = 30                                   # Lowest bladenumber allowed
+  bladeMax = 35                                   # Highest bladenumber allowed
+  
+  [NREC.parameters_to_vary]
+  # VARY THESE PARAMETERS
+  Pr = 1.263                                      # Pressure ratio [-]
+  Ndes = 59241                                    # Rotational speed
+  #rhDivr1 = 0.4                                  # Radius ratio
+  rh = 0.0243                                     # Hub radius [m]. r1 = 0.0608, r2 = 0.1015
+  
+  [NREC.off_design_parameters]
+  bladeAngle = - 2                                # Blade angle of interest for off-desing_performance.py [degrees]
+  bladeNumber = 32                                # Blade number of interest for off-desing_performance.py
+  N_off_design_arr = [59241,50000,40000]          # Rotational speeds for predicting off-design performance [rpm]
+  V0DivVcr_off_design_arr = [0.01,0.33,0.01,0.31,0.01,0.29] # Critical velocity ranges for predicting off-design performance [-]
+  constant_eff_lines = [0.78, 0.80, 0.82, 0.84, 0.86] # Lines of constant efficiency in compressor performance map
+
+[default]
+  [default.inlet_conditions]
+  mdot = 25                                   # Mass flow rate at design point [kg/s] 
+  P00 = 3e6                                   # Inlet stagnation pressure [Pa]
+  T00 = 293                                   # Inlet stagnation temperature [K]
+  Cm1i_min = 10                               # Minimum inlet absolute meridional velocity [m/s]
+  Cm1i_max = 600.5                            # Maximal inlet absolute meridional velocity [m/s]
+  Cm1i_step = 1                               # Step length for inlet absolute meridional velocity [m/s]
+  alpha1 = 0                                  # Absolute inlet velocity angle [deg]
+  B1 = 0.04                                   # Boundary layer blockage [-] (substance viscocity dependant)
+
+  [default.impeller_properties]
+  # Ti-6Al-2Sn-4Zr-2Mo titanium  properties https://www.azom.com/article.aspx?ArticleID=9298
+  impellerDensity = 1540                          # Impeller density [kg/m3]
+  impellerTensileStrength = 9e8                   # Approximate ultimate tensile strength UTS [Pa]
+  # Impeller exit flow parameters
+  lambda2 = 2                                     # Exit swirl parameter                                          
+  eta_rotor = 0.9                                 # Rotor efficiency [-]
+  
+  [default.diffuser_properties]
+  # Diffuser parameters
+  etad = 0.85                                     # Diffuser efficiency (-)
+  AR = 2.5                                        # Inlet/outlet area ratio of the diffuser [-]         
+  
+  [default.off_design_parameters_unknown]
+  No = 1.0                                        # Off design speed percentage that requires performance prediction [rpm]
+  tu = 0.002                                      # Blade thickness [m]
+  curvet1 = 0                                     # Inducer inlet tip wall curvature [m^-1]
+  curveh1 = 0                                     # Inducer inlet hub wall curvature [m^-1]
+  x = 10                                          # Streamline angle [degrees] from axial direction
+  kBL = 0.6                                       # Blading loss coefficient [-]
+  kSF = 7.0                                       # Skin friction coefficient [-]
+  Cf = 0.01                                       # Friction coefficient [-]
+      
+  [default.iteration_parameters]
+  # Iteration control
+  beta2Bmax = - 50                                # Maximum blade angle
+  beta2Bmin = 0                                   # Minimum blade angle
+  bladeMin = 2                                    # Lowest bladenumber allowed
+  bladeMax = 30                                   # Highest bladenumber allowed
+  
+  [default.parameters_to_vary]
+  # VARY THESE PARAMETERS
+  Pr = 1.24                                       # Pressure ratio [-]
+  Ndes = 40000                                    # Rotational speed
+  rhDivr1 = 0.35                                  # Ratio commonly given
+  
+  [default.off_design_parameters]
+  bladeAngle = - 35                               # Blade angle of interest for off-desing_performance.py [degrees]
+  bladeNumber = 30                                # Blade number of interest for off-desing_performance.py
+  N_off_design_arr = [40000]                      # Rotational speeds for predicting off-design performance [rpm]
+  V0DivVcr_off_design_arr = [0.1, 0.7]            # Critical velocity ranges for predicting off-design performance [-]
+  constant_eff_lines = [0.71, 0.73, 0.75, 0.77, 0.78, 0.81]    # Lines of constant efficiency in compressor performance map
