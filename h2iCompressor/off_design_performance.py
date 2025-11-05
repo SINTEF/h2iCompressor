@@ -205,7 +205,7 @@ def off_design_performance_rpm(Nrpm, Compressor, Fluid, InletConditions, Iterati
 
         # Determine impeller outlet density for different mass flows
         for i in range(0, len(Compressor.V0DivVcr)):
-            print('V0/Vcr =', Compressor.V0DivVcr[i])
+            #print('V0/Vcr =', Compressor.V0DivVcr[i])
             rhoafter = density_impeller_outlet(rho2o)[0][i]                
             if np.isnan(rhoafter):
                 raise ValueError('Density calculation failed. Change range of V0/Vcr')

@@ -67,9 +67,9 @@ def impeller_optimization(Compressor, InletConditions, Fluid, IterationMatrix):
 
     for iz in range(len(IterationMatrix.ZB)):
         for ib in range(len(IterationMatrix.beta2B)):
-            blade_number = IterationMatrix.ZB[iz]
-            blade_angle = np.rad2deg(IterationMatrix.beta2B[ib])
-            print('\nBlade number =', blade_number, 'Blade angle =', blade_angle)
+            #blade_number = IterationMatrix.ZB[iz]
+            #blade_angle = np.rad2deg(IterationMatrix.beta2B[ib])
+            #print('\nBlade number =', blade_number, 'Blade angle =', blade_angle)
             
             sigma = IterationMatrix.sigmaWiesner[ib, iz]                         # Slip factor for current blade number and blade angle
             etaStage = 0.9      # Initial guess for stage efficiency 
