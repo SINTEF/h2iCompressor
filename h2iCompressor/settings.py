@@ -17,6 +17,7 @@ class Fluid:
     
     def __init__(self, fluid_name):
         self.fluid_properties = toml.load("fluids.toml")[fluid_name]    # Load properties from toml file
+        self.name = fluid_name
         self.Cp = self.fluid_properties['Cp']
         self.MolarMass = self.fluid_properties['MolarMass']
         self.k = self.fluid_properties['k']
@@ -45,6 +46,7 @@ class Compressor:
     """ Class with compressor properties """
     
     def __init__(self, fluid_instance, inlet_conditions_instance, compressor_name):
+        self.name = compressor_name
         self.compressor = toml.load("compressors.toml")[compressor_name]    # Load compressor properties from toml file
         self.impeller_properties = self.compressor['impeller_properties']
         self.impellerDensity = self.impeller_properties['impellerDensity']
