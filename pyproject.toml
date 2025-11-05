@@ -5,6 +5,7 @@ description = "A python code for predicting centrifugal compressor performance"
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
+  "marimo>=0.8.22",
   "matplotlib",
   "numpy",
   "pandas",
