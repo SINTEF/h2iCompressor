@@ -17,7 +17,7 @@ def plot_off_design(results_off_design, Compressor, InletConditions):
     fig1 = plt.figure('Total-to-static pressure ratio')
     
     if Compressor.name == "LUT":
-        df = pd.read_csv('public/lut_compressor_pressure_ratios.csv')
+        df = pd.read_csv('lut_compressor_pressure_ratios.csv')
         x_values_1 = df.iloc[:, 0]
         y_values_curve_1 = df.iloc[:, 1]
         x_values_2 = df.iloc[:, 2]
